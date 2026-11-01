@@ -20,19 +20,23 @@ export function FeaturedInternships({ className }) {
   }, [data]);
 
   return (
-    <section aria-labelledby="featured-heading" className={cn('bg-white py-16 sm:py-20', className)}>
+    <section
+      aria-labelledby="featured-heading"
+      className={cn('bg-white py-16 sm:py-24 transition-colors duration-200 dark:bg-slate-950', className)}
+    >
       <div className="container-page">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
-            <p className="eyebrow">Internships</p>
+            <p className="eyebrow">🚀 Verified Career Tracks</p>
             <h2
               id="featured-heading"
-              className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl"
+              className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl"
             >
-              Choose your track
+              Choose Your Internship Track
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-slate-600">
-              Each track pairs a role with a real industry domain and runs for one to six months.
+            <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-300">
+              Each track pairs an engineering role with a real industry domain (Banking, HealthTech,
+              E-Commerce). Complete day-wise tasks on GitHub and earn verifiable credentials.
             </p>
           </div>
           <Button
@@ -40,9 +44,9 @@ export function FeaturedInternships({ className }) {
             to={ROUTES.CATALOG}
             variant="outline"
             rightIcon={ArrowRight}
-            className="self-start sm:self-auto"
+            className="self-start sm:self-auto shadow-sm"
           >
-            View all internships
+            Browse all tracks
           </Button>
         </div>
 
