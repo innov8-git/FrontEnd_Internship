@@ -40,7 +40,6 @@ export const HOW_IT_WORKS_PATH = '/#how-it-works';
 export const PUBLIC_NAV_LINKS = Object.freeze([
   { label: 'Internships', to: ROUTES.CATALOG },
   { label: 'How it works', to: HOW_IT_WORKS_PATH, anchor: true },
-  { label: 'Verify certificate', to: ROUTES.VERIFY_CERTIFICATE },
 ]);
 
 const MAX_BADGE = 99;

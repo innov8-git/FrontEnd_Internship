@@ -7,9 +7,9 @@ import { FeaturedInternships } from '../components/FeaturedInternships';
 import { HeroSection, TrustStrip } from '../components/HeroSection';
 import { HowItWorks } from '../components/HowItWorks';
 
-/** Public home page (SN5): the first impression of the portal. */
+/** Public home page: original layout with updated theme and hero background. */
 export function HomePage() {
-  useDocumentTitle('Prove your skills, ship real projects');
+  useDocumentTitle('ALFRE | Real Software Engineering Internships & Career Guidance');
 
   return (
     <div className="bg-white transition-colors duration-200 dark:bg-slate-950">

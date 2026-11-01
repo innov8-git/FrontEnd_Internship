@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Button, Drawer, Logo, ThemeToggle } from '@/shared/components/ui';
 import { useAuth } from '@/shared/hooks';
 import { ROUTES, getHomeRoute } from '@/shared/constants';
-import { ArrowRight, Menu } from '@/shared/icons';
+import { ArrowRight, Menu, ShieldCheck } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 import { PUBLIC_NAV_LINKS } from './navigation';
 import { UserMenu } from './UserMenu';
@@ -66,7 +66,7 @@ export function Navbar() {
   const homeRoute = getHomeRoute(user);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur transition-colors duration-200 dark:border-slate-800 dark:bg-slate-950/85">
+    <header className="sticky top-0 z-40 border-b border-gray-300/80 bg-gray-100/95 backdrop-blur transition-colors duration-200 dark:border-gray-800 dark:bg-gray-900/95">
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-10">
           <Logo to={ROUTES.HOME} />
@@ -87,9 +87,18 @@ export function Navbar() {
 
           {isResolved && isSignedIn ? (
             <>
-              <div className="hidden md:block">
+              <div className="hidden md:flex items-center gap-2">
                 <Button as={Link} to={homeRoute} size="sm">
                   Go to dashboard
+                </Button>
+                <Button
+                  as={Link}
+                  to={ROUTES.VERIFY_CERTIFICATE}
+                  variant="outline"
+                  size="sm"
+                  leftIcon={ShieldCheck}
+                >
+                  Verify certificate
                 </Button>
               </div>
               <UserMenu />
@@ -103,6 +112,15 @@ export function Navbar() {
               </Button>
               <Button as={Link} to={ROUTES.REGISTER} size="sm">
                 Get started
+              </Button>
+              <Button
+                as={Link}
+                to={ROUTES.VERIFY_CERTIFICATE}
+                variant="outline"
+                size="sm"
+                leftIcon={ShieldCheck}
+              >
+                Verify certificate
               </Button>
             </div>
           ) : null}
@@ -130,6 +148,13 @@ export function Navbar() {
                 <PublicNavLink link={link} mobile onNavigate={closeMenu} />
               </li>
             ))}
+            <li>
+              <PublicNavLink
+                link={{ label: 'Verify certificate', to: ROUTES.VERIFY_CERTIFICATE }}
+                mobile
+                onNavigate={closeMenu}
+              />
+            </li>
           </ul>
         </nav>
 
