@@ -26,6 +26,7 @@ function filterOptions(items, allLabel) {
   ];
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function describePlan(plan) {
   return [plan.designation?.name, plan.domain?.name, formatDuration(plan.durationMonths)]
     .filter(Boolean)

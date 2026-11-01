@@ -2,6 +2,7 @@ import { forwardRef, useId, useRef } from 'react';
 import { CheckCircle2 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 /**

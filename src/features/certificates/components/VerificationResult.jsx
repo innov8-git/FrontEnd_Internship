@@ -50,6 +50,7 @@ function refName(value) {
 }
 
 /** One-line outcome for screen-reader announcements (used by the page's live region). */
+// eslint-disable-next-line react-refresh/only-export-components
 export function getVerificationAnnouncement(query) {
   if (!query) return '';
   if (query.isLoading) return 'Checking the certificate…';

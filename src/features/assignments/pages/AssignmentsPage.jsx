@@ -217,7 +217,7 @@ export function AssignmentsPage() {
       },
     ],
     // openAssign/setToUnassign only set state, so the columns never need rebuilding.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [],
   );
 
