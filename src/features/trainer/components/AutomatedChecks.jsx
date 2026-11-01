@@ -39,7 +39,7 @@ export function AutomatedChecks({ checks }) {
               const Icon = meta.icon;
               return (
                 <li
-                  // eslint-disable-next-line react/no-array-index-key
+                   
                   key={`${check.name}-${index}`}
                   className={cn(
                     'flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5',

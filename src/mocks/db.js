@@ -106,7 +106,7 @@ function buildInitialData() {
   try {
     return buildSeed();
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('[mock db] Building the seed failed; starting with an empty database.', error);
     return emptyCollections();
   }
@@ -144,7 +144,7 @@ function serialize(compact) {
 function warnOnce(error) {
   if (warnedAboutStorage) return;
   warnedAboutStorage = true;
-  // eslint-disable-next-line no-console
+   
   console.warn(
     '[mock db] Could not save the mock database to localStorage; changes will be lost on reload.',
     error,

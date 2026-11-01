@@ -11,6 +11,7 @@ export const RAZORPAY_SCRIPT_SRC = 'https://checkout.razorpay.com/v1/checkout.js
 let scriptPromise = null;
 
 /** Loads Razorpay's checkout.js once per page load (shared by every checkout). */
+// eslint-disable-next-line react-refresh/only-export-components
 export function loadRazorpay() {
   if (typeof window === 'undefined') {
     return Promise.reject(new Error('The payment window can only open in a browser.'));

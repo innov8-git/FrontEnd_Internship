@@ -87,6 +87,7 @@ export const Textarea = forwardRef(function Textarea(
 
   // Values written straight to the DOM (react-hook-form defaults, reset()) fire no change
   // event, so re-read the length after each render. State only changes when it differs.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const node = elementRef.current;
     if (node && node.value.length !== trackedLength) {

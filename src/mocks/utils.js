@@ -287,7 +287,7 @@ function wrap(resolver) {
       if (error && typeof error.status === 'number' && typeof error.code === 'string') {
         return apiError(error.status, error.code, error.message, error.details || []);
       }
-      // eslint-disable-next-line no-console
+       
       console.error('[mock api] handler crashed', info.request.method, info.request.url, error);
       return apiError(500, 'MOCK_HANDLER_ERROR', error?.message || 'Mock handler crashed.');
     } finally {

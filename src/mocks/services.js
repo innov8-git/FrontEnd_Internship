@@ -358,7 +358,7 @@ function runLater(job, delayMs) {
       job();
       persist();
     } catch (error) {
-      // eslint-disable-next-line no-console
+       
       console.warn('[mock api] background job failed', error);
     }
   }, delayMs);

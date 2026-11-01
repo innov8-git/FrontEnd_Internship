@@ -45,7 +45,7 @@ export function CriteriaChecklist({ criteria }) {
             <ul className="space-y-3">
               {list.map((criterion, index) => (
                 // Criteria are plain strings that can repeat, so the index is part of the key.
-                // eslint-disable-next-line react/no-array-index-key
+                 
                 <li key={`${index}-${criterion}`} className="rounded-lg border border-slate-200 px-3 py-2.5">
                   <Checkbox
                     id={`${baseId}-criterion-${index}`}

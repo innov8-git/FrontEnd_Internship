@@ -18,6 +18,7 @@ import { absoluteUrl, formatDate, formatDuration } from '@/shared/utils/helpers'
 import { useCertificateDownload } from '../hooks/useCertificateDownload';
 
 /** Public verification URL for a certificate number, e.g. https://…/verify/IP-2026-000123 */
+// eslint-disable-next-line react-refresh/only-export-components
 export function getVerificationLink(certificateNo) {
   return certificateNo ? absoluteUrl(paths.verifyCertificate(certificateNo)) : '';
 }
