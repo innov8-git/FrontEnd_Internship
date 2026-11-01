@@ -11,6 +11,7 @@ import { adminRoutes } from './AdminRoutes';
  * Route tree with four groups (SN1): public, student, trainer and admin (+ auth pages).
  * A data router is used so screens can block in-app navigation (useBlocker) mid-assessment.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const routes = [
   {
     element: <RootLayout />,
@@ -20,6 +21,7 @@ export const routes = [
 ];
 
 /** Opt in to React Router v7 behaviour now (also silences the future-flag warnings). */
+// eslint-disable-next-line react-refresh/only-export-components
 export const ROUTER_FUTURE = {
   v7_relativeSplatPath: true,
   v7_fetcherPersist: true,

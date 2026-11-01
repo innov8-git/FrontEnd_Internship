@@ -49,6 +49,7 @@ function dismiss(id) {
   emit();
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const toast = {
   success: (title, options) => add('success', title, options),
   error: (title, options) => add('error', title, options),
@@ -57,6 +58,7 @@ export const toast = {
   dismiss,
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useToast() {
   return toast;
 }

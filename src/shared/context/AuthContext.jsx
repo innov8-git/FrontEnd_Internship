@@ -15,6 +15,7 @@ import { hasAnyRole, hasRole } from '@/shared/constants';
  * On boot we call /auth/refresh: the refresh token lives in an httpOnly cookie, so a page
  * reload restores the session without ever storing the access token in localStorage.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {

@@ -21,7 +21,7 @@ async function enableMocking() {
       serviceWorker: { url: `${import.meta.env.BASE_URL}mockServiceWorker.js` },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error(
       '[mocks] The mock API could not start. Run `npm run msw:init` to generate public/mockServiceWorker.js.',
       error,
