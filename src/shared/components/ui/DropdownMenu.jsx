@@ -156,18 +156,18 @@ export function DropdownMenu({ trigger, items = [], align = 'end', label, classN
             onKeyDown={handleMenuKeyDown}
             style={{ position: 'fixed', top: position.top, left: position.left }}
             className={cn(
-              'z-[60] min-w-[12rem] max-w-[min(20rem,calc(100vw-1rem))] animate-scale-in rounded-xl border border-slate-200 bg-white p-1 shadow-elevated focus:outline-none',
+              'z-[60] min-w-[12rem] max-w-[min(20rem,calc(100vw-1rem))] animate-scale-in rounded-xl border border-slate-200 bg-white p-1 shadow-elevated focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100',
               className,
             )}
           >
             {label ? (
-              <div className="border-b border-slate-100 px-3 pb-2 pt-1.5 text-xs text-slate-500">
+              <div className="border-b border-slate-100 px-3 pb-2 pt-1.5 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
                 {label}
               </div>
             ) : null}
             {items.map((item, index) => {
               if (item.divider) {
-                return <div key={`divider-${index}`} role="separator" className="my-1 h-px bg-slate-100" />;
+                return <div key={`divider-${index}`} role="separator" className="my-1 h-px bg-slate-100 dark:bg-slate-800" />;
               }
               const Icon = item.icon;
               const classes = cn(
@@ -175,8 +175,8 @@ export function DropdownMenu({ trigger, items = [], align = 'end', label, classN
                 item.disabled
                   ? 'cursor-not-allowed text-slate-400'
                   : item.danger
-                    ? 'text-rose-600 hover:bg-rose-50 focus:bg-rose-50'
-                    : 'text-slate-700 hover:bg-slate-50 focus:bg-slate-100',
+                    ? 'text-rose-600 hover:bg-rose-50 focus:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 dark:focus:bg-rose-950/40'
+                    : 'text-slate-700 hover:bg-slate-50 focus:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus:bg-slate-800',
               );
               const content = (
                 <>

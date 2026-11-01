@@ -12,14 +12,14 @@ export function HomePage() {
   useDocumentTitle('Prove your skills, ship real projects');
 
   return (
-    <div className="bg-white">
+    <div className="bg-white transition-colors duration-200 dark:bg-slate-950">
       <HeroSection />
       <TrustStrip />
       <HowItWorks />
       <FeaturedInternships />
       <DomainStrip />
       <DiscountExplainer />
-      <Faq className="border-t border-slate-200" />
+      <Faq className="border-t border-slate-200 dark:border-slate-800" />
       <CtaBanner />
     </div>
   );

@@ -1,4 +1,4 @@
-import { Button, Logo } from '@/shared/components/ui';
+import { Button, Logo, ThemeToggle } from '@/shared/components/ui';
 import { Menu } from '@/shared/icons';
 import { UserMenu } from './UserMenu';
 
@@ -8,7 +8,7 @@ import { UserMenu } from './UserMenu';
  */
 export function Topbar({ onMenuClick, roleLabel, homeTo = '/', menuOpen = false }) {
   return (
-    <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-slate-200 bg-white/90 backdrop-blur transition-colors duration-200 dark:border-slate-800 dark:bg-slate-950/90">
       <div className="flex h-full items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
         <div className="-ml-2 lg:hidden">
           <Button
@@ -28,10 +28,13 @@ export function Topbar({ onMenuClick, roleLabel, homeTo = '/', menuOpen = false 
         </div>
 
         {roleLabel ? (
-          <p className="hidden text-sm font-medium text-slate-500 lg:block">{roleLabel} workspace</p>
+          <p className="hidden text-sm font-medium text-slate-500 dark:text-slate-400 lg:block">
+            {roleLabel} workspace
+          </p>
         ) : null}
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          <ThemeToggle />
           <UserMenu />
         </div>
       </div>

@@ -7,18 +7,22 @@
     color-scheme: light;
   }
 
+  html.dark {
+    color-scheme: dark;
+  }
+
   html {
     -webkit-tap-highlight-color: transparent;
     scroll-behavior: smooth;
   }
 
   body {
-    @apply min-h-screen bg-slate-50 font-sans text-slate-900 antialiased;
+    @apply min-h-screen bg-slate-50 font-sans text-slate-900 antialiased transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100;
     text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    @apply bg-brand-100 text-brand-900;
+    @apply bg-brand-100 text-brand-900 dark:bg-brand-900/60 dark:text-brand-100;
   }
 
   /* Visible keyboard focus everywhere; components may refine it with ring utilities. */
@@ -47,11 +51,11 @@
 
   /* Small uppercase label above a heading. */
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-wider text-brand-600;
+    @apply text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400;
   }
 
   .link {
-    @apply font-medium text-brand-700 underline-offset-4 hover:text-brand-800 hover:underline;
+    @apply font-medium text-brand-700 underline-offset-4 hover:text-brand-800 hover:underline dark:text-brand-400 dark:hover:text-brand-300;
   }
 
   .tabular {
@@ -65,11 +69,21 @@
     scrollbar-color: theme('colors.slate.300') transparent;
   }
 
+  .dark .scrollbar-thin {
+    scrollbar-color: theme('colors.slate.700') transparent;
+  }
+
   .bg-grid {
     background-image:
       linear-gradient(to right, rgb(148 163 184 / 0.12) 1px, transparent 1px),
       linear-gradient(to bottom, rgb(148 163 184 / 0.12) 1px, transparent 1px);
     background-size: 32px 32px;
+  }
+
+  .dark .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
   }
 }
 

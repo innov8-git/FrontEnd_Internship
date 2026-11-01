@@ -24,10 +24,10 @@ function SidebarLink({ item, onNavigate }) {
       className={({ isActive }) =>
         cn(
           'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900',
           isActive || alsoActive
-            ? 'bg-brand-50 text-brand-700'
-            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
+            ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300'
+            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100',
         )
       }
     >
@@ -40,7 +40,9 @@ function SidebarLink({ item, onNavigate }) {
                 aria-hidden="true"
                 className={cn(
                   'h-5 w-5 shrink-0 transition-colors',
-                  active ? 'text-brand-600' : 'text-slate-400 group-hover:text-slate-600',
+                  active
+                    ? 'text-brand-600 dark:text-brand-400'
+                    : 'text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300',
                 )}
               />
             ) : null}
@@ -67,7 +69,6 @@ function SidebarLink({ item, onNavigate }) {
  * Workspace navigation (SN1, GP2, KD1).
  * - variant "fixed": the desktop sidebar (logo header, right border).
  * - variant "drawer": rendered inside the mobile Drawer, which already has its own header.
- * `navigation`: [{ title?, items: [{ label, to, icon, end, badge, badgeLabel, hidden, activePaths }] }]
  */
 export function Sidebar({
   navigation = [],
@@ -83,13 +84,13 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        'flex h-full flex-col bg-white',
-        !isDrawer && 'border-r border-slate-200',
+        'flex h-full flex-col bg-white transition-colors duration-200 dark:bg-slate-900',
+        !isDrawer && 'border-r border-slate-200 dark:border-slate-800',
         className,
       )}
     >
       {!isDrawer ? (
-        <div className="flex h-16 shrink-0 items-center border-b border-slate-200 px-5">
+        <div className="flex h-16 shrink-0 items-center border-b border-slate-200 px-5 dark:border-slate-800">
           <Logo to={homeTo} />
         </div>
       ) : null}
@@ -105,7 +106,7 @@ export function Sidebar({
                 {section.title ? (
                   <p
                     id={headingId}
-                    className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500"
+                    className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
                   >
                     {section.title}
                   </p>
@@ -129,14 +130,14 @@ export function Sidebar({
         <div
           className={cn(
             'shrink-0 space-y-3',
-            isDrawer ? 'border-t border-slate-200 pt-5' : 'px-4 pb-4',
+            isDrawer ? 'border-t border-slate-200 pt-5 dark:border-slate-800' : 'px-4 pb-4',
             // Leave room for the floating "Mock API" button in mock mode.
             !isDrawer && USE_MOCKS && 'pb-20',
           )}
         >
-          <div className="rounded-xl bg-slate-50 p-4 text-sm">
-            <p className="font-medium text-slate-900">Need help?</p>
-            <p className="mt-1 text-slate-500">
+          <div className="rounded-xl bg-slate-50 p-4 text-sm dark:bg-slate-800/60">
+            <p className="font-medium text-slate-900 dark:text-slate-100">Need help?</p>
+            <p className="mt-1 text-slate-500 dark:text-slate-400">
               Email{' '}
               <a href={`mailto:${SUPPORT_EMAIL}`} className="link break-words">
                 {SUPPORT_EMAIL}
@@ -145,7 +146,7 @@ export function Sidebar({
           </div>
           {roleLabel ? (
             <div className="flex items-center justify-between gap-2 px-1">
-              <span className="text-xs text-slate-500">Workspace</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Workspace</span>
               <Badge variant="brand">{roleLabel}</Badge>
             </div>
           ) : null}

@@ -21,10 +21,10 @@ export const Card = forwardRef(function Card(
     <Component
       ref={ref}
       className={cn(
-        'rounded-xl border border-slate-200 bg-white shadow-card',
+        'rounded-xl border border-slate-200 bg-white shadow-card transition-colors duration-200 dark:border-slate-800 dark:bg-slate-900',
         PADDING[padding] ?? PADDING.md,
         interactive &&
-          'block transition duration-150 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
+          'block transition duration-150 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:hover:border-slate-700 dark:focus-visible:ring-offset-slate-900',
         className,
       )}
       {...rest}
@@ -56,7 +56,7 @@ export function CardHeader({
       <div className="flex min-w-0 items-start gap-3">
         {Icon ? (
           <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-950/60 dark:text-brand-400"
             aria-hidden="true"
           >
             <Icon className="h-5 w-5" />
@@ -64,11 +64,13 @@ export function CardHeader({
         ) : null}
         <div className="min-w-0">
           {title ? (
-            <TitleTag className="text-base font-semibold tracking-tight text-slate-900">
+            <TitleTag className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">
               {title}
             </TitleTag>
           ) : null}
-          {description ? <div className="mt-1 text-sm text-slate-500">{description}</div> : null}
+          {description ? (
+            <div className="mt-1 text-sm text-slate-500 dark:text-slate-400">{description}</div>
+          ) : null}
           {children}
         </div>
       </div>
@@ -93,7 +95,7 @@ export function CardFooter({ className, children, ...rest }) {
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center justify-end gap-2 rounded-b-xl border-t border-slate-100 bg-slate-50/60 px-5 py-3',
+        'flex flex-wrap items-center justify-end gap-2 rounded-b-xl border-t border-slate-100 bg-slate-50/60 px-5 py-3 dark:border-slate-800 dark:bg-slate-900/40',
         className,
       )}
       {...rest}

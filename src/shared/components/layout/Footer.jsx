@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Logo } from '@/shared/components/ui';
 import { useAuth } from '@/shared/hooks';
-import { APP_NAME, ROUTES, SUPPORT_EMAIL, getHomeRoute } from '@/shared/constants';
+import { APP_NAME, APP_TAGLINE, ROUTES, SUPPORT_EMAIL, getHomeRoute } from '@/shared/constants';
 import { HOW_IT_WORKS_PATH } from './navigation';
 
 const LINK_CLASS =
-  'inline-block rounded-sm py-1 text-sm text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2';
+  'inline-block rounded-sm py-1 text-sm text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2';
 
 function FooterLink({ link }) {
   if (link.href) {
@@ -59,12 +59,15 @@ export function Footer() {
   ];
 
   return (
-    <footer className="border-t border-slate-200 bg-slate-50">
+    <footer className="border-t border-slate-200 bg-slate-50 transition-colors duration-200 dark:border-slate-800 dark:bg-slate-900/60">
       <div className="container-page py-12">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Logo to={ROUTES.HOME} />
-            <p className="mt-4 max-w-xs text-sm leading-6 text-slate-600">
+            <Logo to={ROUTES.HOME} size="md" />
+            <p className="mt-2 text-xs font-semibold tracking-wider uppercase text-brand-600 dark:text-brand-400">
+              {APP_TAGLINE}
+            </p>
+            <p className="mt-3 max-w-xs text-sm leading-6 text-slate-600 dark:text-slate-400">
               Assessment-based internships with real projects, GitHub reviews and verifiable
               certificates.
             </p>
@@ -72,7 +75,7 @@ export function Footer() {
 
           {columns.map((column) => (
             <div key={column.title}>
-              <h2 className="text-sm font-semibold text-slate-900">{column.title}</h2>
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{column.title}</h2>
               <ul role="list" className="mt-3 space-y-1">
                 {column.links.map((link) => (
                   <li key={link.label}>
@@ -84,8 +87,8 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 border-t border-slate-200 pt-6">
-          <p className="text-sm text-slate-500">
+        <div className="mt-10 border-t border-slate-200 pt-6 dark:border-slate-800">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             © {year} {APP_NAME}. All rights reserved.
           </p>
         </div>

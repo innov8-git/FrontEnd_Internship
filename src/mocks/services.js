@@ -83,7 +83,7 @@ export {
 // ===========================================================================
 
 const DEFAULT_IP = '127.0.0.1';
-const MERCHANT_NAME = 'Internship Portal';
+const MERCHANT_NAME = 'ALFRE';
 const UNKNOWN_USER_NAME = 'Unknown user';
 const QUOTE_TTL_HOURS = 24; // MM8: a quote is valid for 24 hours
 const MIN_FEEDBACK_LENGTH = 10; // MM14: feedback is required unless approving

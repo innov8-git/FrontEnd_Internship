@@ -48,3 +48,4 @@ export { Stepper } from './Stepper';
 export { Logo } from './Logo';
 export { Prose } from './Prose';
 export { BarChart } from './BarChart';
+export { ThemeToggle } from './ThemeToggle';

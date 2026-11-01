@@ -36,36 +36,36 @@ export function AuthLayout() {
     <div className="grid min-h-screen bg-slate-50 lg:grid-cols-2">
       <aside
         aria-label={`About ${APP_NAME}`}
-        className="relative hidden overflow-hidden bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-12 text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:justify-between"
+        className="relative hidden overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-black p-12 text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:justify-between"
       >
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-grid opacity-50" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-400/30 blur-3xl"
+          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-500/20 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-brand-500/20 blur-3xl"
+          className="pointer-events-none absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-brand-400/15 blur-3xl"
         />
 
         <div className="relative">
-          <Logo to={ROUTES.HOME} inverted />
+          <Logo to={ROUTES.HOME} inverted size="lg" />
         </div>
 
         <div className="relative max-w-lg">
           {/* Not a heading: each auth page owns the page's only <h1>. */}
-          <p className="text-3xl font-semibold leading-tight tracking-tight">
-            Learn by shipping real projects.
+          <p className="text-3xl font-semibold leading-tight tracking-tight text-white">
+            Your Career. Our Guidance.
           </p>
-          <p className="mt-4 text-base leading-7 text-brand-100">
+          <p className="mt-4 text-base leading-7 text-slate-300">
             Take a short assessment, unlock your merit discount and build real software with a
             trainer reviewing every task.
           </p>
           <ul role="list" className="mt-10 space-y-5">
             {VALUE_PROPS.map(({ icon: Icon, text }) => (
               <li key={text} className="flex items-center gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-inset ring-white/15">
-                  <Icon className="h-5 w-5 text-white" aria-hidden="true" />
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-inset ring-brand-500/30">
+                  <Icon className="h-5 w-5 text-brand-400" aria-hidden="true" />
                 </span>
                 <span className="text-sm font-medium leading-6 text-white/90">{text}</span>
               </li>
@@ -73,11 +73,11 @@ export function AuthLayout() {
           </ul>
         </div>
 
-        <p className="relative text-sm text-brand-100">
+        <p className="relative text-sm text-slate-400">
           Checking someone&apos;s certificate?{' '}
           <Link
             to={ROUTES.VERIFY_CERTIFICATE}
-            className="rounded-sm font-medium text-white underline underline-offset-4 hover:text-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="rounded-sm font-medium text-brand-400 underline underline-offset-4 hover:text-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
           >
             Verify it here
           </Link>
