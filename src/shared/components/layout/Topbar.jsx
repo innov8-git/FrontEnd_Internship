@@ -8,7 +8,7 @@ import { UserMenu } from './UserMenu';
  */
 export function Topbar({ onMenuClick, roleLabel, homeTo = '/', menuOpen = false }) {
   return (
-    <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-slate-200 bg-white/90 backdrop-blur transition-colors duration-200 dark:border-slate-800 dark:bg-slate-950/90">
+    <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-gray-300/80 bg-gray-100/95 backdrop-blur transition-colors duration-200 dark:border-gray-800 dark:bg-gray-900/95">
       <div className="flex h-full items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
         <div className="-ml-2 lg:hidden">
           <Button

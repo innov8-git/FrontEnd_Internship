@@ -1,171 +1,158 @@
 import { Link } from 'react-router-dom';
-import { Avatar, Badge, Button, ProgressBar } from '@/shared/components/ui';
+import { Button } from '@/shared/components/ui';
 import { ROUTES } from '@/shared/constants';
 import {
   ArrowRight,
-  BadgeCheck,
   CheckCircle2,
   Coffee,
   Container,
   Database,
-  GitCommit,
   GithubIcon,
   Hexagon,
   Layers,
-  Lock,
-  Percent,
-  ShieldCheck,
-  Sparkles,
-  Timer,
+  Star,
   Workflow,
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 import { MAX_EXAMPLE_DISCOUNT_PERCENT } from '../utils/catalogFormat';
 
-const HIGHLIGHTS = ['No pass or fail', 'One attempt, no timer', 'Certificates anyone can verify'];
-
-const PREVIEW_TASKS = [
-  { title: 'Fix the failing transfer service', status: 'Approved', variant: 'success', icon: CheckCircle2, iconClass: 'text-emerald-600' },
-  { title: 'Add JPA persistence for ledgers', status: 'In review', variant: 'info', icon: Timer, iconClass: 'text-sky-600' },
-  { title: 'Write JUnit tests for statements', status: 'Locked', variant: 'neutral', icon: Lock, iconClass: 'text-slate-400' },
+const HIGHLIGHTS = [
+  'Guaranteed Sprints — No Resume Filter',
+  'Up to 20% Merit Scholarship',
+  'Senior Engineer Code Reviews',
+  'Verifiable Digital Certificate',
 ];
 
-const MASK_TOP =
-  '[mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)] [-webkit-mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]';
+const POPULAR_TRACKS = [
+  { label: '☕ Java Banking', query: 'java' },
+  { label: '⚛️ Full Stack', query: 'full-stack' },
+  { label: '☁️ DevOps & Cloud', query: 'devops' },
+  { label: '🔷 .NET Core', query: 'net' },
+  { label: '🗄️ SQL & Backend', query: 'sql' },
+];
 
 /**
- * Decorative "student dashboard" built from UI kit pieces. Hidden from assistive tech:
- * it illustrates the product and contains no real data or controls.
+ * Hero section displaying the full image in the background with uniform contrast,
+ * showcasing the whole photograph across the entire landing page viewport.
  */
-function HeroVisual() {
-  return (
-    <div className="relative mx-auto w-full max-w-md sm:pb-14 sm:pt-24 lg:max-w-lg" aria-hidden="true">
-      <div className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-elevated dark:border-slate-800 dark:bg-slate-900 sm:p-6">
-        <div className="flex items-center gap-3">
-          <Avatar name="Aarav Sharma" size="md" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">Aarav Sharma</p>
-            <p className="truncate text-xs text-slate-500 dark:text-slate-400">Java Developer · Banking</p>
-          </div>
-          <Badge variant="info" dot>
-            Day 12
-          </Badge>
-        </div>
-
-        <ProgressBar className="mt-5" value={40} label="Internship progress" showValue />
-
-        <ul className="mt-5 space-y-2.5">
-          {PREVIEW_TASKS.map(({ title, status, variant, icon: Icon, iconClass }) => (
-            <li
-              key={title}
-              className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50/70 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
-            >
-              <Icon className={cn('h-4 w-4 shrink-0', iconClass)} />
-              <span className="min-w-0 flex-1 truncate text-sm text-slate-700 dark:text-slate-300">{title}</span>
-              <Badge variant={variant}>{status}</Badge>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-5 flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 font-mono text-xs text-slate-300 dark:bg-slate-950">
-          <GitCommit className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-          <span className="truncate">feat: add daily transfer limits</span>
-          <span className="ml-auto shrink-0 text-slate-500">a1b2c3d</span>
-        </div>
-      </div>
-
-      <div className="absolute right-2 top-0 hidden w-56 rounded-xl border border-slate-200 bg-white p-4 shadow-elevated dark:border-slate-800 dark:bg-slate-900 sm:block lg:-right-4">
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Assessment score</p>
-        <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
-          14 <span className="text-base font-medium text-slate-400">/ 15</span>
-        </p>
-        <Badge variant="brand" icon={Percent} className="mt-2">
-          10% individual discount
-        </Badge>
-      </div>
-
-      <div className="absolute bottom-0 left-2 hidden w-60 rounded-xl border border-slate-200 bg-white p-4 shadow-elevated dark:border-slate-800 dark:bg-slate-900 sm:block lg:-left-6">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
-            <BadgeCheck className="h-5 w-5" />
-          </span>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Certificate verified</p>
-            <p className="truncate font-mono text-xs text-slate-500 dark:text-slate-400">ALF-2026-000123</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Home page hero (SN5): headline, two CTAs and the product visual. Renders the page's <h1>. */
 export function HeroSection({ className }) {
   return (
     <section
       aria-labelledby="hero-heading"
       className={cn(
-        'relative isolate overflow-hidden bg-gradient-to-b from-brand-50 via-white to-white transition-colors duration-200 dark:from-brand-950/40 dark:via-slate-950 dark:to-slate-950',
+        'relative isolate min-h-[640px] overflow-hidden bg-slate-950 text-white transition-colors duration-200 lg:min-h-[720px]',
         className,
       )}
     >
-      <div
-        className={cn('bg-grid pointer-events-none absolute inset-0 -z-10', MASK_TOP)}
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -top-40 right-[-10%] -z-10 h-[28rem] w-[28rem] rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-900/20"
-        aria-hidden="true"
-      />
+      {/* Background Image Container - The WHOLE image is visible across the entire section */}
+      <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        <img
+          src="/hero-bg.jpg"
+          alt=""
+          className="h-full w-full object-cover object-center"
+        />
 
-      <div className="container-page grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16 lg:py-24">
-        <div className="max-w-2xl">
-          <Badge variant="brand" size="md" icon={Sparkles}>
-            ALFRE · Industry internships with real projects
-          </Badge>
+        {/* Subtle, balanced overlay allowing the background photograph to be clearly visible and vibrant */}
+        <div className="absolute inset-0 bg-slate-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/35" />
+
+        {/* Ambient warm amber brand glow */}
+        <div className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 h-[36rem] w-[44rem] rounded-full bg-amber-500/15 blur-3xl" />
+      </div>
+
+      <div className="container-page flex flex-col items-center justify-center py-16 sm:py-24 text-center">
+        <div className="mx-auto max-w-3xl">
+          {/* Announcement Pill */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-slate-900/80 px-3.5 py-1 text-xs font-semibold text-amber-300 shadow-lg backdrop-blur">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>2026 Cohorts Open</span>
+            <span className="text-amber-400/70">·</span>
+            <span className="text-amber-200">
+              Up to {MAX_EXAMPLE_DISCOUNT_PERCENT}% Merit Scholarship
+            </span>
+          </div>
+
+          {/* Main Headline */}
           <h1
             id="hero-heading"
-            className="mt-6 text-4xl font-semibold leading-[1.1] tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-[3.5rem]"
+            className="mt-5 text-4xl font-extrabold leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-6xl drop-shadow-lg"
           >
-            Prove your skills. <span className="text-brand-600 dark:text-brand-400">Earn your discount.</span> Ship
-            real projects.
+            Real Industry Internships.{' '}
+            <br className="hidden sm:inline" />
+            <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 bg-clip-text text-transparent">
+              Real Production Code.
+            </span>
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
-            Take one 15-question assessment, unlock a merit discount
-            {MAX_EXAMPLE_DISCOUNT_PERCENT > 0 ? ` of up to ${MAX_EXAMPLE_DISCOUNT_PERCENT}%` : ''},
-            then work through day-wise tasks reviewed by trainers on GitHub. Finish with a
-            certificate anyone can verify.
+
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-slate-100 drop-shadow-md sm:text-lg">
+            Build production software, get reviewed by senior engineers on GitHub,
+            and graduate with employer-verified credentials.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button as={Link} to={ROUTES.CATALOG} size="lg" rightIcon={ArrowRight}>
-              Explore internships
-            </Button>
+
+          {/* Primary Action Button */}
+          <div className="mt-5 flex items-center justify-center">
             <Button
               as={Link}
-              to={ROUTES.VERIFY_CERTIFICATE}
+              to={ROUTES.CATALOG}
               size="lg"
-              variant="outline"
-              leftIcon={ShieldCheck}
+              rightIcon={ArrowRight}
+              className="shadow-xl px-7"
             >
-              Verify a certificate
+              Explore Internships
             </Button>
           </div>
-          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600 dark:text-slate-400">
+
+          {/* Popular Tracks Quick Links */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
+            <span className="font-semibold text-slate-300">Popular:</span>
+            {POPULAR_TRACKS.map(({ label, query }) => (
+              <Link
+                key={label}
+                to={`${ROUTES.CATALOG}?q=${query}`}
+                className="rounded-full border border-white/15 bg-slate-900/70 px-3 py-1 font-medium text-slate-200 backdrop-blur transition hover:border-amber-400 hover:text-amber-300"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Feature Highlights Checklist */}
+          <ul className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-slate-200">
             {HIGHLIGHTS.map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                {item}
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                <span>{item}</span>
               </li>
             ))}
           </ul>
-        </div>
 
-        <HeroVisual />
+          {/* Live Trust Metrics Bar */}
+          <div className="mx-auto mt-8 grid max-w-md grid-cols-3 gap-4 border-t border-white/15 pt-5 text-center">
+            <div>
+              <p className="text-xl font-black text-white sm:text-2xl">2,500+</p>
+              <p className="text-xs text-slate-300">Active Interns</p>
+            </div>
+            <div>
+              <div className="flex items-center justify-center gap-1">
+                <p className="text-xl font-black text-white sm:text-2xl">4.9</p>
+                <div className="flex text-amber-400">
+                  <Star className="h-4 w-4 fill-amber-400" />
+                </div>
+              </div>
+              <p className="text-xs text-slate-300">500+ Reviews</p>
+            </div>
+            <div>
+              <p className="text-xl font-black text-white sm:text-2xl">100%</p>
+              <p className="text-xs text-slate-300">Verifiable</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
 
+// STACKS list
 const STACKS = [
   { label: 'Java', icon: Coffee },
   { label: 'Full Stack', icon: Layers },
@@ -176,28 +163,42 @@ const STACKS = [
   { label: 'GitHub', icon: GithubIcon },
 ];
 
-/** Trust strip under the hero: the stacks the internship tracks are built on. */
+/** Trust strip under the hero: continuous autoscrolling marquee for industry tech stacks. */
 export function TrustStrip({ className }) {
   return (
     <section
       aria-label="Technologies covered"
-      className={cn('border-y border-slate-200 bg-white transition-colors duration-200 dark:border-slate-800 dark:bg-slate-900/60', className)}
+      className={cn(
+        'overflow-hidden border-y border-slate-200 bg-white py-5 transition-colors duration-200 dark:border-slate-800 dark:bg-slate-900/60',
+        className,
+      )}
     >
-      <div className="container-page flex flex-col items-center gap-5 py-8 lg:flex-row lg:justify-between">
-        <p className="text-center text-sm font-medium text-slate-500 dark:text-slate-400 lg:text-left">
-          Tracks built on the stacks teams hire for
-        </p>
-        <ul className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3">
-          {STACKS.map(({ label, icon: Icon }) => (
-            <li
-              key={label}
-              className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 sm:text-base"
-            >
-              <Icon className="h-5 w-5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
-              {label}
-            </li>
-          ))}
-        </ul>
+      <div className="container-page">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+          {/* Label with pulse dot */}
+          <div className="flex shrink-0 items-center justify-center lg:justify-start gap-2">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+              Industry Stacks You Will Master:
+            </p>
+          </div>
+
+          {/* Autoscrolling Infinite Marquee */}
+          <div className="relative flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]">
+            <div className="flex w-max items-center gap-4 animate-marquee py-1 hover:[animation-play-state:paused]">
+              {/* Duplicated multiple times to guarantee an unbroken, seamless infinite marquee */}
+              {[...STACKS, ...STACKS, ...STACKS].map(({ label, icon: Icon }, idx) => (
+                <div
+                  key={`${label}-${idx}`}
+                  className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200/90 bg-slate-50/90 px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-amber-500 hover:text-amber-700 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-200 sm:text-sm cursor-default"
+                >
+                  <Icon className="h-4 w-4 text-brand-600 dark:text-brand-400" aria-hidden="true" />
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
