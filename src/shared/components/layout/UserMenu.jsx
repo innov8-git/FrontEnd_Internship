@@ -57,9 +57,9 @@ export function UserMenu({ className }) {
 
   const label = (
     <span className="block max-w-[15rem] normal-case tracking-normal">
-      <span className="block truncate text-sm font-semibold text-slate-900">{name}</span>
+      <span className="block truncate text-sm font-semibold text-slate-900 dark:text-white">{name}</span>
       {user.email ? (
-        <span className="block truncate text-xs font-normal text-slate-500">{user.email}</span>
+        <span className="block truncate text-xs font-normal text-slate-500 dark:text-slate-400">{user.email}</span>
       ) : null}
     </span>
   );
@@ -69,7 +69,7 @@ export function UserMenu({ className }) {
       type="button"
       aria-label={`${name}, account menu`}
       className={cn(
-        'flex h-10 items-center gap-2 rounded-full py-1 pl-1 pr-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100',
+        'flex h-10 items-center gap-2 rounded-full py-1 pl-1 pr-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
         className,
       )}

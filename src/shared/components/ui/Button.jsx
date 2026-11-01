@@ -12,15 +12,18 @@ const BASE_CLASSES = [
 
 const VARIANT_CLASSES = {
   primary: 'bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-800',
-  secondary: 'bg-brand-50 text-brand-700 hover:bg-brand-100 active:bg-brand-200',
+  secondary:
+    'bg-brand-50 text-brand-700 hover:bg-brand-100 active:bg-brand-200 dark:bg-brand-950/60 dark:text-brand-300 dark:hover:bg-brand-900/60',
   outline:
-    'border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100',
-  ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200',
+    'border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white',
+  ghost:
+    'text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:active:bg-slate-700',
   danger:
     'bg-rose-600 text-white shadow-sm hover:bg-rose-700 active:bg-rose-800 focus-visible:ring-rose-500',
   success:
     'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800 focus-visible:ring-emerald-500',
-  link: 'rounded-sm text-brand-700 underline-offset-4 hover:text-brand-800 hover:underline',
+  link:
+    'rounded-sm text-brand-700 underline-offset-4 hover:text-brand-800 hover:underline dark:text-brand-400 dark:hover:text-brand-300',
 };
 
 const SIZE_CLASSES = {

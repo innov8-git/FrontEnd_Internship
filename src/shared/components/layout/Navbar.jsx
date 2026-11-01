@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Button, Drawer, Logo } from '@/shared/components/ui';
+import { Button, Drawer, Logo, ThemeToggle } from '@/shared/components/ui';
 import { useAuth } from '@/shared/hooks';
 import { ROUTES, getHomeRoute } from '@/shared/constants';
 import { ArrowRight, Menu } from '@/shared/icons';
@@ -9,13 +9,15 @@ import { PUBLIC_NAV_LINKS } from './navigation';
 import { UserMenu } from './UserMenu';
 
 const FOCUS_RING =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2';
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900';
 
 function desktopLinkClass(isActive) {
   return cn(
     'rounded-md text-sm font-medium transition-colors',
     FOCUS_RING,
-    isActive ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900',
+    isActive
+      ? 'text-slate-900 dark:text-white font-semibold'
+      : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white',
   );
 }
 
@@ -24,8 +26,8 @@ function mobileLinkClass(isActive) {
     'flex min-h-[2.75rem] items-center rounded-lg px-3 py-2 text-base font-medium transition-colors',
     FOCUS_RING,
     isActive
-      ? 'bg-brand-50 text-brand-700'
-      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900',
+      ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/70 dark:text-brand-300'
+      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white',
   );
 }
 
@@ -47,8 +49,7 @@ function PublicNavLink({ link, mobile = false, onNavigate }) {
 
 /**
  * Public top navigation (SN1). Sticky, translucent; collapses into a drawer below md.
- * Auth buttons are not rendered while the session is being restored, so signed-in
- * visitors never see a "Log in" button flash first.
+ * Includes dark/light mode ThemeToggle button.
  */
 export function Navbar() {
   const { user, status } = useAuth();
@@ -65,7 +66,7 @@ export function Navbar() {
   const homeRoute = getHomeRoute(user);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur transition-colors duration-200 dark:border-slate-800 dark:bg-slate-950/85">
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-10">
           <Logo to={ROUTES.HOME} />
@@ -80,7 +81,10 @@ export function Navbar() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Theme Toggle Button */}
+          <ThemeToggle />
+
           {isResolved && isSignedIn ? (
             <>
               <div className="hidden md:block">
@@ -130,11 +134,11 @@ export function Navbar() {
         </nav>
 
         {isResolved ? (
-          <div className="mt-6 space-y-3 border-t border-slate-200 pt-6">
+          <div className="mt-6 space-y-3 border-t border-slate-200 pt-6 dark:border-slate-800">
             {isSignedIn ? (
               <>
-                <p className="text-sm text-slate-500">
-                  Signed in as <span className="font-medium text-slate-900">{user.name}</span>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Signed in as <span className="font-medium text-slate-900 dark:text-white">{user.name}</span>
                 </p>
                 <Button as={Link} to={homeRoute} fullWidth rightIcon={ArrowRight} onClick={closeMenu}>
                   Go to dashboard

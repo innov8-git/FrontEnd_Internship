@@ -3,23 +3,25 @@ import typography from '@tailwindcss/typography';
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
-        // Primary brand ramp (royal blue). Use 600 for primary actions, 50/100 for tints.
+        // Primary brand ramp (ALFRE Executive Amber-Gold).
+        // Matches the ALFRE emblem tie & tagline with high contrast and WCAG AA accessibility.
         brand: {
-          50: '#eff5ff',
-          100: '#dbe8fe',
-          200: '#bfd7fe',
-          300: '#93bbfd',
-          400: '#6096fa',
-          500: '#3b72f6',
-          600: '#2556eb',
-          700: '#1d43d8',
-          800: '#1e38af',
-          900: '#1e348a',
-          950: '#172154',
+          50: '#fffbf0',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#f59e0b',
+          500: '#d97706',
+          600: '#b45309',
+          700: '#92400e',
+          800: '#78350f',
+          900: '#451a03',
+          950: '#1c0d02',
         },
         // Data-viz tokens (validated reference palette). Text never uses these.
         viz: {

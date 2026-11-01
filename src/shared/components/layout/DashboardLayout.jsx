@@ -13,8 +13,6 @@ const DESKTOP_MEDIA_QUERY = '(min-width: 1024px)';
  * - lg and up: fixed 16rem sidebar + sticky top bar.
  * - below lg: the top bar's menu button opens the same navigation in a left drawer,
  *   which closes on navigation, on Esc and when the viewport grows to desktop size.
- *
- * navigation: [{ title?, items: [{ label, to, icon, end?, badge?, badgeLabel?, hidden?, activePaths? }] }]
  */
 export function DashboardLayout({ navigation = [], roleLabel, homeTo = '/' }) {
   const location = useLocation();
@@ -39,7 +37,7 @@ export function DashboardLayout({ navigation = [], roleLabel, homeTo = '/' }) {
   }, [drawerOpen]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 transition-colors duration-200 dark:bg-slate-950">
       <div className="fixed inset-y-0 left-0 z-40 hidden w-64 lg:block">
         <Sidebar navigation={navigation} roleLabel={roleLabel} homeTo={homeTo} />
       </div>

@@ -44,9 +44,9 @@ const FONTS = {
 
 // App palette (tailwind.config.js) as PDF RGB fractions.
 const COLORS = {
-  brand: [0.145, 0.337, 0.922], // brand-600 #2556eb
-  brandDeep: [0.09, 0.129, 0.329], // brand-950 #172154
-  brandWash: [0.937, 0.961, 1], // brand-50 #eff5ff
+  brand: [0.706, 0.325, 0.035], // brand-600 #b45309 (ALFRE)
+  brandDeep: [0.11, 0.051, 0.008], // brand-950 #1c0d02
+  brandWash: [1, 0.984, 0.941], // brand-50 #fffbf0
   ink: [0.059, 0.09, 0.165], // slate-900 #0f172a
   body: [0.278, 0.333, 0.412], // slate-600 #475569
   muted: [0.392, 0.455, 0.545], // slate-500 #64748b
@@ -341,7 +341,7 @@ export function buildCertificatePdf({
   canvas.rect(28, 28, PAGE_WIDTH - 56, PAGE_HEIGHT - 56, { stroke: COLORS.hairline, lineWidth: 0.75 });
 
   // Title block
-  canvas.text('INTERNSHIP PORTAL', {
+  canvas.text('ALFRE', {
     font: FONTS.bold,
     size: 10,
     y: 528,
@@ -398,7 +398,7 @@ export function buildCertificatePdf({
     title: `Certificate ${number}`,
     author: name,
     subject: `${designationName} internship certificate`,
-    producer: 'Internship Portal (mock certificate service)',
+    producer: 'ALFRE (mock certificate service)',
     creationDate: pdfDate(),
   });
 }

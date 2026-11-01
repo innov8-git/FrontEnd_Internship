@@ -55,7 +55,7 @@ export function Layout() {
   useScrollToHash();
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-white transition-colors duration-200 dark:bg-slate-950">
       <Navbar />
       <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
         <Suspense fallback={<PageLoader />}>
