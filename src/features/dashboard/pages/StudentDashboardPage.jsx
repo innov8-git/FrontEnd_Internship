@@ -9,6 +9,7 @@ import { DashboardSkeleton } from '../components/DashboardSkeleton';
 import { EnrollmentSwitcher } from '../components/EnrollmentSwitcher';
 import { GithubStatusChip } from '../components/GithubStatusChip';
 import { LockedScheduleTeaser } from '../components/LockedScheduleTeaser';
+import { MentorProfileCard } from '../components/MentorProfileCard';
 import { NextTaskCard } from '../components/NextTaskCard';
 import { NoEnrollmentState } from '../components/NoEnrollmentState';
 import { PaymentPendingBanner } from '../components/PaymentPendingBanner';
@@ -92,6 +93,9 @@ function ActiveDashboard({ dashboard }) {
           onRetry={tasksQuery.refetch}
         />
       </div>
+
+      {/* Dedicated Assigned Mentor Profile */}
+      <MentorProfileCard mentor={enrollment?.mentor} enrollment={enrollment} />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <UpcomingDaysCard
