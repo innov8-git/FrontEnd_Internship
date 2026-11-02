@@ -141,10 +141,19 @@ export const DECISION_META = Object.freeze({
     successTitle: 'Submission rejected',
     variant: 'danger',
   },
+  [REVIEW_DECISION.ESCALATED]: {
+    label: 'Escalate to Lead / Admin',
+    description: 'Escalate this submission to the lead engineering mentor or academic admin for second-tier review.',
+    confirmTitle: 'Escalate this submission?',
+    confirmLabel: 'Escalate submission',
+    successTitle: 'Submission escalated',
+    variant: 'warning',
+  },
 });
 
 export const DECISION_ORDER = [
   REVIEW_DECISION.APPROVED,
   REVIEW_DECISION.CHANGES_REQUESTED,
   REVIEW_DECISION.REJECTED,
+  REVIEW_DECISION.ESCALATED,
 ];

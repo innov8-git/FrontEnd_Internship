@@ -13,7 +13,7 @@ import {
   toast,
 } from '@/shared/components/ui';
 import { REVIEW_DECISION, ROUTES, paths } from '@/shared/constants';
-import { CheckCircle2, RotateCcw, Send, XCircle } from '@/shared/icons';
+import { AlertTriangle, CheckCircle2, RotateCcw, Send, XCircle } from '@/shared/icons';
 import { applyServerErrors, getErrorMessage, isErrorCode } from '@/shared/utils/errors';
 import { useReviewSubmission } from '../hooks/useSubmissionReview';
 import { reviewDefaultValues, reviewSchema } from '../schemas/reviewSchema';
@@ -31,6 +31,7 @@ const DECISION_ICONS = {
   [REVIEW_DECISION.APPROVED]: CheckCircle2,
   [REVIEW_DECISION.CHANGES_REQUESTED]: RotateCcw,
   [REVIEW_DECISION.REJECTED]: XCircle,
+  [REVIEW_DECISION.ESCALATED]: AlertTriangle,
 };
 
 /**

@@ -1296,7 +1296,33 @@ export function enrollmentDto(enrollment) {
   const team = enrollment.teamId ? findTeam(enrollment.teamId) : null;
   const progress = listProgressForEnrollment(enrollment);
   const certificate = certificateForEnrollment(enrollment._id);
+  const assignment = activeAssignmentFor({ enrollmentId: enrollment._id, teamId: enrollment.teamId });
+  const trainer = assignment ? findUser(assignment.trainerId) : null;
+  const mentor = trainer
+    ? {
+        _id: trainer._id,
+        name: trainer.name,
+        email: trainer.email,
+        designation: 'Principal Systems Architect & Lead Engineering Mentor',
+        organization: 'ALFRE Engineering Network',
+        avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop',
+        bio: 'Senior engineer with 8+ years of production experience in enterprise software. Responsible for reviewing your GitHub code submissions, providing architectural guidance, and certifying production standards.',
+        specialties: ['Code Review', 'Clean Architecture', 'GitHub Workflows', 'Enterprise Backend'],
+        availability: 'Online for Daily Sprint Reviews',
+      }
+    : {
+        _id: 'default-mentor',
+        name: 'Priya Nair',
+        email: 'trainer@demo.dev',
+        designation: 'Principal Systems Architect & Lead Engineering Mentor',
+        organization: 'ALFRE Engineering Network',
+        avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop',
+        bio: 'Senior architect responsible for reviewing and verifying code submissions, providing architectural guidance, and ensuring production standards.',
+        specialties: ['Code Review', 'Clean Architecture', 'GitHub Workflows', 'Enterprise Backend'],
+        availability: 'Online for Daily Sprint Reviews',
+      };
   return {
+    mentor,
     _id: enrollment._id,
     userId: enrollment.userId,
     teamId: enrollment.teamId ?? null,

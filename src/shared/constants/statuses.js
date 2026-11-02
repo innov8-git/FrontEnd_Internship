@@ -61,12 +61,14 @@ export const REVIEW_STATUS = Object.freeze({
   APPROVED: 'APPROVED',
   CHANGES_REQUESTED: 'CHANGES_REQUESTED',
   REJECTED: 'REJECTED',
+  ESCALATED: 'ESCALATED',
 });
 
 export const REVIEW_DECISION = Object.freeze({
   APPROVED: 'APPROVED',
   CHANGES_REQUESTED: 'CHANGES_REQUESTED',
   REJECTED: 'REJECTED',
+  ESCALATED: 'ESCALATED',
 });
 
 export const TEAM_STATUS = Object.freeze({
@@ -127,6 +129,7 @@ export const STATUS_META = Object.freeze({
   CHANGES_REQUESTED: { label: 'Changes requested', variant: 'orange' },
   APPROVED: { label: 'Approved', variant: 'success' },
   REJECTED: { label: 'Rejected', variant: 'danger' },
+  ESCALATED: { label: 'Escalated', variant: 'warning' },
 
   // Teams
   FORMING: { label: 'Forming', variant: 'info' },
