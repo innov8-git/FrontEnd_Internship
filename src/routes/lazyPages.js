@@ -23,6 +23,7 @@ export const CheckEmailPage = lazy(() => import('@/features/auth/pages/CheckEmai
 export const VerifyEmailPage = lazy(() => import('@/features/auth/pages/VerifyEmailPage'));
 export const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
 export const ResetPasswordPage = lazy(() => import('@/features/auth/pages/ResetPasswordPage'));
+export const GoogleCallbackPage = lazy(() => import('@/features/auth/pages/GoogleCallbackPage'));
 
 // Assessment (SN6, SN7)
 export const AssessmentPage = lazy(() => import('@/features/assessment/pages/AssessmentPage'));

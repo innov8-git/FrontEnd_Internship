@@ -1,48 +1,13 @@
 import { useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Card, PageHeader } from '@/shared/components/ui';
-import { Info, ShieldCheck, Sparkles } from '@/shared/icons';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Card, PageHeader } from '@/shared/components/ui';
+import { Info, ShieldCheck } from '@/shared/icons';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { ROUTES, paths } from '@/shared/constants';
 import { VerificationResult, getVerificationAnnouncement } from '../components/VerificationResult';
 import { VerifyForm } from '../components/VerifyForm';
-import { useDemoCertificateNumbers } from '../hooks/useDemoCertificateNumbers';
 import { useVerifyCertificate } from '../hooks/useVerifyCertificate';
 import { normalizeCertificateNo } from '../schemas/verifyValidation';
-
-function DemoSamples({ samples }) {
-  if (!samples) return null;
-  const entries = [
-    samples.valid && { number: samples.valid, label: 'valid' },
-    samples.revoked && { number: samples.revoked, label: 'revoked' },
-  ].filter(Boolean);
-  if (entries.length === 0) return null;
-
-  return (
-    <div className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
-      <p className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-        Demo mode — try a sample:
-      </p>
-      <ul className="flex flex-wrap gap-2">
-        {entries.map((entry) => (
-          <li key={entry.number}>
-            <Button
-              as={Link}
-              to={paths.verifyCertificate(entry.number)}
-              variant="outline"
-              size="sm"
-              className="h-10 font-mono sm:h-8"
-            >
-              {entry.number}
-              <span className="font-sans text-slate-500">· {entry.label}</span>
-            </Button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 function HowItWorks() {
   return (
@@ -68,7 +33,6 @@ export default function VerifyCertificatePage() {
   useDocumentTitle(certificateNo ? `Verify ${certificateNo}` : 'Verify a certificate');
 
   const query = useVerifyCertificate(certificateNo);
-  const samples = useDemoCertificateNumbers();
 
   // Canonical URL: /verify/ip-2026-000123 -> /verify/IP-2026-000123
   useEffect(() => {
@@ -123,7 +87,6 @@ export default function VerifyCertificatePage() {
               onVerify={handleVerify}
               loading={Boolean(certificateNo) && query.isFetching}
             />
-            <DemoSamples samples={samples} />
           </Card>
 
           <p className="sr-only" role="status">

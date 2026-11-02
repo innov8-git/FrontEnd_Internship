@@ -190,3 +190,4 @@ export {
 } from 'lucide-react';
 
 export { GithubIcon } from './GithubIcon';
+export { GoogleIcon } from './GoogleIcon';

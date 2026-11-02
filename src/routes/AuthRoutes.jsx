@@ -3,6 +3,7 @@ import GuestRoute from './GuestRoute';
 import {
   CheckEmailPage,
   ForgotPasswordPage,
+  GoogleCallbackPage,
   LoginPage,
   RegisterPage,
   ResetPasswordPage,
@@ -10,8 +11,8 @@ import {
 } from './lazyPages';
 
 /**
- * Login and register are guest-only. Email verification and password reset links must work
- * whether or not the person is signed in, so they are not wrapped in GuestRoute.
+ * Login and register are guest-only. Email verification, password reset links, and OAuth callbacks
+ * must work whether or not the person is signed in, so they are not wrapped in GuestRoute.
  */
 export const authRoutes = [
   {
@@ -33,6 +34,8 @@ export const authRoutes = [
       { path: 'verify-email', element: <VerifyEmailPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'auth/google/callback', element: <GoogleCallbackPage /> },
+      { path: 'google/callback', element: <GoogleCallbackPage /> },
     ],
   },
 ];

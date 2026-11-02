@@ -6,7 +6,6 @@ import { ArrowLeft, Inbox, MailCheck, MousePointerClick, RefreshCw } from '@/sha
 import { cn } from '@/shared/utils/cn';
 import { isValidEmail } from '@/shared/utils/helpers';
 import { AuthCard } from '../components/AuthCard';
-import { MockInboxHint } from '../components/MockInboxHint';
 import { ResendVerificationForm } from '../components/ResendVerificationForm';
 import { AUTH_LINK_CLASS } from '../components/authStyles';
 import { useResendVerification } from '../hooks/useResendVerification';
@@ -66,8 +65,6 @@ export function CheckEmailPage() {
             <span>Can&apos;t find it? Check your spam or promotions folder.</span>
           </li>
         </ul>
-
-        <MockInboxHint />
 
         {email ? (
           <Button

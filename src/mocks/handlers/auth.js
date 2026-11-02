@@ -206,15 +206,25 @@ export const authHandlers = [
       ]);
     }
 
+    const role = body.role === ROLES.TRAINER ? ROLES.TRAINER : ROLES.STUDENT;
     const timestamp = nowIso();
     const user = {
       _id: oid(),
       name,
       email,
       password,
-      roles: [ROLES.STUDENT],
+      roles: [role],
       status: USER_STATUS.PENDING_VERIFICATION,
       emailVerified: false,
+      trainerProfile:
+        role === ROLES.TRAINER
+          ? {
+              domain: typeof body.domain === 'string' ? body.domain.trim() : '',
+              experience: typeof body.experience === 'string' ? body.experience.trim() : '',
+              linkedinUrl: typeof body.linkedinUrl === 'string' ? body.linkedinUrl.trim() : '',
+              organization: typeof body.organization === 'string' ? body.organization.trim() : '',
+            }
+          : undefined,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -252,6 +262,64 @@ export const authHandlers = [
 
     // Unverified users can log in; they are only blocked from paying (EMAIL_NOT_VERIFIED).
     loginFailures.delete(email);
+    setRefreshSession(user._id);
+    return json({ accessToken: issueAccessToken(user._id), user: publicUser(user) });
+  }),
+
+  mock.post('/auth/google', async ({ request }) => {
+    const body = await readJson(request);
+    const credential = typeof body.credential === 'string' ? body.credential.trim() : '';
+    const code = typeof body.code === 'string' ? body.code.trim() : '';
+
+    if (!credential && !code) {
+      return validationError([
+        { field: 'credential', message: 'Google credential token or code is required.' },
+      ]);
+    }
+
+    if (credential === 'invalid_token' || code === 'invalid_code') {
+      return unauthorized('Invalid Google credential token or authorization code.', 'INVALID_GOOGLE_TOKEN');
+    }
+
+    // Default mock user profile or parse mock JWT payload
+    let email = 'google.student@demo.dev';
+    let name = 'Alex Chen';
+
+    if (credential.includes('.')) {
+      try {
+        const parts = credential.split('.');
+        if (parts.length >= 2) {
+          const payload = JSON.parse(atob(parts[1]));
+          if (payload.email) email = normalizeEmail(payload.email);
+          if (payload.name) name = normalizeName(payload.name);
+        }
+      } catch {
+        // Fall back to default mock account
+      }
+    }
+
+    let user = findUserByEmail(email);
+
+    if (user) {
+      if (user.status === USER_STATUS.SUSPENDED) {
+        return forbidden(MESSAGES.suspended, 'ACCOUNT_SUSPENDED');
+      }
+    } else {
+      const timestamp = nowIso();
+      user = {
+        _id: oid(),
+        name,
+        email,
+        password: '',
+        roles: [ROLES.STUDENT],
+        status: USER_STATUS.ACTIVE,
+        emailVerified: true,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      db.users.push(user);
+    }
+
     setRefreshSession(user._id);
     return json({ accessToken: issueAccessToken(user._id), user: publicUser(user) });
   }),

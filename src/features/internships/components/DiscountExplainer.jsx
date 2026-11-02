@@ -9,6 +9,7 @@ import {
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const PERCENTAGE_SLABS = [
   {
     range: '100%',

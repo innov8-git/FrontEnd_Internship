@@ -63,6 +63,17 @@ export function AuthProvider({ children }) {
     [queryClient],
   );
 
+  const loginWithGoogle = useCallback(
+    async (payload) => {
+      const data = await authService.loginWithGoogle(payload);
+      setAccessToken(data.accessToken);
+      queryClient.clear();
+      setState({ status: 'authenticated', user: data.user });
+      return data.user;
+    },
+    [queryClient],
+  );
+
   const logout = useCallback(async () => {
     try {
       await authService.logout();
@@ -98,11 +109,12 @@ export function AuthProvider({ children }) {
       hasRole: (role) => hasRole(user, role),
       hasAnyRole: (roles) => hasAnyRole(user, roles),
       login,
+      loginWithGoogle,
       logout,
       updateUser,
       refreshUser,
     };
-  }, [state, login, logout, updateUser, refreshUser]);
+  }, [state, login, loginWithGoogle, logout, updateUser, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

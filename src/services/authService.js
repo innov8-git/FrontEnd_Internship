@@ -1,8 +1,7 @@
 import { api } from './api';
 
-/** Auth endpoints (MM2, SD3). Login/refresh return { accessToken, user }. */
-export const register = ({ name, email, password }) =>
-  api.post('/auth/register', { name, email, password });
+export const register = (payload) =>
+  api.post('/auth/register', payload);
 
 export const login = ({ email, password }) => api.post('/auth/login', { email, password });
 
@@ -20,3 +19,7 @@ export const forgotPassword = (email) => api.post('/auth/forgot-password', { ema
 
 export const resetPassword = ({ token, password }) =>
   api.post('/auth/reset-password', { token, password });
+
+export const loginWithGoogle = ({ credential, code } = {}) =>
+  api.post('/auth/google', { credential, code });
+
