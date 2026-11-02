@@ -22,7 +22,7 @@ const VALUE_PROPS = [
 ];
 
 const FOOTER_LINK_CLASS =
-  'rounded-sm hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2';
+  'rounded-sm hover:text-slate-700 dark:hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2';
 
 /**
  * Split-screen shell for login, register, email verification and password reset (SN3/SN4).
@@ -33,7 +33,7 @@ export function AuthLayout() {
   const year = new Date().getFullYear();
 
   return (
-    <div className="grid min-h-screen bg-slate-50 lg:grid-cols-2">
+    <div className="grid min-h-screen bg-slate-50 dark:bg-slate-950 lg:grid-cols-2">
       <aside
         aria-label={`About ${APP_NAME}`}
         className="relative hidden overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-black p-12 text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:justify-between"
@@ -85,7 +85,7 @@ export function AuthLayout() {
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-col">
-        <header className="flex h-16 shrink-0 items-center border-b border-slate-200 bg-white px-4 sm:px-6 lg:hidden">
+        <header className="flex h-16 shrink-0 items-center border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 sm:px-6 lg:hidden">
           <Logo to={ROUTES.HOME} />
         </header>
 
@@ -101,7 +101,7 @@ export function AuthLayout() {
           </div>
         </main>
 
-        <footer className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 pb-6 text-xs text-slate-500">
+        <footer className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 pb-6 text-xs text-slate-500 dark:text-slate-400">
           <span>
             © {year} {APP_NAME}
           </span>

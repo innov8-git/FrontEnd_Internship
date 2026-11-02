@@ -10,7 +10,6 @@ import { getErrorStatus, isNetworkError } from '@/shared/utils/errors';
 import { LOGIN_DEFAULTS, loginSchema } from '../schemas/authValidation';
 import { applyKnownFieldErrors, hasKnownFieldErrors } from '../utils/authErrors';
 import { AuthErrorBanner } from './AuthErrorBanner';
-import { DemoAccounts } from './DemoAccounts';
 import { AUTH_LINK_CLASS } from './authStyles';
 
 const LOGIN_FIELDS = ['email', 'password'];
@@ -21,16 +20,13 @@ const LOGIN_FIELDS = ['email', 'password'];
  *  - 401 -> one "Email or password is incorrect." banner, the password is cleared and focused
  *  - 403 ACCOUNT_SUSPENDED, 429 and network errors -> matching banners
  *  - 422 with field details -> messages under the fields
- * In mock mode `showDemoAccounts` adds the demo-account picker, which fills both fields.
  */
 export function LoginForm({
   onSubmit,
   isPending = false,
   error = null,
-  onErrorReset,
   defaultEmail = '',
   forgotPasswordTo = ROUTES.FORGOT_PASSWORD,
-  showDemoAccounts = false,
   className,
 }) {
   const passwordId = useId();
@@ -42,7 +38,6 @@ export function LoginForm({
     setValue,
     setFocus,
     setError,
-    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
@@ -70,14 +65,6 @@ export function LoginForm({
     await onSubmit?.(values);
   });
 
-  const handleDemoSelect = ({ email, password }) => {
-    onErrorReset?.();
-    clearErrors();
-    setValue('email', email, { shouldDirty: true });
-    setValue('password', password, { shouldDirty: true });
-    submitRef.current?.focus();
-  };
-
   const busy = isSubmitting || isPending;
 
   return (
@@ -100,7 +87,7 @@ export function LoginForm({
 
         <div>
           <div className="mb-1.5 flex items-center justify-between gap-3">
-            <label htmlFor={passwordId} className="text-sm font-medium text-slate-700">
+            <label htmlFor={passwordId} className="text-sm font-medium text-slate-700 dark:text-slate-200">
               Password
             </label>
             <Link to={forgotPasswordTo} className={cn(AUTH_LINK_CLASS, 'text-sm')}>
@@ -120,8 +107,6 @@ export function LoginForm({
           {busy ? 'Logging in…' : 'Log in'}
         </Button>
       </form>
-
-      {showDemoAccounts ? <DemoAccounts className="mt-6" onSelect={handleDemoSelect} /> : null}
     </div>
   );
 }

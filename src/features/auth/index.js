@@ -10,8 +10,11 @@ export { ForgotPasswordForm } from './components/ForgotPasswordForm';
 export { ResetPasswordForm } from './components/ResetPasswordForm';
 export { ResendVerificationForm } from './components/ResendVerificationForm';
 export { PasswordRules } from './components/PasswordRules';
+export { SocialAuthButtons } from './components/SocialAuthButtons';
+export { GoogleLoginButton } from './components/GoogleLoginButton';
 
 export { useLogin } from './hooks/useLogin';
+export { useGoogleAuth } from './hooks/useGoogleAuth';
 export { useRegister } from './hooks/useRegister';
 export { useVerifyEmail } from './hooks/useVerifyEmail';
 export { useForgotPassword, useResetPassword } from './hooks/usePasswordReset';
@@ -27,6 +30,8 @@ export {
   forgotPasswordSchema,
   resetPasswordSchema,
   resendSchema,
+  TRAINER_DOMAINS,
+  EXPERIENCE_LEVELS,
 } from './schemas/authValidation';
 
 export {

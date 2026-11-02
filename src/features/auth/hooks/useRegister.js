@@ -16,11 +16,16 @@ export function useRegister() {
   const redirectTo = getSafeRedirect(searchParams.get('redirect'));
 
   const mutation = useMutation({
-    mutationFn: ({ name, email, password }) =>
+    mutationFn: (values) =>
       authService.register({
-        name: String(name ?? '').trim(),
-        email: String(email ?? '').trim(),
-        password: String(password ?? ''),
+        name: String(values?.name ?? '').trim(),
+        email: String(values?.email ?? '').trim(),
+        password: String(values?.password ?? ''),
+        role: values?.role === 'TRAINER' ? 'TRAINER' : 'STUDENT',
+        domain: values?.domain ? String(values.domain).trim() : undefined,
+        experience: values?.experience ? String(values.experience).trim() : undefined,
+        linkedinUrl: values?.linkedinUrl ? String(values.linkedinUrl).trim() : undefined,
+        organization: values?.organization ? String(values.organization).trim() : undefined,
       }),
     onSuccess: (data, variables) => {
       const email = data?.user?.email ?? String(variables?.email ?? '').trim();

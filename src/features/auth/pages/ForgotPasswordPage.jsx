@@ -8,7 +8,6 @@ import { cn } from '@/shared/utils/cn';
 import { isValidEmail } from '@/shared/utils/helpers';
 import { AuthCard } from '../components/AuthCard';
 import { ForgotPasswordForm } from '../components/ForgotPasswordForm';
-import { MockInboxHint } from '../components/MockInboxHint';
 import { AUTH_LINK_CLASS } from '../components/authStyles';
 import { useForgotPassword } from '../hooks/usePasswordReset';
 
@@ -68,7 +67,6 @@ export function ForgotPasswordPage() {
         }
       >
         <div className="space-y-4">
-          <MockInboxHint />
           <Button as={Link} to={ROUTES.LOGIN} size="lg" fullWidth leftIcon={ArrowLeft}>
             Back to log in
           </Button>
