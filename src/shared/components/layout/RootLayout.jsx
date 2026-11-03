@@ -5,6 +5,7 @@ import { USE_MOCKS } from '@/shared/constants';
 
 /** The mock devtools (GP1) are only downloaded when the app runs against the mock API. */
 const MockDevtools = lazy(() => import('@/mocks/MockDevtools'));
+const ChatBot = lazy(() => import('@/features/chatbot/components/ChatBot'));
 
 const MAIN_CONTENT_ID = 'main-content';
 
@@ -38,6 +39,9 @@ export function RootLayout() {
         <Outlet />
       </Suspense>
       <Toaster />
+      <Suspense fallback={null}>
+        <ChatBot />
+      </Suspense>
       {USE_MOCKS ? (
         <Suspense fallback={null}>
           <MockDevtools />

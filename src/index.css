@@ -126,6 +126,47 @@
   }
 }
 
+/* Professional, elegant ambient radar waves */
+@keyframes sonar-wave {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.75;
+  }
+  40% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+/* Refined, smooth floating breath for the mascot launcher */
+@keyframes bot-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-sonar-wave {
+  animation: sonar-wave 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.animate-sonar-wave-delayed-1 {
+  animation: sonar-wave 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite 0.93s;
+}
+
+.animate-sonar-wave-delayed-2 {
+  animation: sonar-wave 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite 1.86s;
+}
+
+.animate-bot-float {
+  animation: bot-float 3.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
