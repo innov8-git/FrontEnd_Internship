@@ -119,3 +119,63 @@ export function getIntentsByCategory(categoryId) {
   return INTENTS.filter((intent) => intent.category === categoryId);
 }
 
+
+
+/**
+ * Retrieve related questions based on the matched intent and current query.
+ * Gathers other questions from the same intent, plus sibling intents in the same category.
+ */
+export function getRelatedQuestions(matchedIntent, currentQuery, limit = 5) {
+  if (!matchedIntent || matchedIntent.id === 'CLOSING') {
+    return [
+      'Which internships are available?',
+      'How does the assessment discount work?',
+      'What are the available internship durations?',
+      'How does mentor code review work?',
+      'When is the completion certificate issued?',
+    ];
+  }
+
+  const normalizedCurrent = String(currentQuery ?? '').toLowerCase().trim();
+  const results = [];
+
+  // 1. Other sample questions from the matched intent itself
+  for (const q of matchedIntent.sampleQuestions ?? []) {
+    if (q.toLowerCase().trim() !== normalizedCurrent && !results.includes(q)) {
+      results.push(q);
+    }
+  }
+
+  // 2. Questions from other intents in the same category
+  const siblingIntents = INTENTS.filter(
+    (i) => i.category === matchedIntent.category && i.id !== matchedIntent.id,
+  );
+  for (const intent of siblingIntents) {
+    for (const q of intent.sampleQuestions ?? []) {
+      if (q.toLowerCase().trim() !== normalizedCurrent && !results.includes(q)) {
+        results.push(q);
+        if (results.length >= limit) break;
+      }
+    }
+    if (results.length >= limit) break;
+  }
+
+  // 3. Fallback questions if fewer than limit
+  if (results.length < limit) {
+    const popularFallbacks = [
+      'Which internships are available?',
+      'How can I register?',
+      'How does the assessment discount work?',
+      'How do I submit tasks on GitHub?',
+      'How do mentors review my code?',
+    ];
+    for (const q of popularFallbacks) {
+      if (q.toLowerCase().trim() !== normalizedCurrent && !results.includes(q)) {
+        results.push(q);
+        if (results.length >= limit) break;
+      }
+    }
+  }
+
+  return results.slice(0, limit);
+}

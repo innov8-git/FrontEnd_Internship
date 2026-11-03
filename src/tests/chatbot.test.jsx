@@ -49,7 +49,7 @@ describe('ChatBot UI Component', () => {
     expect(screen.getByText(/ALFRE Assistant/i)).toBeInTheDocument();
   });
 
-  it('allows user to send a question and receive a predefined answer', async () => {
+  it('allows user to send a question and receive a predefined answer with related questions', async () => {
     const user = userEvent.setup();
     render(<ChatBot />);
 
@@ -62,13 +62,14 @@ describe('ChatBot UI Component', () => {
     await user.type(input, 'How can I register?');
     await user.click(sendButton);
 
-    // Verify user message is displayed
-    expect(screen.getByText('How can I register?')).toBeInTheDocument();
+    // Verify user message is displayed (may match user bubble or related questions)
+    expect(screen.getAllByText(/How can I register\?/i).length).toBeGreaterThan(0);
 
     // Verify bot response appears after typing indicator
     await waitFor(
       () => {
         expect(screen.getByText(/Welcome to our Internship Portal!/i)).toBeInTheDocument();
+        expect(screen.getAllByText(/Tap a question to ask:/i).length).toBeGreaterThan(0);
       },
       { timeout: 3000 },
     );

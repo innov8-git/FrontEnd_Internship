@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/shared/utils/cn';
 import { GREETING_MESSAGE } from '../data/chatbotIntents';
-import { getChatbotResponse } from '../utils/intentMatcher';
+import { matchIntent, getChatbotResponse, getRelatedQuestions } from '../utils/intentMatcher';
 import { ChatMessage } from './ChatMessage';
 import { QuickCategories } from './QuickCategories';
 import { RobotMascotIcon } from './RobotMascotIcon';
@@ -19,7 +19,18 @@ const BOT_TYPING_DELAY_MS = 380;
 export function ChatBot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 'greeting', role: 'bot', content: GREETING_MESSAGE, time: formatTime() },
+    {
+      id: 'greeting',
+      role: 'bot',
+      content: GREETING_MESSAGE,
+      time: formatTime(),
+      relatedQuestions: [
+        'Which internships are available?',
+        'How can I register?',
+        'How does the assessment discount work?',
+        'How does mentor code review work?',
+      ],
+    },
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -58,11 +69,15 @@ export function ChatBot() {
       setIsTyping(true);
 
       setTimeout(() => {
-        const botResponse = getChatbotResponse(trimmed);
+        const match = matchIntent(trimmed);
+        const botResponse = match ? match.intent.answer : getChatbotResponse(trimmed);
+        const related = getRelatedQuestions(match?.intent, trimmed, 5);
+
         const botMsg = {
           id: `bot-${Date.now()}`,
           role: 'bot',
           content: botResponse,
+          relatedQuestions: related,
           time: formatTime(),
         };
         setMessages((prev) => [...prev, botMsg]);
@@ -79,7 +94,18 @@ export function ChatBot() {
 
   const handleReset = () => {
     setMessages([
-      { id: 'greeting', role: 'bot', content: GREETING_MESSAGE, time: formatTime() },
+      {
+        id: 'greeting',
+        role: 'bot',
+        content: GREETING_MESSAGE,
+        time: formatTime(),
+        relatedQuestions: [
+          'Which internships are available?',
+          'How can I register?',
+          'How does the assessment discount work?',
+          'How does mentor code review work?',
+        ],
+      },
     ]);
     setActiveCategory(null);
   };
@@ -248,6 +274,8 @@ export function ChatBot() {
                 role={msg.role}
                 content={msg.content}
                 timestamp={msg.time}
+                relatedQuestions={msg.relatedQuestions}
+                onSelectQuestion={handleQuestionClick}
               />
             ))}
 
