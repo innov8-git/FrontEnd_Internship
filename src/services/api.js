@@ -110,7 +110,7 @@ const refreshClient = axios.create({
   headers: { Accept: 'application/json' },
 });
 
-const NO_REFRESH_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'];
+const NO_REFRESH_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout', '/auth/google'];
 
 function shouldTryRefresh(config) {
   if (!config || config._retry || config.skipAuthRefresh) return false;

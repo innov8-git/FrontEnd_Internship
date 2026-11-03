@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
 import { Badge, Logo } from '@/shared/components/ui';
-import { SUPPORT_EMAIL, USE_MOCKS } from '@/shared/constants';
+import { SUPPORT_EMAIL } from '@/shared/constants';
 import { cn } from '@/shared/utils/cn';
 
 function hasBadge(value) {
@@ -131,8 +131,6 @@ export function Sidebar({
           className={cn(
             'shrink-0 space-y-3',
             isDrawer ? 'border-t border-slate-200 pt-5 dark:border-slate-800' : 'px-4 pb-4',
-            // Leave room for the floating "Mock API" button in mock mode.
-            !isDrawer && USE_MOCKS && 'pb-20',
           )}
         >
           <div className="rounded-xl bg-slate-50 p-4 text-sm dark:bg-slate-800/60">

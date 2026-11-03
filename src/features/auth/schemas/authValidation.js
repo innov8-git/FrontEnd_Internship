@@ -87,11 +87,73 @@ export const loginSchema = z.object({
   password: z.string({ required_error: 'Enter your password.' }).min(1, 'Enter your password.'),
 });
 
-export const registerSchema = z.object({
-  name: nameField,
-  email: emailField,
-  password: newPasswordField('Create a password.'),
-});
+export const TRAINER_DOMAINS = Object.freeze([
+  'Full Stack Web Development',
+  'AI & Machine Learning',
+  'Data Science & Analytics',
+  'Cloud & DevOps Engineering',
+  'Cybersecurity & Ethical Hacking',
+  'Mobile App Development',
+  'UI/UX Design & Product',
+]);
+
+export const EXPERIENCE_LEVELS = Object.freeze([
+  '1-2 years',
+  '3-5 years',
+  '5-8 years',
+  '8+ years',
+]);
+
+export const registerSchema = z
+  .object({
+    name: nameField,
+    email: emailField,
+    password: newPasswordField('Create a password.'),
+    confirmPassword: z
+      .string({ required_error: 'Confirm your password.' })
+      .min(1, 'Confirm your password.'),
+    role: z.enum(['STUDENT', 'TRAINER']).default('STUDENT'),
+    domain: z.string().optional(),
+    experience: z.string().optional(),
+    linkedinUrl: z.string().optional(),
+    organization: z.string().optional(),
+  })
+  .refine((values) => !values.confirmPassword || values.password === values.confirmPassword, {
+    path: ['confirmPassword'],
+    message: "Passwords don't match.",
+  })
+  .refine(
+    (values) =>
+      values.role !== 'TRAINER' || (typeof values.domain === 'string' && values.domain.trim().length > 0),
+    {
+      path: ['domain'],
+      message: 'Select your primary mentoring domain.',
+    },
+  )
+  .refine(
+    (values) =>
+      values.role !== 'TRAINER' ||
+      (typeof values.experience === 'string' && values.experience.trim().length > 0),
+    {
+      path: ['experience'],
+      message: 'Select your years of experience.',
+    },
+  )
+  .refine(
+    (values) => {
+      if (!values.linkedinUrl || values.linkedinUrl.trim() === '') return true;
+      try {
+        const url = new URL(values.linkedinUrl);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    {
+      path: ['linkedinUrl'],
+      message: 'Enter a valid URL (e.g. https://linkedin.com/in/username).',
+    },
+  );
 
 export const forgotPasswordSchema = z.object({
   email: emailField,
@@ -114,5 +176,15 @@ export const resetPasswordSchema = z
   });
 
 export const LOGIN_DEFAULTS = Object.freeze({ email: '', password: '' });
-export const REGISTER_DEFAULTS = Object.freeze({ name: '', email: '', password: '' });
+export const REGISTER_DEFAULTS = Object.freeze({
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  role: 'STUDENT',
+  domain: '',
+  experience: '',
+  linkedinUrl: '',
+  organization: '',
+});
 export const RESET_PASSWORD_DEFAULTS = Object.freeze({ password: '', confirmPassword: '' });

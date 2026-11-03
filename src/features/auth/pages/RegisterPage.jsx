@@ -16,6 +16,8 @@ export function RegisterPage() {
     <AuthCard
       title="Create your account"
       description="Take a short assessment, unlock your merit discount and start building real projects."
+      showSocialAuth
+      socialAuthMode="register"
       footer={
         <>
           Already have an account?{' '}

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Card } from '@/shared/components/ui';
 import { cn } from '@/shared/utils/cn';
+import { SocialAuthButtons } from './SocialAuthButtons';
 
 const ICON_TONES = {
   brand: 'bg-brand-100 text-brand-700 ring-brand-50',
@@ -12,11 +13,7 @@ const ICON_TONES = {
 
 /**
  * The card every auth page renders inside AuthLayout: optional icon, the page's only <h1>,
- * supporting text, the form or actions, and a muted footer for "Log in" / "Sign up" links.
- *
- * `autoFocusHeading` moves focus to the heading when the card mounts. Pages pass it (with a
- * `key`) when they swap one state for another (form -> "Check your email"), so keyboard and
- * screen-reader users land on the new content instead of on a button that disappeared.
+ * supporting text, optional social OAuth buttons, the form or actions, and a muted footer.
  */
 export function AuthCard({
   icon: Icon,
@@ -25,6 +22,8 @@ export function AuthCard({
   eyebrow,
   title,
   description,
+  showSocialAuth = false,
+  socialAuthMode = 'login',
   footer,
   autoFocusHeading = false,
   className,
@@ -57,17 +56,20 @@ export function AuthCard({
         <h1
           ref={headingRef}
           tabIndex={-1}
-          className="text-2xl font-semibold tracking-tight text-slate-900 focus:outline-none"
+          className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 focus:outline-none"
         >
           {title}
         </h1>
         {description ? (
-          <div className="mt-2 text-sm leading-6 text-slate-600">{description}</div>
+          <div className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{description}</div>
+        ) : null}
+        {showSocialAuth ? (
+          <SocialAuthButtons mode={socialAuthMode} className="mt-5" />
         ) : null}
         {children ? <div className={cn('mt-6', centered && 'text-left')}>{children}</div> : null}
       </div>
       {footer ? (
-        <div className="rounded-b-2xl border-t border-slate-100 bg-slate-50/70 px-5 py-4 text-center text-sm text-slate-600 sm:px-8">
+        <div className="rounded-b-2xl border-t border-slate-100 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900/60 px-5 py-4 text-center text-sm text-slate-600 dark:text-slate-400 sm:px-8">
           {footer}
         </div>
       ) : null}
