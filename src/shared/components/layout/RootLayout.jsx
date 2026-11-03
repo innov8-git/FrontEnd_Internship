@@ -1,6 +1,8 @@
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import { Outlet, ScrollRestoration } from 'react-router-dom';
 import { PageLoader, Toaster } from '@/shared/components/ui';
+
+const ChatBot = lazy(() => import('@/features/chatbot/components/ChatBot'));
 
 const MAIN_CONTENT_ID = 'main-content';
 
@@ -33,6 +35,9 @@ export function RootLayout() {
         <Outlet />
       </Suspense>
       <Toaster />
+      <Suspense fallback={null}>
+        <ChatBot />
+      </Suspense>
     </>
   );
 }
