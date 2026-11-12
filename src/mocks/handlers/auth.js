@@ -350,11 +350,44 @@ export const authHandlers = [
     const auth = requireAuth(request);
     if (auth.error) return auth.error;
     const body = await readJson(request);
-    const name = normalizeName(body.name);
-    const details = nameDetails(name);
-    if (details.length > 0) return validationError(details);
 
-    auth.user.name = name;
+    if (body.name !== undefined) {
+      const name = normalizeName(body.name);
+      const details = nameDetails(name);
+      if (details.length > 0) return validationError(details);
+      auth.user.name = name;
+    }
+
+    if (body.trainerProfile && typeof body.trainerProfile === 'object') {
+      auth.user.trainerProfile = {
+        ...(auth.user.trainerProfile || {}),
+        domain:
+          body.trainerProfile.domain !== undefined
+            ? String(body.trainerProfile.domain).trim()
+            : auth.user.trainerProfile?.domain || '',
+        experience:
+          body.trainerProfile.experience !== undefined
+            ? String(body.trainerProfile.experience).trim()
+            : auth.user.trainerProfile?.experience || '',
+        organization:
+          body.trainerProfile.organization !== undefined
+            ? String(body.trainerProfile.organization).trim()
+            : auth.user.trainerProfile?.organization || '',
+        linkedinUrl:
+          body.trainerProfile.linkedinUrl !== undefined
+            ? String(body.trainerProfile.linkedinUrl).trim()
+            : auth.user.trainerProfile?.linkedinUrl || '',
+        resumeName:
+          body.trainerProfile.resumeName !== undefined
+            ? String(body.trainerProfile.resumeName).trim()
+            : auth.user.trainerProfile?.resumeName || '',
+        resumeSize:
+          body.trainerProfile.resumeSize !== undefined
+            ? Number(body.trainerProfile.resumeSize)
+            : auth.user.trainerProfile?.resumeSize || 0,
+      };
+    }
+
     auth.user.updatedAt = nowIso();
     return json(publicUser(auth.user));
   }),

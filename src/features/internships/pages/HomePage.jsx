@@ -1,6 +1,5 @@
 import { useDocumentTitle } from '@/shared/hooks';
 import { CtaBanner } from '../components/CtaBanner';
-import { DiscountExplainer } from '../components/DiscountExplainer';
 import { DomainStrip } from '../components/DomainStrip';
 import { Faq } from '../components/Faq';
 import { FeaturedInternships } from '../components/FeaturedInternships';
@@ -16,9 +15,8 @@ export function HomePage() {
       <HeroSection />
       <TrustStrip />
       <HowItWorks />
-      <FeaturedInternships />
+      <FeaturedInternships limit={4} showViewMore={true} />
       <DomainStrip />
-      <DiscountExplainer />
       <Faq className="border-t border-slate-200 dark:border-slate-800" />
       <CtaBanner />
     </div>

@@ -9,7 +9,8 @@ export const logout = () => api.post('/auth/logout');
 
 export const getMe = () => api.get('/auth/me');
 
-export const updateMe = ({ name }) => api.patch('/auth/me', { name });
+export const updateMe = ({ name, trainerProfile }) =>
+  api.patch('/auth/me', { name, trainerProfile });
 
 export const verifyEmail = (token) => api.post('/auth/verify-email', { token });
 

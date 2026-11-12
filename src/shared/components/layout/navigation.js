@@ -95,6 +95,13 @@ export function getTrainerNavigation({ pendingCount = 0 } = {}) {
         { label: 'Reports', to: ROUTES.TRAINER_REPORTS, icon: BarChart3 },
       ],
     },
+    {
+      title: 'Account',
+      items: [
+        { label: 'Profile', to: ROUTES.PROFILE, icon: User },
+        { label: 'Browse internships', to: ROUTES.CATALOG, icon: Briefcase },
+      ],
+    },
   ];
 }
 

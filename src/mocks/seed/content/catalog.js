@@ -45,6 +45,20 @@ export const DESIGNATIONS = [
       'Design pipelines that turn raw data into reliable, query-ready tables. You model warehouses, write SQL and PySpark transformations, orchestrate jobs with Airflow and add data-quality checks. Key skills: advanced SQL, Python and pandas, Spark, data modelling, partitioning and orchestration.',
     status: 'DRAFT',
   },
+  {
+    name: 'Trainee Software Engineer – Web Development',
+    slug: 'trainee-se-web',
+    description:
+      'Design, develop, test, and maintain modern responsive web applications across real-world domains. Build interactive user interfaces, RESTful APIs, and secure database integrations. Key skills: HTML5, CSS3, JavaScript, React.js / Angular, Core Java / Python / Node.js, SQL, REST APIs, Git, and web security.',
+    status: 'PUBLISHED',
+  },
+  {
+    name: 'Trainee Software Engineer – App Development',
+    slug: 'trainee-se-app',
+    description:
+      'Design, develop, test, and maintain mobile applications for Android and cross-platform environments. Build responsive mobile interfaces, API integrations, and local caching. Key skills: Core Java, Kotlin, Dart, Android Studio, Flutter / React Native, XML layout, Room DB / SQLite, Firebase, and mobile debugging.',
+    status: 'PUBLISHED',
+  },
 ];
 
 export const DOMAINS = [
@@ -53,6 +67,13 @@ export const DOMAINS = [
     slug: 'banking',
     description:
       'Accounts, fund transfers, ledgers and statements for a retail bank, where correctness, auditability and safe transaction handling come first.',
+    status: 'PUBLISHED',
+  },
+  {
+    name: 'Finance',
+    slug: 'finance',
+    description:
+      'Treasury operations, automated payment settlements, portfolio tracking, and multi-currency ledger management.',
     status: 'PUBLISHED',
   },
   {
@@ -81,7 +102,21 @@ export const DOMAINS = [
     slug: 'insurance',
     description:
       'Policy administration, premium calculation and claims processing for a general insurer, with a clear audit trail for every decision.',
-    status: 'DRAFT',
+    status: 'PUBLISHED',
+  },
+  {
+    name: 'Loan',
+    slug: 'loan',
+    description:
+      'End-to-end loan origination systems (LOS), EMI amortization calculation, credit bureau scoring, and loan lifecycle processing.',
+    status: 'PUBLISHED',
+  },
+  {
+    name: 'ERP/CRM',
+    slug: 'erp-crm',
+    description:
+      'Multi-tenant enterprise resource planning, sales pipelines, inventory workflows, and customer ticketing systems.',
+    status: 'PUBLISHED',
   },
 ];
 
@@ -104,6 +139,16 @@ export const PLAN_MATRIX = [
     status: 'PUBLISHED',
   },
   { designation: 'data-engineer', domains: ['banking'], status: 'DRAFT' },
+  {
+    designation: 'trainer-se-web',
+    domains: ['banking', 'finance', 'telecom', 'e-commerce', 'healthcare', 'insurance', 'loan', 'erp-crm'],
+    status: 'PUBLISHED',
+  },
+  {
+    designation: 'trainer-se-app',
+    domains: ['banking', 'finance', 'telecom', 'e-commerce', 'healthcare', 'insurance', 'loan', 'erp-crm'],
+    status: 'PUBLISHED',
+  },
 ];
 
 /** Base price in paise for each duration (months). */
@@ -122,4 +167,6 @@ export const PRICE_ADJUSTMENT_BY_DESIGNATION = {
   'dotnet-developer': 0,
   'devops-engineer': 100000,
   'data-engineer': 100000,
+  'trainer-se-web': 50000,
+  'trainer-se-app': 50000,
 };

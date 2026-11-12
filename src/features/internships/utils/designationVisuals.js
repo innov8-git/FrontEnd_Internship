@@ -49,6 +49,16 @@ const DESIGNATION_VISUALS = {
     gradient: 'from-sky-600 to-cyan-400',
     tint: 'bg-sky-50 text-sky-700',
   },
+  'trainer-se-web': {
+    icon: Code2,
+    gradient: 'from-blue-600 to-indigo-500',
+    tint: 'bg-blue-50 text-blue-700',
+  },
+  'trainer-se-app': {
+    icon: Smartphone,
+    gradient: 'from-emerald-600 to-teal-500',
+    tint: 'bg-emerald-50 text-emerald-700',
+  },
 };
 
 const DESIGNATION_FALLBACKS = [
@@ -64,6 +74,9 @@ const DOMAIN_VISUALS = {
   telecom: { icon: Smartphone, tint: 'bg-violet-50 text-violet-700' },
   'e-commerce': { icon: ShoppingBag, tint: 'bg-orange-50 text-orange-700' },
   insurance: { icon: Shield, tint: 'bg-teal-50 text-teal-700' },
+  finance: { icon: Landmark, tint: 'bg-emerald-50 text-emerald-700' },
+  loan: { icon: Landmark, tint: 'bg-purple-50 text-purple-700' },
+  'erp-crm': { icon: Boxes, tint: 'bg-indigo-50 text-indigo-700' },
 };
 
 const DOMAIN_FALLBACKS = [

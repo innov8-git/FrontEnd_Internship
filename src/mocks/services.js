@@ -495,6 +495,7 @@ export function publicUser(user) {
     emailVerified: Boolean(user.emailVerified),
     createdAt: user.createdAt ?? null,
     updatedAt: user.updatedAt ?? null,
+    trainerProfile: user.trainerProfile ?? undefined,
   };
 }
 

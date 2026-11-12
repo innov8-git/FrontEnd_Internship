@@ -28,19 +28,9 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     expect(screen.getAllByText('Healthcare & MedTech').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Enterprise Cloud & AI').length).toBeGreaterThan(0);
 
-    // Check position headings
-    expect(
-      screen.getByRole('heading', { name: /Full Stack FinTech Engineer Intern/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: /Cloud & DevOps Network Intern/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: /Healthcare Systems & Full Stack Intern/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: /Enterprise Systems & AI Integration Intern/i }),
-    ).toBeInTheDocument();
+    // Check position headings: cards now display 'Trainee Software Engineer' only in bold
+    const engineerHeadings = screen.getAllByRole('heading', { name: /^Trainee Software Engineer$/i });
+    expect(engineerHeadings.length).toBeGreaterThanOrEqual(4);
   });
 
   it('displays 100% Online Remote, 1 to 6 Months duration, and 3 core outcomes on cards', () => {
@@ -52,12 +42,12 @@ describe('FeaturedInternships Section & Partner Companies', () => {
 
     // 1 to 6 Months duration
     const durationTags = screen.getAllByText('1 to 6 Months');
-    expect(durationTags.length).toBe(4);
+    expect(durationTags.length).toBeGreaterThanOrEqual(4);
 
     // Three core outcomes
-    expect(screen.getAllByText('Experience Letter').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getAllByText('Internship Completion Letter').length).toBeGreaterThanOrEqual(4);
     expect(screen.getAllByText('1-on-1 Mentor').length).toBeGreaterThanOrEqual(4);
-    expect(screen.getAllByText('Placement Calls').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getAllByText('Placement Support').length).toBeGreaterThanOrEqual(4);
 
     // Should NOT have stipend amounts or urgency badges on outer cards
     expect(screen.queryByText(/starts in \d+ days/i)).not.toBeInTheDocument();
@@ -73,36 +63,20 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     const bankingTab = screen.getByRole('button', { name: /Banking & FinTech/i });
     await user.click(bankingTab);
 
-    // Inlarge role heading should be visible, other roles should be filtered out
-    expect(
-      screen.getByRole('heading', { name: /Full Stack FinTech Engineer Intern/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('heading', { name: /Cloud & DevOps Network Intern/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('heading', { name: /Healthcare Systems & Full Stack Intern/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('heading', { name: /Enterprise Systems & AI Integration Intern/i }),
-    ).not.toBeInTheDocument();
+    // Inlarge company cards should be visible, other companies should be filtered out
+    expect(screen.getAllByText(/Enterprise core banking/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Next-gen telecom orchestration/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/HIPAA-compliant health tech/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Multi-tenant enterprise SaaS/i)).not.toBeInTheDocument();
 
     // Click All tab
     const allTab = screen.getByRole('button', { name: /All Companies & Tracks/i });
     await user.click(allTab);
 
-    expect(
-      screen.getByRole('heading', { name: /Full Stack FinTech Engineer Intern/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: /Cloud & DevOps Network Intern/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: /Healthcare Systems & Full Stack Intern/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: /Enterprise Systems & AI Integration Intern/i }),
-    ).toBeInTheDocument();
+    expect(screen.getAllByText(/Enterprise core banking/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Next-gen telecom orchestration/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/HIPAA-compliant health tech/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Multi-tenant enterprise SaaS/i).length).toBeGreaterThan(0);
   });
 
   it('opens details modal with role responsibilities and allows applying', async () => {
@@ -121,6 +95,18 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     const applyTab = screen.getByRole('button', { name: /Apply for this Role/i });
     await user.click(applyTab);
 
+    // Verify company-specific domain dropdown and duration dropdown
+    expect(
+      screen.getByRole('combobox', { name: /Select Domain Offered by Inlarge Software/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /Select Duration/i })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Banking' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Finance' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '1 Month' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '2 Months' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '3 Months' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '6 Months' })).toBeInTheDocument();
+
     // Fill application form
     const nameInput = screen.getByPlaceholderText(/rahul sharma/i);
     const emailInput = screen.getByPlaceholderText(/name@example.com/i);
@@ -135,9 +121,105 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     const submitBtn = screen.getByRole('button', { name: /Submit Application/i });
     await user.click(submitBtn);
 
-    // Verify submission confirmation
+    // Verify submission confirmation with domain & duration details
     expect(
       await screen.findByText(/Application Submitted to Inlarge Software!/i),
     ).toBeInTheDocument();
+    expect(screen.getByText(/Banking Domain/i)).toBeInTheDocument();
+  });
+
+  it('displays all 8 assigned domains across the 4 companies (2 domains per company)', () => {
+    renderFeaturedInternships();
+
+    // 8 Domains: Banking, Finance, Telecom, Ecom, Healthcare, Insurance, ERP/CRM, Loan
+    // Check assigned domains badges on cards
+    expect(screen.getAllByText('Banking').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Finance').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Telecom').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Ecom').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Healthcare').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Insurance').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('ERP/CRM').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Loan').length).toBeGreaterThan(0);
+  });
+
+  it('renders separate cards for Web Development and App Development positions on each company', async () => {
+    const user = userEvent.setup();
+    renderFeaturedInternships();
+
+    // Both Web Development and App Development cards are rendered as independent cards in the grid
+    expect(screen.getAllByText('Web Development Track').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getAllByText('App Development Track').length).toBeGreaterThanOrEqual(4);
+    expect(
+      screen.getAllByRole('heading', { name: /^Trainee Software Engineer$/i }).length,
+    ).toBeGreaterThanOrEqual(8);
+
+    // Click 'App Development' track filter toggle
+    const appTrackButton = screen.getByRole('button', { name: /^App Development$/i });
+    await user.click(appTrackButton);
+
+    // Only App Development cards should now be rendered (4 cards)
+    expect(screen.getAllByText('App Development Track').length).toBeGreaterThanOrEqual(4);
+    expect(screen.queryByText('Web Development Track')).not.toBeInTheDocument();
+  });
+
+  it('filters companies using sub-domain quick filter pills', async () => {
+    const user = userEvent.setup();
+    renderFeaturedInternships();
+
+    // Click 'Insurance' sub-domain pill
+    const insurancePill = screen.getByRole('button', { name: /^Insurance$/i });
+    await user.click(insurancePill);
+
+    // Proton (Healthcare & Insurance) card should be visible
+    expect(screen.getAllByText(/HIPAA-compliant health tech/i).length).toBeGreaterThan(0);
+
+    // Other company cards should be filtered out
+    expect(screen.queryByText(/Enterprise core banking/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Next-gen telecom orchestration/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Multi-tenant enterprise SaaS/i)).not.toBeInTheDocument();
+  });
+
+  it(
+    'opens modal strictly for the specific clicked position (Web or App) without track switcher',
+    async () => {
+    const user = userEvent.setup();
+    renderFeaturedInternships();
+
+    const viewDetailsButtons = screen.getAllByRole('button', { name: /view details/i });
+    // First card is Inlarge Web Development
+    await user.click(viewDetailsButtons[0]);
+
+    // Modal view has Web Development role with responsibilities
+    expect(screen.getByText(/Full Stack Web Engineering Track/i)).toBeInTheDocument();
+    expect(screen.getByText(/Role Overview/i)).toBeInTheDocument();
+    expect(screen.getByText(/Role Responsibilities & What You Will Build/i)).toBeInTheDocument();
+
+    // Verifies no position switcher button exists in the modal
+    expect(screen.queryByText(/Select Position:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Confirm Selected Position/i)).not.toBeInTheDocument();
+
+    // Outcome tags inside modal are Internship Completion Letter & Placement Support
+    const completionLetters = screen.getAllByText('Internship Completion Letter');
+    expect(completionLetters.length).toBeGreaterThanOrEqual(1);
+    const placementSupports = screen.getAllByText('Placement Support');
+    expect(placementSupports.length).toBeGreaterThanOrEqual(1);
+  }, 15000);
+
+  it('renders 4 cards initially when limit={4} and displays a View More redirect CTA linking to /internships', () => {
+    render(
+      <MemoryRouter>
+        <FeaturedInternships limit={4} showViewMore={true} />
+      </MemoryRouter>,
+    );
+
+    // Displays exactly 4 cards
+    const viewDetailsButtons = screen.getAllByRole('button', { name: /view details/i });
+    expect(viewDetailsButtons.length).toBe(4);
+
+    // Displays the View More CTA linking to /internships
+    const viewMoreLink = screen.getByRole('link', { name: /View More Positions/i });
+    expect(viewMoreLink).toBeInTheDocument();
+    expect(viewMoreLink.getAttribute('href')).toBe('/internships');
   });
 });

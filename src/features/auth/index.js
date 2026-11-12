@@ -12,6 +12,7 @@ export { ResendVerificationForm } from './components/ResendVerificationForm';
 export { PasswordRules } from './components/PasswordRules';
 export { SocialAuthButtons } from './components/SocialAuthButtons';
 export { GoogleLoginButton } from './components/GoogleLoginButton';
+export { ResumeUpload } from './components/ResumeUpload';
 
 export { useLogin } from './hooks/useLogin';
 export { useGoogleAuth } from './hooks/useGoogleAuth';

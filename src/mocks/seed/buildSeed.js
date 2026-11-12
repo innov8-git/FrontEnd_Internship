@@ -59,6 +59,16 @@ export function buildSeed() {
       roles,
       status,
       emailVerified,
+      trainerProfile: roles.includes('TRAINER')
+        ? {
+            domain: 'Full Stack Web Development',
+            experience: '5-8 years',
+            organization: 'Infosys',
+            linkedinUrl: 'https://linkedin.com/in/priyanair',
+            resumeName: 'Priya_Nair_Resume.pdf',
+            resumeSize: 1450000,
+          }
+        : undefined,
       createdAt: created,
       updatedAt: created,
     };

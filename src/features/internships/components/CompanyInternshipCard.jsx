@@ -2,6 +2,7 @@ import {
   ArrowRight,
   BadgeCheck,
   Clock,
+  Code2,
   FileText,
   Globe,
   HeartPulse,
@@ -9,6 +10,7 @@ import {
   Network,
   Phone,
   Server,
+  Smartphone,
   Users,
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
@@ -27,8 +29,22 @@ function getDomainIcon(category) {
   }
 }
 
-export function CompanyInternshipCard({ partner, onSelect, onApply, className }) {
-  const { internship } = partner;
+/**
+ * CompanyInternshipCard
+ * Renders an independent position card for a company's specific role
+ * (Web Development or App Development), showcasing domain context, tech stack,
+ * and key production deliverables.
+ */
+export function CompanyInternshipCard({
+  partner,
+  role,
+  onSelect,
+  onApply,
+  className,
+}) {
+  const currentRole = role || partner?.role || partner?.internship || partner?.roles?.[0];
+  const isWeb = currentRole?.track === 'web';
+  const TrackIcon = isWeb ? Code2 : Smartphone;
   const DomainIcon = getDomainIcon(partner.domainCategory);
 
   return (
@@ -67,23 +83,51 @@ export function CompanyInternshipCard({ partner, onSelect, onApply, className })
             </div>
           </div>
 
-          {/* Domain Tag */}
-          <span
-            className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold shadow-xs',
-              partner.badgeTint,
+          {/* Track Badge & Domain Tag */}
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            {/* Track indicator badge (Web vs App) */}
+            <span
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold shadow-xs',
+                isWeb
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
+                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800',
+              )}
+            >
+              <TrackIcon className="h-3.5 w-3.5" />
+              <span>{currentRole?.trackLabel || (isWeb ? 'Web Development' : 'App Development')}</span>
+            </span>
+
+            {/* Assigned Domains Pills */}
+            {partner.assignedDomains && (
+              <div className="flex items-center gap-1">
+                {partner.assignedDomains.map((domainName) => (
+                  <span
+                    key={domainName}
+                    className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                  >
+                    {domainName}
+                  </span>
+                ))}
+              </div>
             )}
-          >
-            <DomainIcon className="h-3.5 w-3.5" />
-            <span>{partner.domain}</span>
-          </span>
+          </div>
         </div>
 
-        {/* Role Title */}
-        <div className="mt-5">
-          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-snug transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">
-            {internship.role}
+        {/* Role Designation & Title */}
+        <div className="mt-4">
+          <div className="inline-flex items-center gap-1.5 rounded-md bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/50 dark:text-brand-300">
+            <TrackIcon className="h-3 w-3" />
+            <span>{isWeb ? 'Web Development Track' : 'App Development Track'}</span>
+          </div>
+
+          <h3 className="mt-1.5 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-snug transition-colors group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">
+            {currentRole?.role || 'Trainee Software Engineer'}
           </h3>
+
+          <p className="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-400 line-clamp-2">
+            {currentRole?.description}
+          </p>
 
           {/* Meta Info Bar: 100% Online Remote & Duration */}
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
@@ -93,33 +137,22 @@ export function CompanyInternshipCard({ partner, onSelect, onApply, className })
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
               <Clock className="h-3.5 w-3.5 text-slate-400" />
-              {internship.duration}
+              {currentRole?.duration}
             </span>
-          </div>
-        </div>
-
-        {/* Tech Stack Chips Preview */}
-        <div className="mt-5">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
-            Technologies & Tools
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {internship.techStack.map((tech) => (
-              <span
-                key={tech}
-                className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-              >
-                {tech}
+            {partner.domain && (
+              <span className="inline-flex items-center gap-1 rounded-lg bg-slate-50 px-2 py-0.5 text-[11px] text-slate-500 border border-slate-200 dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-400">
+                <DomainIcon className="h-3 w-3" />
+                <span>{partner.domain}</span>
               </span>
-            ))}
+            )}
           </div>
         </div>
 
-        {/* 3 Core Outcomes: Experience Letter, 1-on-1 Mentor, Placement Calls */}
+        {/* 3 Core Outcomes: Internship Completion Letter, 1-on-1 Mentor, Placement Support */}
         <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-slate-100 pt-3.5 text-xs text-slate-700 dark:border-slate-800 dark:text-slate-300">
           <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
             <FileText className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-            Experience Letter
+            Internship Completion Letter
           </span>
           <span className="text-slate-300 dark:text-slate-700">•</span>
           <span className="inline-flex items-center gap-1 font-medium text-blue-700 dark:text-blue-400">
@@ -129,7 +162,7 @@ export function CompanyInternshipCard({ partner, onSelect, onApply, className })
           <span className="text-slate-300 dark:text-slate-700">•</span>
           <span className="inline-flex items-center gap-1 font-medium text-purple-700 dark:text-purple-400">
             <Phone className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-            Placement Calls
+            Placement Support
           </span>
         </div>
       </div>
@@ -146,14 +179,14 @@ export function CompanyInternshipCard({ partner, onSelect, onApply, className })
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => onSelect(partner, 'details')}
+            onClick={() => onSelect(partner, 'details', currentRole)}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
             View Details
           </button>
           <button
             type="button"
-            onClick={() => onApply(partner)}
+            onClick={() => onApply(partner, currentRole)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-brand-700 active:scale-95"
           >
             <span>Apply</span>

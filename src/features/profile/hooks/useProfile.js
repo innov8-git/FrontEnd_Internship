@@ -51,13 +51,16 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
   const { updateUser } = useAuth();
   return useMutation({
-    mutationFn: ({ name }) => updateMe({ name }),
+    mutationFn: ({ name, trainerProfile }) => updateMe({ name, trainerProfile }),
     onSuccess: (updated, variables) => {
       if (updated && typeof updated === 'object' && updated._id) {
         updateUser(updated);
         queryClient.setQueryData(queryKeys.auth.me, updated);
       } else {
-        updateUser({ name: variables.name });
+        updateUser({
+          name: variables.name,
+          ...(variables.trainerProfile ? { trainerProfile: variables.trainerProfile } : {}),
+        });
       }
     },
   });

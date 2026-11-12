@@ -26,6 +26,7 @@ export function useRegister() {
         experience: values?.experience ? String(values.experience).trim() : undefined,
         linkedinUrl: values?.linkedinUrl ? String(values.linkedinUrl).trim() : undefined,
         organization: values?.organization ? String(values.organization).trim() : undefined,
+        resumeName: values?.resume?.name ? String(values.resume.name).trim() : (typeof values?.resume === 'string' ? values.resume : undefined),
       }),
     onSuccess: (data, variables) => {
       const email = data?.user?.email ?? String(variables?.email ?? '').trim();

@@ -9,7 +9,7 @@ import {
   StatusBanner,
   toast,
 } from '@/shared/components/ui';
-import { AlertTriangle, BadgeCheck, Mail } from '@/shared/icons';
+import { AlertTriangle, BadgeCheck, FileText, Mail } from '@/shared/icons';
 import { ROLE_LABELS } from '@/shared/constants';
 import { cn } from '@/shared/utils/cn';
 import { getErrorMessage } from '@/shared/utils/errors';
@@ -82,8 +82,29 @@ export function AccountDetails({ user, className }) {
               label: 'Account status',
               value: <StatusBadge status={user.status} />,
             },
+            user.trainerProfile?.domain && {
+              label: 'Mentoring domain',
+              value: user.trainerProfile.domain,
+            },
+            user.trainerProfile?.experience && {
+              label: 'Experience',
+              value: user.trainerProfile.experience,
+            },
+            user.trainerProfile?.organization && {
+              label: 'Organization',
+              value: user.trainerProfile.organization,
+            },
+            user.trainerProfile?.resumeName && {
+              label: 'Resume document',
+              value: (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-700 dark:text-brand-300">
+                  <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                  {user.trainerProfile.resumeName}
+                </span>
+              ),
+            },
             { label: 'Member since', value: formatDate(user.createdAt) },
-          ]}
+          ].filter(Boolean)}
         />
 
         {!verified ? (
