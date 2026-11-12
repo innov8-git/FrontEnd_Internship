@@ -350,11 +350,45 @@ export const authHandlers = [
     const auth = requireAuth(request);
     if (auth.error) return auth.error;
     const body = await readJson(request);
-    const name = normalizeName(body.name);
-    const details = nameDetails(name);
-    if (details.length > 0) return validationError(details);
 
-    auth.user.name = name;
+    if (body.name !== undefined) {
+      const name = normalizeName(body.name);
+      const details = nameDetails(name);
+      if (details.length > 0) return validationError(details);
+      auth.user.name = name;
+    }
+
+    if (body.avatarUrl !== undefined) {
+      auth.user.avatarUrl = body.avatarUrl;
+    }
+    if (body.phone !== undefined) {
+      auth.user.phone = typeof body.phone === 'string' ? body.phone.trim() : '';
+    }
+    if (body.headline !== undefined) {
+      auth.user.headline = typeof body.headline === 'string' ? body.headline.trim() : '';
+    }
+    if (body.bio !== undefined) {
+      auth.user.bio = typeof body.bio === 'string' ? body.bio.trim() : '';
+    }
+    if (body.college !== undefined) {
+      auth.user.college = typeof body.college === 'string' ? body.college.trim() : '';
+    }
+    if (body.degree !== undefined) {
+      auth.user.degree = typeof body.degree === 'string' ? body.degree.trim() : '';
+    }
+    if (body.graduationYear !== undefined) {
+      auth.user.graduationYear = typeof body.graduationYear === 'string' ? body.graduationYear.trim() : '';
+    }
+    if (body.location !== undefined) {
+      auth.user.location = typeof body.location === 'string' ? body.location.trim() : '';
+    }
+    if (body.linkedinUrl !== undefined) {
+      auth.user.linkedinUrl = typeof body.linkedinUrl === 'string' ? body.linkedinUrl.trim() : '';
+    }
+    if (body.portfolioUrl !== undefined) {
+      auth.user.portfolioUrl = typeof body.portfolioUrl === 'string' ? body.portfolioUrl.trim() : '';
+    }
+
     auth.user.updatedAt = nowIso();
     return json(publicUser(auth.user));
   }),

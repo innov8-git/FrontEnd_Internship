@@ -35,16 +35,36 @@ export function ChatBot() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
-  const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
   const inputRef = useRef(null);
+  const lastUserMsgIdRef = useRef(null);
+  const isUserInitiatedRef = useRef(false);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
+  // Smoothly scrolls to show the user question and bot answer comfortably in view
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping, scrollToBottom]);
+    if (!open) return;
+
+    if (isUserInitiatedRef.current && lastUserMsgIdRef.current) {
+      const timer = setTimeout(() => {
+        const container = scrollContainerRef.current;
+        const targetEl = document.getElementById(`msg-${lastUserMsgIdRef.current}`);
+        if (container && targetEl) {
+          // Scroll so the user question is right at the top (with 12px padding)
+          // This keeps the bot's answer completely in view without scrolling down to the next questions!
+          const offset = Math.max(0, targetEl.offsetTop - 12);
+          if (typeof container.scrollTo === 'function') {
+            container.scrollTo({
+              top: offset,
+              behavior: 'smooth',
+            });
+          } else {
+            container.scrollTop = offset;
+          }
+        }
+      }, 30);
+      return () => clearTimeout(timer);
+    }
+  }, [messages, isTyping, open]);
 
   useEffect(() => {
     if (open) {
@@ -57,12 +77,16 @@ export function ChatBot() {
       const trimmed = String(text ?? '').trim();
       if (!trimmed || isTyping) return;
 
+      const userMsgId = `user-${Date.now()}`;
       const userMsg = {
-        id: `user-${Date.now()}`,
+        id: userMsgId,
         role: 'user',
         content: trimmed,
         time: formatTime(),
       };
+
+      lastUserMsgIdRef.current = userMsgId;
+      isUserInitiatedRef.current = true;
 
       setMessages((prev) => [...prev, userMsg]);
       setInput('');
@@ -71,7 +95,7 @@ export function ChatBot() {
       setTimeout(() => {
         const match = matchIntent(trimmed);
         const botResponse = match ? match.intent.answer : getChatbotResponse(trimmed);
-        const related = getRelatedQuestions(match?.intent, trimmed, 5);
+        const related = getRelatedQuestions(match?.intent, trimmed, 4);
 
         const botMsg = {
           id: `bot-${Date.now()}`,
@@ -93,6 +117,8 @@ export function ChatBot() {
   };
 
   const handleReset = () => {
+    isUserInitiatedRef.current = false;
+    lastUserMsgIdRef.current = null;
     setMessages([
       {
         id: 'greeting',
@@ -108,6 +134,13 @@ export function ChatBot() {
       },
     ]);
     setActiveCategory(null);
+    if (scrollContainerRef.current) {
+      if (typeof scrollContainerRef.current.scrollTo === 'function') {
+        scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+    }
   };
 
   const handleQuestionClick = (question) => {
@@ -267,17 +300,28 @@ export function ChatBot() {
           </div>
 
           {/* ── Messages Stream ─────────────────────────────────────────── */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3.5 bg-gradient-to-b from-slate-50/70 via-white to-slate-50/40 dark:from-slate-900/90 dark:via-slate-900 dark:to-slate-950/80 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700">
-            {messages.map((msg) => (
-              <ChatMessage
-                key={msg.id}
-                role={msg.role}
-                content={msg.content}
-                timestamp={msg.time}
-                relatedQuestions={msg.relatedQuestions}
-                onSelectQuestion={handleQuestionClick}
-              />
-            ))}
+          <div
+            ref={scrollContainerRef}
+            className="relative flex-1 overflow-y-auto px-4 py-4 space-y-3.5 bg-gradient-to-b from-slate-50/70 via-white to-slate-50/40 dark:from-slate-900/90 dark:via-slate-900 dark:to-slate-950/80 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700"
+          >
+            {messages.map((msg, index) => {
+              const isLatestBot =
+                msg.role === 'bot' &&
+                (index === messages.length - 1 ||
+                  (index === messages.length - 2 && isTyping));
+
+              return (
+                <div key={msg.id} id={`msg-${msg.id}`}>
+                  <ChatMessage
+                    role={msg.role}
+                    content={msg.content}
+                    timestamp={msg.time}
+                    relatedQuestions={isLatestBot ? msg.relatedQuestions : []}
+                    onSelectQuestion={handleQuestionClick}
+                  />
+                </div>
+              );
+            })}
 
             {/* Typing Indicator */}
             {isTyping ? (
@@ -301,8 +345,6 @@ export function ChatBot() {
                 onSelectQuestion={handleQuestionClick}
               />
             ) : null}
-
-            <div ref={messagesEndRef} />
           </div>
 
           {/* ── Input Area ──────────────────────────────────────────────── */}

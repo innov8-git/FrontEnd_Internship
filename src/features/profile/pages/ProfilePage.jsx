@@ -28,10 +28,10 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <PageHeader
         title="Profile"
-        description="Manage your account, your GitHub connection and your internship record."
+        description="Manage your personal details, profile picture, academic background, and internship record."
       />
 
-      <div className="grid gap-6 xl:grid-cols-5">
+      <div className="grid gap-6 xl:grid-cols-5 items-start">
         <AccountDetails user={user} className="xl:col-span-2" />
         <ProfileForm user={user} className="xl:col-span-3" />
       </div>

@@ -151,7 +151,7 @@ export function ChatMessage({
 
         {/* ── Related Questions Section Below Bot Answer ──────────────── */}
         {isBot && relatedQuestions && relatedQuestions.length > 0 ? (
-          <div className="mt-2.5 w-full rounded-2xl border border-slate-700/80 bg-slate-900/95 p-3.5 shadow-md animate-in fade-in slide-in-from-bottom-2 duration-200 dark:border-slate-700 dark:bg-slate-950/95">
+          <div className="mt-2.5 w-full rounded-2xl border border-slate-700/80 bg-slate-900/95 p-3 shadow-md animate-in fade-in slide-in-from-bottom-2 duration-200 dark:border-slate-700 dark:bg-slate-950/95">
             <p className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
               <span className="text-sm">✨</span>
               <span>Tap a question to ask:</span>
@@ -162,7 +162,7 @@ export function ChatMessage({
                   key={question}
                   type="button"
                   onClick={() => onSelectQuestion?.(question)}
-                  className="group flex w-full items-center justify-between rounded-xl bg-slate-800/90 px-3.5 py-2.5 text-left text-xs font-medium text-slate-100 shadow-2xs transition-all duration-150 hover:bg-slate-800 hover:text-amber-300 active:scale-[0.99] dark:bg-slate-900 dark:hover:bg-slate-800/90"
+                  className="group flex w-full items-center justify-between rounded-xl bg-slate-800/90 px-3 py-2 text-left text-xs font-medium text-slate-100 shadow-2xs transition-all duration-150 hover:bg-slate-800 hover:text-amber-300 active:scale-[0.99] dark:bg-slate-900 dark:hover:bg-slate-800/90"
                 >
                   <span className="line-clamp-1 flex-1 pr-2">{question}</span>
                   <svg
