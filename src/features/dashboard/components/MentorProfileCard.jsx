@@ -9,9 +9,7 @@ import {
 import {
   Award,
   CheckCircle2,
-  ExternalLink,
   GitPullRequest,
-  Mail,
   MessageSquare,
   ShieldCheck,
   Sparkles,
@@ -34,7 +32,7 @@ const DEFAULT_MENTOR = {
  * core responsibilities (code reviews, technical guidance, milestone sign-off),
  * and quick contact modalities to establish transparency and trust.
  */
-export function MentorProfileCard({ mentor, enrollment, className }) {
+export function MentorProfileCard({ mentor, _enrollment, className }) {
   const profile = mentor || DEFAULT_MENTOR;
   const [modalOpen, setModalOpen] = useState(false);
 

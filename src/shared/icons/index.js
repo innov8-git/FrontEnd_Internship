@@ -32,6 +32,7 @@ export {
   CalendarCheck,
   CalendarClock,
   CalendarDays,
+  Camera,
   Check,
   CheckCheck,
   CheckCircle2,

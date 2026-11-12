@@ -74,7 +74,7 @@ export function UserMenu({ className }) {
         className,
       )}
     >
-      <Avatar name={name} size="sm" />
+      <Avatar name={name} src={user?.avatarUrl} size="sm" />
       <span className="hidden max-w-[10rem] truncate sm:block">{name}</span>
       <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
     </button>
