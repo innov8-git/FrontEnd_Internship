@@ -27,9 +27,9 @@ describe('CtaBanner Component', () => {
     // Highlights
     expect(screen.getByText('100% Online Remote')).toBeInTheDocument();
     expect(screen.getByText('1 to 6 Months Flexible')).toBeInTheDocument();
-    expect(screen.getByText('Experience Letter')).toBeInTheDocument();
+    expect(screen.getByText('Internship Completion Letter')).toBeInTheDocument();
     expect(screen.getByText('1-on-1 Mentor')).toBeInTheDocument();
-    expect(screen.getByText('Placement Calls')).toBeInTheDocument();
+    expect(screen.getByText('Placement Support')).toBeInTheDocument();
 
     // Partner companies
     expect(screen.getByText(/Inlarge Software \(Banking\)/i)).toBeInTheDocument();

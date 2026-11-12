@@ -32,7 +32,7 @@ const DEFAULT_MENTOR = {
  * core responsibilities (code reviews, technical guidance, milestone sign-off),
  * and quick contact modalities to establish transparency and trust.
  */
-export function MentorProfileCard({ mentor, _enrollment, className }) {
+export function MentorProfileCard({ mentor, className }) {
   const profile = mentor || DEFAULT_MENTOR;
   const [modalOpen, setModalOpen] = useState(false);
 

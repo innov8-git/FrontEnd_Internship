@@ -23,7 +23,6 @@ import {
 import { cn } from '@/shared/utils/cn';
 import { getErrorStatus } from '@/shared/utils/errors';
 import { formatMoney } from '@/shared/utils/helpers';
-import { DiscountExplainer } from '../components/DiscountExplainer';
 import { EnrollmentSteps } from '../components/EnrollmentSteps';
 import { PlanList } from '../components/PlanList';
 import { SchedulePreviewModal } from '../components/SchedulePreviewModal';
@@ -300,7 +299,6 @@ export function DesignationDetailPage() {
 
         <aside className="space-y-4 lg:sticky lg:top-24" aria-label="Enrollment information">
           <EnrollmentSteps headingAs="h2" />
-          <DiscountExplainer variant="compact" headingAs="h2" />
         </aside>
       </div>
 

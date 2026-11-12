@@ -9,7 +9,6 @@ export { PlanList } from './components/PlanList';
 export { PriceTag } from './components/PriceTag';
 export { SchedulePreviewModal } from './components/SchedulePreviewModal';
 export { StartAssessmentButton, JoinTeamButton } from './components/StartAssessmentButton';
-export { DiscountExplainer } from './components/DiscountExplainer';
 export { EnrollmentSteps } from './components/EnrollmentSteps';
 
 export { useInternships, buildInternshipSummaries } from './hooks/useInternships';

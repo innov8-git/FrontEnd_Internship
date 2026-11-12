@@ -117,6 +117,7 @@ export const registerSchema = z
     experience: z.string().optional(),
     linkedinUrl: z.string().optional(),
     organization: z.string().optional(),
+    resume: z.any().optional(),
   })
   .refine((values) => !values.confirmPassword || values.password === values.confirmPassword, {
     path: ['confirmPassword'],
@@ -186,5 +187,6 @@ export const REGISTER_DEFAULTS = Object.freeze({
   experience: '',
   linkedinUrl: '',
   organization: '',
+  resume: null,
 });
 export const RESET_PASSWORD_DEFAULTS = Object.freeze({ password: '', confirmPassword: '' });

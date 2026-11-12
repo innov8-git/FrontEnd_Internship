@@ -4,6 +4,7 @@
  */
 export { AccountDetails } from './components/AccountDetails';
 export { ProfileForm } from './components/ProfileForm';
+export { TrainerProfileForm } from './components/TrainerProfileForm';
 export { ProfileGithubSection } from './components/ProfileGithubSection';
 export { ResumeSection } from './components/ResumeSection';
 export {
@@ -14,3 +15,4 @@ export {
 } from './hooks/useProfile';
 export { useScrollToHash } from './hooks/useScrollToHash';
 export { PROFILE_NAME_MAX, PROFILE_NAME_MIN, profileSchema } from './schemas/profileValidation';
+export { trainerProfileSchema } from './schemas/trainerProfileValidation';

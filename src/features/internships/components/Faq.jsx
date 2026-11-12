@@ -78,23 +78,23 @@ const FAQS = [
     icon: Building2,
     answer: (
       <>
-        We partner with 4 vetted tech enterprises, each offering a fixed industry domain:
+        We partner with 4 vetted tech enterprises across 8 industry domains (2 domains per company), offering both <strong>Trainee Software Engineer – Web Development</strong> and <strong>Trainee Software Engineer – App Development</strong> tracks:
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-900/60">
-            <p className="font-semibold text-slate-900 dark:text-white">🏦 Banking & FinTech</p>
-            <p className="text-xs text-slate-600 dark:text-slate-400">Inlarge Software · Core banking & payment reconciliation</p>
+            <p className="font-semibold text-slate-900 dark:text-white">🏦 Banking & Finance</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Inlarge Software · Core banking, payments & financial ledgers (Web & App)</p>
           </div>
           <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-900/60">
-            <p className="font-semibold text-slate-900 dark:text-white">📡 Telecom & Cloud</p>
-            <p className="text-xs text-slate-600 dark:text-slate-400">Couldinger · 5G edge routing & Kubernetes DevOps</p>
+            <p className="font-semibold text-slate-900 dark:text-white">📡 Telecom & E-Commerce</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Couldinger · 5G self-care & high-concurrency retail checkouts (Web & App)</p>
           </div>
           <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-900/60">
-            <p className="font-semibold text-slate-900 dark:text-white">🏥 Healthcare & MedTech</p>
-            <p className="text-xs text-slate-600 dark:text-slate-400">Proton · HIPAA clinical telemetry & EHR systems</p>
+            <p className="font-semibold text-slate-900 dark:text-white">🏥 Healthcare & Insurance</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Proton · HIPAA clinical telemetry & health claims management (Web & App)</p>
           </div>
           <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-900/60">
-            <p className="font-semibold text-slate-900 dark:text-white">⚡ Enterprise Cloud & AI</p>
-            <p className="text-xs text-slate-600 dark:text-slate-400">Ady Nexes · Distributed SaaS & AI pipelines</p>
+            <p className="font-semibold text-slate-900 dark:text-white">⚡ ERP/CRM & Loan Management</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Ady Nexes · Multi-tenant CRM suites & automated lending workflows (Web & App)</p>
           </div>
         </div>
       </>
@@ -118,15 +118,15 @@ const FAQS = [
     id: 'experience-letter-placement',
     category: 'mentorship-placement',
     categoryLabel: 'Outcomes',
-    question: 'Will I receive an official Experience Letter and Placement Calls?',
+    question: 'Will I receive an official Internship Completion Letter and Placement Support?',
     icon: FileText,
     answer: (
       <>
         Yes! On successful completion of your internship track, you will be awarded:
         <ul className="mt-2 space-y-1 pl-1">
-          <li>• <strong>Official Corporate Experience Letter</strong> issued directly by the partner enterprise.</li>
+          <li>• <strong>Official Internship Completion Letter</strong> issued directly by the partner enterprise.</li>
           <li>• <strong>Verifiable Certificate of Completion</strong> with a permanent tamper-proof online verification URL.</li>
-          <li>• <strong>Dedicated Placement Calls & Interview Drives</strong> coordinated with our hiring partner network.</li>
+          <li>• <strong>Dedicated Placement Support & Interview Drives</strong> coordinated with our hiring partner network.</li>
           <li>• <strong>1-on-1 Senior Industry Mentorship</strong> with GitHub code reviews on your live commits.</li>
         </ul>
       </>
@@ -274,11 +274,11 @@ export function Faq({ className }) {
                   </div>
                   <div className="flex items-center gap-2">
                     <FileText className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
-                    <span>Official Experience Letter</span>
+                    <span>Official Internship Completion Letter</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                    <span>Placement Calls & Drives</span>
+                    <span>Placement Support & Drives</span>
                   </div>
                 </div>
               </div>

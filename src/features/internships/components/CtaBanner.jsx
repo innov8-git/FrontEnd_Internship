@@ -81,7 +81,7 @@ export function CtaBanner({ className }) {
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/90 bg-white/90 px-2.5 py-1 text-slate-700 shadow-xs transition-colors dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
                 <FileText className="h-3.5 w-3.5 text-amber-600 dark:text-brand-400" />
-                Experience Letter
+                Internship Completion Letter
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/90 bg-white/90 px-2.5 py-1 text-slate-700 shadow-xs transition-colors dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
                 <Users className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-400" />
@@ -89,7 +89,7 @@ export function CtaBanner({ className }) {
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/90 bg-white/90 px-2.5 py-1 text-slate-700 shadow-xs transition-colors dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
                 <Phone className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                Placement Calls
+                Placement Support
               </span>
             </div>
 

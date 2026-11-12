@@ -34,7 +34,7 @@ describe('Faq Component', () => {
       screen.getByText(/is this internship 100% online and remote/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/will i receive an official experience letter and placement calls/i),
+      screen.getByText(/will i receive an official internship completion letter and placement support/i),
     ).toBeInTheDocument();
   });
 

@@ -16,6 +16,7 @@ import {
 import { AUTH_ERROR_CODES, applyKnownFieldErrors } from '../utils/authErrors';
 import { AuthErrorBanner } from './AuthErrorBanner';
 import { PasswordRules } from './PasswordRules';
+import { ResumeUpload } from './ResumeUpload';
 import { AUTH_LINK_CLASS } from './authStyles';
 
 const REGISTER_FIELDS = [
@@ -28,6 +29,7 @@ const REGISTER_FIELDS = [
   'experience',
   'linkedinUrl',
   'organization',
+  'resume',
 ];
 const EMAIL_TAKEN_ERROR = 'emailTaken';
 
@@ -64,6 +66,7 @@ export function RegisterForm({ onSubmit, isPending = false, loginTo = ROUTES.LOG
 
   const password = watch('password');
   const selectedRole = watch('role') || 'STUDENT';
+  const resume = watch('resume');
 
   const submit = handleSubmit(async (values) => {
     setFormError(null);
@@ -243,6 +246,13 @@ export function RegisterForm({ onSubmit, isPending = false, loginTo = ROUTES.LOG
               hint="Helps admin verify your background during review."
               error={errors.linkedinUrl}
               {...register('linkedinUrl')}
+            />
+
+            <ResumeUpload
+              value={resume}
+              onChange={(file) => setValue('resume', file, { shouldDirty: true, shouldValidate: true })}
+              error={errors.resume}
+              disabled={busy}
             />
           </div>
         ) : null}

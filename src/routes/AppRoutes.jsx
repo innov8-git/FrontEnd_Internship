@@ -3,6 +3,7 @@ import RootLayout from '@/shared/components/layout/RootLayout';
 import RouteErrorPage from '@/pages/RouteErrorPage';
 import { publicRoutes } from './PublicRoutes';
 import { authRoutes } from './AuthRoutes';
+import { profileRoute } from './ProfileRoute';
 import { studentRoutes } from './StudentRoutes';
 import { trainerRoutes } from './TrainerRoutes';
 import { adminRoutes } from './AdminRoutes';
@@ -16,7 +17,7 @@ export const routes = [
   {
     element: <RootLayout />,
     errorElement: <RouteErrorPage />,
-    children: [publicRoutes, ...authRoutes, studentRoutes, trainerRoutes, adminRoutes],
+    children: [publicRoutes, ...authRoutes, profileRoute, studentRoutes, trainerRoutes, adminRoutes],
   },
 ];
 

@@ -358,6 +358,36 @@ export const authHandlers = [
       auth.user.name = name;
     }
 
+    if (body.trainerProfile && typeof body.trainerProfile === 'object') {
+      auth.user.trainerProfile = {
+        ...(auth.user.trainerProfile || {}),
+        domain:
+          body.trainerProfile.domain !== undefined
+            ? String(body.trainerProfile.domain).trim()
+            : auth.user.trainerProfile?.domain || '',
+        experience:
+          body.trainerProfile.experience !== undefined
+            ? String(body.trainerProfile.experience).trim()
+            : auth.user.trainerProfile?.experience || '',
+        organization:
+          body.trainerProfile.organization !== undefined
+            ? String(body.trainerProfile.organization).trim()
+            : auth.user.trainerProfile?.organization || '',
+        linkedinUrl:
+          body.trainerProfile.linkedinUrl !== undefined
+            ? String(body.trainerProfile.linkedinUrl).trim()
+            : auth.user.trainerProfile?.linkedinUrl || '',
+        resumeName:
+          body.trainerProfile.resumeName !== undefined
+            ? String(body.trainerProfile.resumeName).trim()
+            : auth.user.trainerProfile?.resumeName || '',
+        resumeSize:
+          body.trainerProfile.resumeSize !== undefined
+            ? Number(body.trainerProfile.resumeSize)
+            : auth.user.trainerProfile?.resumeSize || 0,
+      };
+    }
+
     if (body.avatarUrl !== undefined) {
       auth.user.avatarUrl = body.avatarUrl;
     }

@@ -40,7 +40,9 @@ export function UserMenu({ className }) {
 
   const items = [
     ...dashboardItems,
-    ...(hasRole(ROLES.STUDENT) ? [{ label: 'Profile', icon: User, to: ROUTES.PROFILE }] : []),
+    ...(hasRole(ROLES.STUDENT) || hasRole(ROLES.TRAINER)
+      ? [{ label: 'Profile', icon: User, to: ROUTES.PROFILE }]
+      : []),
     { label: 'Browse internships', icon: Briefcase, to: ROUTES.CATALOG },
     { divider: true },
     {

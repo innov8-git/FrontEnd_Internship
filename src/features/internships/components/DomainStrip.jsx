@@ -75,6 +75,42 @@ const DOMAIN_EXTRAS = {
     techStack: ['.NET / Java', 'Document Store', 'PostgreSQL'],
     color: { from: '#10b981', to: '#14b8a6', glow: 'rgba(16, 185, 129, 0.3)' },
   },
+  finance: {
+    tagline: 'Treasury & Investment Engines',
+    badge: 'High Precision',
+    shortDesc: 'Real-time portfolio valuations, automated reconciliation, and multi-currency exchange feeds.',
+    highlights: [
+      'Multi-currency exchange rate feeds and ledger entries',
+      'Automated reconciliation pipelines and balance proofs',
+      'Real-time portfolio valuation and financial compliance metrics',
+    ],
+    techStack: ['Java 17', 'Kafka', 'PostgreSQL'],
+    color: { from: '#059669', to: '#0d9488', glow: 'rgba(5, 150, 105, 0.3)' },
+  },
+  loan: {
+    tagline: 'Lending & Credit Origination',
+    badge: 'Automated Underwriting',
+    shortDesc: 'End-to-end loan origination systems (LOS), amortization schedules, and risk assessments.',
+    highlights: [
+      'Loan Origination System (LOS) & eligibility calculators',
+      'Amortization schedules and automated penalty triggers',
+      'Credit bureau API integrations and document verification',
+    ],
+    techStack: ['Python', 'FastAPI', 'PostgreSQL'],
+    color: { from: '#7c3aed', to: '#6366f1', glow: 'rgba(124, 58, 237, 0.3)' },
+  },
+  'erp-crm': {
+    tagline: 'Enterprise SaaS & Pipelines',
+    badge: 'Multi-Tenant Scale',
+    shortDesc: 'Multi-tenant CRM sales funnels, ERP inventory tracking, and background job queues.',
+    highlights: [
+      'Sales pipeline deal stages and automated lead scoring',
+      'Multi-tenant database schema isolation and RBAC',
+      'High-throughput background worker queues with Redis and Celery',
+    ],
+    techStack: ['React', 'Node.js / Python', 'Redis'],
+    color: { from: '#9333ea', to: '#c026d3', glow: 'rgba(147, 51, 234, 0.3)' },
+  },
 };
 
 const DEFAULT_EXTRA = {
