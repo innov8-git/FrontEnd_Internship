@@ -9,8 +9,7 @@ export const logout = () => api.post('/auth/logout');
 
 export const getMe = () => api.get('/auth/me');
 
-export const updateMe = ({ name, trainerProfile }) =>
-  api.patch('/auth/me', { name, trainerProfile });
+export const updateMe = (payload) => api.patch('/auth/me', payload);
 
 export const verifyEmail = (token) => api.post('/auth/verify-email', { token });
 

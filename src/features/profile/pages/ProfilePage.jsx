@@ -36,11 +36,11 @@ export default function ProfilePage() {
         description={
           isTrainer
             ? 'Manage your personal details, professional qualifications, mentoring domain, and resume.'
-            : 'Manage your account, your GitHub connection and your internship record.'
+            : 'Manage your personal details, profile picture, academic background, and internship record.'
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-5">
+      <div className="grid gap-6 xl:grid-cols-5 items-start">
         <AccountDetails user={user} className="xl:col-span-2" />
         {isTrainer ? (
           <TrainerProfileForm user={user} className="xl:col-span-3" />

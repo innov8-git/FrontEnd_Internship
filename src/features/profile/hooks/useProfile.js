@@ -46,21 +46,18 @@ export function useProfile() {
   };
 }
 
-/** PATCH /auth/me { name } -> User; keeps AuthContext and the /auth/me cache in sync. */
+/** PATCH /auth/me payload -> User; keeps AuthContext and the /auth/me cache in sync. */
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   const { updateUser } = useAuth();
   return useMutation({
-    mutationFn: ({ name, trainerProfile }) => updateMe({ name, trainerProfile }),
+    mutationFn: (payload) => updateMe(payload),
     onSuccess: (updated, variables) => {
       if (updated && typeof updated === 'object' && updated._id) {
         updateUser(updated);
         queryClient.setQueryData(queryKeys.auth.me, updated);
       } else {
-        updateUser({
-          name: variables.name,
-          ...(variables.trainerProfile ? { trainerProfile: variables.trainerProfile } : {}),
-        });
+        updateUser(variables);
       }
     },
   });

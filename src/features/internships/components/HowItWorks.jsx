@@ -259,23 +259,19 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
   const isActive = active === index;
   const cardRef = useRef(null);
 
-  // Auto-scroll card smoothly into full view accounting for fixed navbar
+  // Auto-scroll card smoothly only if completely clipped outside viewport
   useEffect(() => {
     if (isActive && cardRef.current) {
       const timer = setTimeout(() => {
         if (!cardRef.current) return;
         const rect = cardRef.current.getBoundingClientRect();
-        const navbarHeight = 85; // account for top fixed navbar
-        const bottomMargin = 25;
-
-        if (rect.top < navbarHeight) {
-          const scrollNeeded = rect.top - navbarHeight - 16;
-          window.scrollBy({ top: scrollNeeded, behavior: 'smooth' });
-        } else if (rect.bottom > window.innerHeight - bottomMargin) {
-          const scrollNeeded = rect.bottom - (window.innerHeight - bottomMargin) + 16;
-          window.scrollBy({ top: scrollNeeded, behavior: 'smooth' });
+        const navbarHeight = 85;
+        if (rect.top < 0) {
+          window.scrollBy({ top: rect.top - navbarHeight - 16, behavior: 'smooth' });
+        } else if (rect.bottom > window.innerHeight && rect.top > navbarHeight) {
+          window.scrollBy({ top: rect.bottom - window.innerHeight + 16, behavior: 'smooth' });
         }
-      }, 60);
+      }, 80);
       return () => clearTimeout(timer);
     }
   }, [isActive]);
@@ -299,14 +295,11 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
 
   // Card container styling – match DomainStrip glassmorphism & gradient border when active
   const cardBaseClass = cn(
-    'relative flex flex-col w-[340px] sm:w-[380px] rounded-2xl p-6 backdrop-blur-xl border transition-all duration-500',
+    'relative flex flex-col w-[340px] sm:w-[380px] rounded-2xl p-6 backdrop-blur-xl border transition-all duration-300',
     isActive
-      ? 'bg-white/90 dark:bg-slate-900/90 border-transparent shadow-2xl scale-[1.03]'
+      ? 'bg-white/95 dark:bg-slate-900/95 border-transparent shadow-2xl scale-[1.03]'
       : 'bg-white/70 dark:bg-slate-900/70 border-slate-200/60 dark:border-slate-800/60 shadow-lg opacity-90 hover:opacity-100 hover:shadow-md',
   );
-
-
-
 
   return (
     <div
@@ -319,33 +312,52 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
         opacity: isVisible ? 1 : 0,
         transition: `opacity 0.5s ease-out ${index * 0.06}s`,
       }}
+      onMouseEnter={() => onSelect(index)}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(isActive ? null : index);
       }}
     >
-      {/* ── Circular Road Pin (Clean & immediate, no flashing circle pulse) ── */}
-      <button
-        type="button"
-        aria-label={`Milestone ${index + 1}: ${title}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(isActive ? null : index);
-        }}
-        className={cn(
-          'relative flex items-center justify-center rounded-full text-white cursor-pointer select-none transition-transform duration-200',
-          'focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400',
-          isActive
-            ? 'h-11 w-11 ring-4 ring-white shadow-xl scale-110'
-            : 'h-9.5 w-9.5 ring-2 ring-white/90 shadow-md hover:scale-108',
-        )}
-        style={{
-          backgroundColor: accent,
-          boxShadow: isActive ? `0 0 18px ${glow}, 0 6px 16px rgba(0,0,0,0.22)` : `0 3px 10px rgba(0,0,0,0.16)`,
-        }}
-      >
-        <span className="font-extrabold text-xs tracking-tight">{stepNumber}</span>
-      </button>
+      {/* ── Circular Road Pin with luminous hover & active effects ── */}
+      <div className="relative flex items-center justify-center">
+        {/* Ambient luminous halo on hover / active */}
+        <span
+          aria-hidden="true"
+          className={cn(
+            'pointer-events-none absolute -inset-2 rounded-full transition-all duration-300',
+            isActive
+              ? 'opacity-80 scale-100'
+              : 'opacity-0 scale-75 group-hover/pin:opacity-90 group-hover/pin:scale-105',
+          )}
+          style={{
+            background: `radial-gradient(circle, ${glow} 0%, transparent 70%)`,
+          }}
+        />
+
+        <button
+          type="button"
+          aria-label={`Milestone ${index + 1}: ${title}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect(isActive ? null : index);
+          }}
+          className={cn(
+            'relative flex items-center justify-center rounded-full text-white cursor-pointer select-none transition-all duration-300',
+            'focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400',
+            isActive
+              ? 'h-11 w-11 ring-4 ring-white shadow-xl scale-110'
+              : 'h-9.5 w-9.5 ring-2 ring-white/90 shadow-md group-hover/pin:scale-115 group-hover/pin:ring-4 group-hover/pin:ring-white group-hover/pin:shadow-lg',
+          )}
+          style={{
+            backgroundColor: accent,
+            boxShadow: isActive
+              ? `0 0 20px ${glow}, 0 6px 16px rgba(0,0,0,0.22)`
+              : `0 3px 10px rgba(0,0,0,0.16)`,
+          }}
+        >
+          <span className="font-extrabold text-xs tracking-tight">{stepNumber}</span>
+        </button>
+      </div>
 
       {/* ── Connected Milestone Content (Pill or Direct Expanded Card) ── */}
       <div
@@ -366,7 +378,7 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
             'absolute w-0.5 pointer-events-none transition-opacity duration-200',
             isAbove ? 'top-full h-3' : 'bottom-full h-3',
             coord.align === 'left' ? 'left-6' : coord.align === 'right' ? 'right-6' : 'left-1/2 -translate-x-1/2',
-            isActive ? 'opacity-100' : 'opacity-40',
+            isActive ? 'opacity-100' : 'opacity-40 group-hover/pin:opacity-80',
           )}
           style={{
             background: `linear-gradient(to ${isAbove ? 'bottom' : 'top'}, ${accent}, transparent)`,
@@ -374,13 +386,14 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
         />
 
         {isActive ? (
-          /* ── Full Expanded Card (Displays DIRECTLY & IMMEDIATELY on click) ── */
+          /* ── Full Expanded Card (Displays DIRECTLY & IMMEDIATELY on click or hover) ── */
           <div
             ref={cardRef}
-            className={cardBaseClass}
+            className={cn(cardBaseClass, 'animate-in fade-in zoom-in-95 duration-200 hover:shadow-2xl')}
             onClick={(e) => e.stopPropagation()}
             style={{
-              boxShadow: `0 14px 32px -8px ${glow}, 0 6px 16px -4px rgba(15,23,42,0.12)`,
+              boxShadow: `0 16px 36px -8px ${glow}, 0 6px 16px -4px rgba(15,23,42,0.14)`,
+              borderColor: `${accent}40`,
             }}
           >
             {/* Top row: Step & Perk Badges + Close Button */}
@@ -444,7 +457,7 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
             </div>
           </div>
         ) : (
-          /* ── Resting Chic Milestone Pill (Clicking directly opens the card) ── */
+          /* ── Resting Chic Milestone Pill (Hovering or clicking directly opens the card) ── */
           <button
             type="button"
             onClick={(e) => {
@@ -454,7 +467,8 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
             className={cn(
               'inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 select-none cursor-pointer',
               'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-700/80 text-slate-800 dark:text-slate-100',
-              'hover:bg-white hover:shadow-xl hover:border-amber-400 dark:hover:border-amber-500 hover:scale-105 active:scale-95',
+              'hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl hover:scale-108 hover:-translate-y-0.5 active:scale-95',
+              'group-hover/pin:scale-108 group-hover/pin:shadow-xl group-hover/pin:-translate-y-0.5 group-hover/pin:border-amber-400 dark:group-hover/pin:border-amber-500',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
             )}
             style={{
@@ -467,7 +481,7 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
           >
             {/* Glowing accent beacon dot */}
             <span
-              className="h-2.5 w-2.5 rounded-full shrink-0"
+              className="h-2.5 w-2.5 rounded-full shrink-0 transition-transform duration-300 group-hover/pin:scale-125"
               style={{
                 backgroundColor: accent,
                 boxShadow: `0 0 8px ${accent}`,
@@ -475,7 +489,7 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
             />
             {/* Accented Step Number */}
             <span
-              className="text-[11px] sm:text-xs font-extrabold px-1.5 py-0.5 rounded-md"
+              className="text-[11px] sm:text-xs font-extrabold px-1.5 py-0.5 rounded-md transition-all duration-200"
               style={{
                 backgroundColor: `${accent}18`,
                 color: accent,
@@ -484,7 +498,9 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
               {stepNumber}
             </span>
             {/* Crisp readable short title */}
-            <span className="tracking-tight text-slate-800 dark:text-slate-100 font-bold">{shortTitle}</span>
+            <span className="tracking-tight text-slate-800 dark:text-slate-100 font-bold transition-colors group-hover/pin:text-slate-950 dark:group-hover/pin:text-white">
+              {shortTitle}
+            </span>
           </button>
         )}
       </div>
@@ -498,12 +514,13 @@ function StepSelectorBar({ active, onSelect }) {
     <div className="mt-6 flex flex-wrap sm:flex-nowrap items-center justify-center gap-1.5 sm:gap-2 max-w-6xl mx-auto px-2">
       {STEPS.map((s, idx) => {
         const isCurrent = active === idx;
-        const { icon: StepIcon } = s;
+        const { icon: StepIcon, glow } = s;
 
         return (
           <button
             key={s.stepNumber}
             type="button"
+            onMouseEnter={() => onSelect(idx)}
             onClick={(e) => {
               e.stopPropagation();
               onSelect(isCurrent ? null : idx);
@@ -511,21 +528,33 @@ function StepSelectorBar({ active, onSelect }) {
             className={cn(
               'group relative inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer select-none',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
+              'hover:scale-105 hover:-translate-y-0.5 active:scale-95',
               isCurrent
                 ? 'bg-slate-900 text-white shadow-lg dark:bg-white dark:text-slate-950 scale-102 ring-2 ring-amber-500/50'
-                : 'bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800',
+                : 'bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-md',
             )}
+            style={
+              isCurrent
+                ? {
+                    boxShadow: `0 8px 20px -4px ${glow || 'rgba(245, 158, 11, 0.35)'}`,
+                  }
+                : undefined
+            }
           >
             <span
               className={cn(
-                'flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold transition-colors',
-                isCurrent ? 'bg-amber-400 text-slate-950' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-amber-100',
+                'flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold transition-all duration-200',
+                isCurrent
+                  ? 'bg-amber-400 text-slate-950'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-amber-100 group-hover:text-amber-800 dark:group-hover:bg-amber-950/60 dark:group-hover:text-amber-300 group-hover:scale-110',
               )}
             >
               {idx + 1}
             </span>
-            <span>{s.shortTitle}</span>
-            <StepIcon className="w-3.5 h-3.5 shrink-0 opacity-70 group-hover:opacity-100" />
+            <span className="transition-colors group-hover:text-slate-900 dark:group-hover:text-white font-medium">
+              {s.shortTitle}
+            </span>
+            <StepIcon className="w-3.5 h-3.5 shrink-0 opacity-70 transition-all duration-200 group-hover:opacity-100 group-hover:scale-110 group-hover:text-amber-500" />
           </button>
         );
       })}
@@ -645,8 +674,9 @@ function MobileRoadmap() {
             <button
               type="button"
               onClick={() => toggle(index)}
+              onMouseEnter={() => setActive(index)}
               className={cn(
-                'absolute left-1.5 top-3 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full text-white shadow-md ring-4 ring-white dark:ring-slate-900 transition-transform duration-200',
+                'absolute left-1.5 top-3 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full text-white shadow-md ring-4 ring-white dark:ring-slate-900 transition-transform duration-200 hover:scale-110',
                 isOpen ? 'scale-110 shadow-lg' : 'scale-95',
               )}
               style={{ backgroundColor: accent }}
@@ -658,12 +688,14 @@ function MobileRoadmap() {
             {/* Interactive Card */}
             <div
               onClick={() => toggle(index)}
+              onMouseEnter={() => setActive(index)}
               className={cn(
                 'cursor-pointer rounded-2xl border p-4 transition-all duration-300',
                 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md',
+                'hover:shadow-lg hover:border-amber-400/80 dark:hover:border-amber-500/80 hover:-translate-y-0.5',
                 isOpen
                   ? 'border-amber-500/40 shadow-xl ring-1 ring-amber-500/20'
-                  : 'border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-slate-300',
+                  : 'border-slate-200/80 dark:border-slate-800 shadow-sm',
               )}
             >
               {/* Header: Step & Badge */}

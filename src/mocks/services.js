@@ -483,13 +483,23 @@ export function findGithubConnection(userId) {
 // Reference DTOs: users, catalog, plans
 // ===========================================================================
 
-/** User { _id, name, email, roles[], status, emailVerified, createdAt, updatedAt } (never the password). */
+/** User { _id, name, email, avatarUrl, roles[], status, emailVerified, createdAt, updatedAt } (never the password). */
 export function publicUser(user) {
   if (!user) return null;
   return {
     _id: user._id,
     name: user.name ?? '',
     email: user.email ?? '',
+    avatarUrl: user.avatarUrl ?? null,
+    phone: user.phone ?? '',
+    headline: user.headline ?? '',
+    bio: user.bio ?? '',
+    college: user.college ?? '',
+    degree: user.degree ?? '',
+    graduationYear: user.graduationYear ?? '',
+    location: user.location ?? '',
+    linkedinUrl: user.linkedinUrl ?? '',
+    portfolioUrl: user.portfolioUrl ?? '',
     roles: Array.isArray(user.roles) ? [...user.roles] : [],
     status: user.status ?? USER_STATUS.ACTIVE,
     emailVerified: Boolean(user.emailVerified),
