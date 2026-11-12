@@ -14,7 +14,6 @@ import {
   AlertTriangle,
   BadgeCheck,
   Building2,
-  Calendar,
   Camera,
   GraduationCap,
   Loader2,

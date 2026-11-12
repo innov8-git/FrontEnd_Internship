@@ -15,7 +15,6 @@ import {
 import {
   Building2,
   Calendar,
-  Camera,
   ExternalLink,
   Globe,
   GraduationCap,
