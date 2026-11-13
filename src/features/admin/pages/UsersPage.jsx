@@ -99,16 +99,22 @@ export function UsersPage() {
         key: 'name',
         header: 'User',
         sortable: true,
+        headerClassName: 'min-w-[220px]',
+        className: 'min-w-[220px]',
         cell: (user) => <PersonCell person={user} isYou={user._id === currentUserId} />,
       },
       {
         key: 'roles',
         header: 'Roles',
+        headerClassName: 'min-w-[130px]',
+        className: 'min-w-[130px]',
         cell: (user) => <RoleBadges roles={user.roles ?? []} />,
       },
       {
         key: 'assignedTrainer',
         header: 'Assigned Trainer',
+        headerClassName: 'min-w-[230px]',
+        className: 'min-w-[230px]',
         cell: (user) => {
           const isStudent = (user.roles ?? []).includes(ROLES.STUDENT);
           if (!isStudent) {
@@ -120,15 +126,19 @@ export function UsersPage() {
 
           if (assignment?.assigned && trainer) {
             return (
-              <div className="flex items-center gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-900">{trainer.name}</p>
-                  <p className="truncate text-xs text-slate-500">{trainer.email}</p>
+              <div className="flex items-center justify-between gap-3 min-w-[210px]">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-slate-900" title={trainer.name}>
+                    {trainer.name}
+                  </p>
+                  <p className="truncate text-xs text-slate-500" title={trainer.email}>
+                    {trainer.email}
+                  </p>
                 </div>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="h-7 px-2 text-xs text-brand-600 hover:bg-brand-50 hover:text-brand-700 font-medium"
+                  className="h-7 shrink-0 px-2.5 text-xs font-medium text-brand-600 hover:bg-brand-50 hover:text-brand-700 border-slate-200"
                   onClick={() => setTrainerTarget(user)}
                 >
                   Change
@@ -138,14 +148,14 @@ export function UsersPage() {
           }
 
           return (
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+            <div className="flex items-center justify-between gap-3 min-w-[210px]">
+              <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 shrink-0">
                 Unassigned
               </span>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="h-7 px-2 text-xs text-sky-600 hover:bg-sky-50 hover:text-sky-700 font-medium"
+                className="h-7 shrink-0 px-2.5 text-xs font-medium text-sky-600 hover:bg-sky-50 hover:text-sky-700 border-slate-200"
                 onClick={() => setTrainerTarget(user)}
               >
                 Assign
@@ -157,6 +167,8 @@ export function UsersPage() {
       {
         key: 'status',
         header: 'Status',
+        headerClassName: 'min-w-[110px]',
+        className: 'min-w-[110px]',
         cell: (user) => <StatusBadge status={user.status} />,
       },
       {
