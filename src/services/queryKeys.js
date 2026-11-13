@@ -17,7 +17,7 @@ export const queryKeys = {
   },
   assessment: {
     all: ['assessment'],
-    questions: (designationId) => ['assessment', 'questions', designationId],
+    questions: (designationId, domainId) => ['assessment', 'questions', designationId, domainId || 'default'],
     attempt: (designationId) => ['assessment', 'attempt', designationId],
     myAttempts: ['assessment', 'attempts', 'mine'],
   },
@@ -59,6 +59,7 @@ export const queryKeys = {
     users: ['admin', 'users'],
     designations: ['admin', 'designations'],
     domains: ['admin', 'domains'],
+    domainQuestions: (domainId, params = {}) => ['admin', 'domains', domainId, 'questions', params],
     plans: ['admin', 'plans'],
     assessments: ['admin', 'assessments'],
     assessment: (designationId) => ['admin', 'assessments', designationId],

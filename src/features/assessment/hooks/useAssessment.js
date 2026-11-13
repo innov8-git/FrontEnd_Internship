@@ -9,10 +9,12 @@ import { queryKeys } from '@/services/queryKeys';
  * Errors: 404 (no published assessment), 409 ALREADY_ATTEMPTED.
  */
 export function useAssessment(designationId, options = {}) {
-  const { enabled = true } = options;
+  const { domainId, enabled = true } = options;
+  const params = domainId ? { domainId } : {};
+
   return useQuery({
-    queryKey: queryKeys.assessment.questions(designationId),
-    queryFn: () => getAssessment(designationId),
+    queryKey: queryKeys.assessment.questions(designationId, domainId),
+    queryFn: () => getAssessment(designationId, params),
     enabled: Boolean(designationId) && enabled,
     staleTime: Infinity,
     refetchOnWindowFocus: false,

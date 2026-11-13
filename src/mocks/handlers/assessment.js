@@ -1,6 +1,7 @@
 import { ASSESSMENT_OPTION_COUNT, PUBLISH_STATUS, ROLES } from '@/shared/constants';
 import { db } from '../db';
 import { attemptDto, createAttempt, getPublishedAssessmentConfig } from '../services';
+import { discountForScore } from '../seed/helpers';
 import {
   conflict,
   created,
@@ -22,6 +23,17 @@ import {
 const STUDENT_ONLY = [ROLES.STUDENT];
 const ALREADY_ATTEMPTED_MESSAGE =
   'You have already taken this assessment. Each assessment can be taken once.';
+
+const studentDomainSessions = new Map();
+
+function sampleQuestions(pool, count = 15) {
+  const arr = [...pool];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.slice(0, count);
+}
 
 function findDesignation(idOrSlug) {
   const key = String(idOrSlug ?? '');
@@ -143,6 +155,32 @@ export const assessmentHandlers = [
       return conflict('ALREADY_ATTEMPTED', ALREADY_ATTEMPTED_MESSAGE);
     }
 
+    const url = new URL(request.url);
+    const domainId = url.searchParams.get('domainId');
+    if (domainId) {
+      const domain = db.domains.find((d) => d._id === domainId || d.slug === domainId);
+      const pool = (db.domainQuestions ?? []).filter((q) => q.domainId === domain?._id);
+      if (domain && pool.length >= 15) {
+        const sampled = sampleQuestions(pool, 15);
+        studentDomainSessions.set(`${auth.user._id}:${designation._id}`, {
+          domain,
+          sampled,
+        });
+
+        return json({
+          designation: designationRef(designation),
+          domain: { _id: domain._id, name: domain.name, slug: domain.slug },
+          configVersion: config.version,
+          totalQuestions: sampled.length,
+          questions: sampled.map((question) => ({
+            _id: question._id,
+            text: question.text,
+            options: Array.isArray(question.options) ? [...question.options] : [],
+          })),
+        });
+      }
+    }
+
     return json({
       designation: designationRef(designation),
       configVersion: config.version,
@@ -169,6 +207,43 @@ export const assessmentHandlers = [
     }
 
     const body = await readJson(request);
+    const sessionKey = `${auth.user._id}:${designation._id}`;
+    const session = studentDomainSessions.get(sessionKey);
+
+    if (session) {
+      const { domain, sampled } = session;
+      const questionMap = new Map(sampled.map((q) => [q._id, q]));
+      const rawAnswers = Array.isArray(body?.answers) ? body.answers : [];
+
+      let score = 0;
+      const normalizedAnswers = [];
+      rawAnswers.forEach((entry) => {
+        if (!entry || !entry.questionId) return;
+        const q = questionMap.get(entry.questionId);
+        if (!q) return;
+        if (q.correctIndex === entry.selectedIndex) {
+          score += 1;
+        }
+        normalizedAnswers.push({ questionId: q._id, selectedIndex: entry.selectedIndex });
+      });
+
+      const attempt = {
+        _id: `att_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+        userId: auth.user._id,
+        designationId: designation._id,
+        domainId: domain._id,
+        domain: { _id: domain._id, name: domain.name, slug: domain.slug },
+        configVersion: config.version,
+        score,
+        totalQuestions: 15,
+        discountPercent: discountForScore(config.discountSlabs || [], score),
+        submittedAt: new Date().toISOString(),
+      };
+      db.assessmentAttempts.push(attempt);
+      studentDomainSessions.delete(sessionKey);
+      return created(attemptDto(attempt));
+    }
+
     const { answers, details } = validateAnswers(body?.answers, config);
     if (details.length > 0) return validationError(details);
 

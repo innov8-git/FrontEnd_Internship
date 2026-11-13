@@ -17,6 +17,16 @@ export const updateDomain = (id, data) => api.put(`/admin/domains/${encodeURICom
 export const setDomainStatus = (id, status) =>
   api.patch(`/admin/domains/${encodeURIComponent(id)}/status`, { status });
 
+// Domain Question Bank (up to 100 questions per domain)
+export const getDomainQuestions = (domainId, params = {}) =>
+  api.get(`/admin/domains/${encodeURIComponent(domainId)}/questions`, params);
+export const createDomainQuestion = (domainId, data) =>
+  api.post(`/admin/domains/${encodeURIComponent(domainId)}/questions`, data);
+export const updateDomainQuestion = (domainId, questionId, data) =>
+  api.put(`/admin/domains/${encodeURIComponent(domainId)}/questions/${encodeURIComponent(questionId)}`, data);
+export const deleteDomainQuestion = (domainId, questionId) =>
+  api.delete(`/admin/domains/${encodeURIComponent(domainId)}/questions/${encodeURIComponent(questionId)}`);
+
 // Internship plans and pricing (basePrice in paise)
 export const getAdminPlans = (params = {}) => api.get('/admin/internship-plans', params);
 export const createPlan = (data) => api.post('/admin/internship-plans', data);
