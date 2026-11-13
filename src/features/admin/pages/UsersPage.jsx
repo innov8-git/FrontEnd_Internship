@@ -1,27 +1,45 @@
 import { useMemo, useState } from 'react';
+import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import {
   Button,
   DataTable,
   DropdownMenu,
   PageHeader,
   StatusBadge,
+  Tooltip,
 } from '@/shared/components/ui';
-import { Ban, CheckCircle2, Clock, MoreHorizontal, UserCheck, UserCog, Users } from '@/shared/icons';
-import { PAGE_SIZE_OPTIONS, USER_STATUS } from '@/shared/constants';
+import {
+  Ban,
+  CheckCircle2,
+  Clock,
+  MoreHorizontal,
+  RefreshCw,
+  UserCheck,
+  UserCog,
+  UserPlus,
+  Users,
+} from '@/shared/icons';
+import { PAGE_SIZE_OPTIONS, ROLES, USER_STATUS } from '@/shared/constants';
 import { queryKeys } from '@/services/queryKeys';
 import { useAuth, useDocumentTitle } from '@/shared/hooks';
 import { formatDate } from '@/shared/utils/helpers';
-import { ClearFiltersButton } from '../components/ClearFiltersButton';
+import { cn } from '@/shared/utils/cn';
 import { FilterSelect } from '../components/FilterSelect';
 import { PersonCell } from '../components/PersonCell';
 import { RoleBadges } from '../components/RoleBadges';
 import { RoleChangeDialog } from '../components/RoleChangeDialog';
 import { UserStatusDialog } from '../components/UserStatusDialog';
+import { ChangeTrainerDialog } from '../components/ChangeTrainerDialog';
 import { ROLE_OPTIONS, USER_STATUS_OPTIONS } from '../constants';
 import { fetchAdminUsers } from '../hooks/useAdminUsers';
 import { useUrlFilters } from '../hooks/useUrlFilters';
 
-const FILTER_KEYS = ['role', 'status'];
+const FILTER_KEYS = ['role', 'status', 'trainerAssignment'];
+
+const TRAINER_ASSIGNMENT_OPTIONS = [
+  { value: 'assigned', label: 'Assigned Trainer' },
+  { value: 'unassigned', label: 'Unassigned Student' },
+];
 
 const actionsButtonId = (userId) => `user-actions-${userId}`;
 
@@ -56,8 +74,24 @@ export function UsersPage() {
   const { values, setValue, clear, activeCount } = useUrlFilters(FILTER_KEYS);
   const [roleTarget, setRoleTarget] = useState(null);
   const [statusTarget, setStatusTarget] = useState(null);
+  const [trainerTarget, setTrainerTarget] = useState(null);
 
-  const filters = useMemo(() => ({ role: values.role, status: values.status }), [values.role, values.status]);
+  const queryClient = useQueryClient();
+  const isFetching = useIsFetching({ queryKey: queryKeys.admin.users }) > 0;
+
+  const handleResetFilters = () => {
+    clear();
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.users });
+  };
+
+  const filters = useMemo(
+    () => ({
+      role: values.role,
+      status: values.status,
+      trainerAssignment: values.trainerAssignment,
+    }),
+    [values.role, values.status, values.trainerAssignment],
+  );
 
   const columns = useMemo(
     () => [
@@ -71,6 +105,54 @@ export function UsersPage() {
         key: 'roles',
         header: 'Roles',
         cell: (user) => <RoleBadges roles={user.roles ?? []} />,
+      },
+      {
+        key: 'assignedTrainer',
+        header: 'Assigned Trainer',
+        cell: (user) => {
+          const isStudent = (user.roles ?? []).includes(ROLES.STUDENT);
+          if (!isStudent) {
+            return <span className="text-slate-400">—</span>;
+          }
+
+          const assignment = user.assignedTrainer;
+          const trainer = assignment?.trainer;
+
+          if (assignment?.assigned && trainer) {
+            return (
+              <div className="flex items-center gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900">{trainer.name}</p>
+                  <p className="truncate text-xs text-slate-500">{trainer.email}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-brand-600 hover:bg-brand-50 hover:text-brand-700 font-medium"
+                  onClick={() => setTrainerTarget(user)}
+                >
+                  Change
+                </Button>
+              </div>
+            );
+          }
+
+          return (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                Unassigned
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs text-sky-600 hover:bg-sky-50 hover:text-sky-700 font-medium"
+                onClick={() => setTrainerTarget(user)}
+              >
+                Assign
+              </Button>
+            </div>
+          );
+        },
       },
       {
         key: 'status',
@@ -112,6 +194,19 @@ export function UsersPage() {
               onClick: () => setStatusTarget({ user, nextStatus: USER_STATUS.SUSPENDED }),
             };
           }
+
+          const isStudent = (user.roles ?? []).includes(ROLES.STUDENT);
+          const studentTrainerItems = isStudent
+            ? [
+                {
+                  label: user.assignedTrainer?.assigned ? 'Change trainer' : 'Assign trainer',
+                  icon: user.assignedTrainer?.assigned ? UserCog : UserPlus,
+                  onClick: () => setTrainerTarget(user),
+                },
+                { divider: true },
+              ]
+            : [];
+
           return (
             <DropdownMenu
               align="end"
@@ -126,6 +221,7 @@ export function UsersPage() {
                 />
               }
               items={[
+                ...studentTrainerItems,
                 { label: 'Change roles', icon: UserCog, onClick: () => setRoleTarget(user) },
                 { divider: true },
                 statusItem,
@@ -154,14 +250,14 @@ export function UsersPage() {
         pageSizeOptions={PAGE_SIZE_OPTIONS}
         caption="Users"
         toolbar={
-          <>
+          <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:mr-2">
             <FilterSelect
               label="Filter by role"
               allLabel="All roles"
               value={values.role}
               onChange={(value) => setValue('role', value)}
               options={ROLE_OPTIONS}
-              className="sm:w-36"
+              className="sm:w-32"
             />
             <FilterSelect
               label="Filter by status"
@@ -169,10 +265,35 @@ export function UsersPage() {
               value={values.status}
               onChange={(value) => setValue('status', value)}
               options={USER_STATUS_OPTIONS}
-              className="sm:w-40"
+              className="sm:w-36"
             />
-            <ClearFiltersButton count={activeCount} onClear={() => clear()} />
-          </>
+            <FilterSelect
+              label="Trainer assignment"
+              allLabel="All trainer assignments"
+              value={values.trainerAssignment}
+              onChange={(value) => setValue('trainerAssignment', value)}
+              options={TRAINER_ASSIGNMENT_OPTIONS}
+              className="sm:w-48"
+            />
+            <Tooltip content={activeCount > 0 ? 'Reset filters and reload' : 'Reload'}>
+              <Button
+                variant="outline"
+                size="icon"
+                className={cn(
+                  'h-10 w-10 shrink-0 text-slate-500 hover:text-brand-600 hover:border-brand-300 transition-colors',
+                  activeCount > 0 && 'border-brand-400 bg-brand-50/60 text-brand-600 hover:bg-brand-100',
+                )}
+                aria-label="Reload and reset filters"
+                onClick={handleResetFilters}
+                disabled={isFetching}
+              >
+                <RefreshCw
+                  className={cn('h-4 w-4', isFetching && 'animate-spin text-brand-600')}
+                  aria-hidden="true"
+                />
+              </Button>
+            </Tooltip>
+          </div>
         }
         emptyState={{
           icon: Users,
@@ -200,6 +321,14 @@ export function UsersPage() {
         onClose={() => {
           focusRowActions(statusTarget?.user?._id);
           setStatusTarget(null);
+        }}
+      />
+      <ChangeTrainerDialog
+        student={trainerTarget}
+        open={Boolean(trainerTarget)}
+        onClose={() => {
+          focusRowActions(trainerTarget?._id);
+          setTrainerTarget(null);
         }}
       />
     </div>

@@ -1192,9 +1192,12 @@ export function attemptsForUser(userId) {
 /** Attempt { _id, designationId, configVersion, score, totalQuestions, discountPercent, submittedAt, designation } */
 export function attemptDto(attempt) {
   if (!attempt) return null;
+  const domain = attempt.domain || (attempt.domainId ? db.domains.find((d) => d._id === attempt.domainId) : null);
   return {
     _id: attempt._id,
     designationId: attempt.designationId,
+    domainId: attempt.domainId ?? domain?._id ?? null,
+    domain: domain ? { _id: domain._id, name: domain.name, slug: domain.slug } : null,
     configVersion: attempt.configVersion ?? null,
     score: Number(attempt.score) || 0,
     totalQuestions: attempt.totalQuestions ?? ASSESSMENT_QUESTION_COUNT,

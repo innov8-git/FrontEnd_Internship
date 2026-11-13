@@ -149,6 +149,7 @@ export function AssessmentResultPage() {
         score={attempt.score}
         totalQuestions={attempt.totalQuestions ?? ASSESSMENT_QUESTION_COUNT}
         discountPercent={attempt.discountPercent}
+        domain={attempt.domain}
         isTeam={isTeam}
         submittedAt={attempt.submittedAt}
       />

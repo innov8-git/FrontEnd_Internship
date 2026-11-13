@@ -61,6 +61,7 @@ export {
   Eye,
   EyeOff,
   FileCheck2,
+  FileQuestion,
   FileText,
   FileWarning,
   Filter,

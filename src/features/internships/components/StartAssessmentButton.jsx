@@ -37,6 +37,7 @@ export function StartAssessmentButton({
   designationId,
   size = 'lg',
   showSecondary = true,
+  onStartAssessment,
   className,
 }) {
   const { isAuthenticated, isLoading: authLoading, hasRole } = useAuth();
@@ -118,6 +119,16 @@ export function StartAssessmentButton({
             Choose your plan
           </Button>
         ) : null}
+      </div>
+    );
+  }
+
+  if (onStartAssessment) {
+    return (
+      <div className={wrapperClass}>
+        <Button onClick={onStartAssessment} size={size} rightIcon={ArrowRight}>
+          Start assessment
+        </Button>
       </div>
     );
   }

@@ -24,6 +24,7 @@ import { cn } from '@/shared/utils/cn';
 import { getErrorStatus } from '@/shared/utils/errors';
 import { formatMoney } from '@/shared/utils/helpers';
 import { EnrollmentSteps } from '../components/EnrollmentSteps';
+import { DomainSelectionModal } from '../components/DomainSelectionModal';
 import { PlanList } from '../components/PlanList';
 import { SchedulePreviewModal } from '../components/SchedulePreviewModal';
 import { JoinTeamButton, StartAssessmentButton } from '../components/StartAssessmentButton';
@@ -118,6 +119,7 @@ export function DesignationDetailPage() {
   const plansQuery = usePlans({ designationId }, { enabled: Boolean(designationId) });
   const domainsQuery = useDomains({ enabled: Boolean(designationId) });
   const [preview, setPreview] = useState({ open: false, plan: null });
+  const [domainModalOpen, setDomainModalOpen] = useState(false);
 
   const isNotFound = designationQuery.isError && getErrorStatus(designationQuery.error) === 404;
   let documentTitle = 'Internship';
@@ -131,6 +133,16 @@ export function DesignationDetailPage() {
     () => new Map((domainsQuery.data ?? []).map((domain) => [domain._id, domain])),
     [domainsQuery.data],
   );
+
+  const availableDomains = useMemo(() => {
+    const all = domainsQuery.data ?? [];
+    const planDomainIds = new Set(plans.map((p) => p.domainId).filter(Boolean));
+    if (planDomainIds.size > 0) {
+      const filtered = all.filter((d) => planDomainIds.has(d._id));
+      if (filtered.length > 0) return filtered;
+    }
+    return all.filter((d) => d.status === 'PUBLISHED');
+  }, [domainsQuery.data, plans]);
 
   const openPreview = useCallback((plan) => setPreview({ open: true, plan }), []);
   const closePreview = useCallback(() => setPreview((current) => ({ ...current, open: false })), []);
@@ -254,7 +266,11 @@ export function DesignationDetailPage() {
                   ) : null
                 }
               />
-              <StartAssessmentButton designationId={designation._id} className="mt-6" />
+              <StartAssessmentButton
+                designationId={designation._id}
+                onStartAssessment={() => setDomainModalOpen(true)}
+                className="mt-6"
+              />
               <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
                 <span>Enrolling with friends?</span>
                 <JoinTeamButton
@@ -303,6 +319,13 @@ export function DesignationDetailPage() {
       </div>
 
       <SchedulePreviewModal open={preview.open} plan={preview.plan} onClose={closePreview} />
+
+      <DomainSelectionModal
+        open={domainModalOpen}
+        onClose={() => setDomainModalOpen(false)}
+        designation={designation}
+        availableDomains={availableDomains}
+      />
     </div>
   );
 }
