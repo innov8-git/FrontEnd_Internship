@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { PageLoader } from '@/shared/components/ui';
-import { getHomeRoute, getSafeRedirect } from '@/shared/constants';
+import { getHomeRoute, getSafeRedirect, hasRole, ROLES } from '@/shared/constants';
 
 /** Login/register are for signed-out visitors; signed-in users go to their dashboard. */
 export default function GuestRoute({ children }) {

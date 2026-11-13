@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/shared/hooks/useAuth';
-import { getHomeRoute, getSafeRedirect } from '@/shared/constants';
+import { getHomeRoute, getSafeRedirect, hasRole, ROLES, ROUTES } from '@/shared/constants';
 
 /**
  * Login (SN3). Signs in through AuthContext, then sends the user to the safe `?redirect=`
@@ -22,7 +22,14 @@ export function useLogin() {
     mutationFn: ({ email, password }) =>
       signIn({ email: String(email ?? '').trim(), password: String(password ?? '') }),
     onSuccess: (user) => {
-      navigate(redirectTo ?? getHomeRoute(user), { replace: true });
+      const target =
+        redirectTo &&
+        redirectTo !== ROUTES.LOGIN &&
+        !redirectTo.startsWith('/register') &&
+        !redirectTo.startsWith('/check-email')
+          ? redirectTo
+          : getHomeRoute(user);
+      navigate(target, { replace: true });
     },
   });
 

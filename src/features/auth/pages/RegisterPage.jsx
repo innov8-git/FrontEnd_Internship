@@ -2,32 +2,41 @@ import { Link } from 'react-router-dom';
 import { useDocumentTitle } from '@/shared/hooks';
 import { paths } from '@/shared/constants';
 import { AuthCard } from '../components/AuthCard';
-import { RegisterForm } from '../components/RegisterForm';
+import { StudentRegisterForm } from '../components/StudentRegisterForm';
 import { AUTH_LINK_CLASS } from '../components/authStyles';
-import { useRegister } from '../hooks/useRegister';
+import { useStudentRegister } from '../hooks/useRegister';
 
-/** /register (SN3) — guest only; keeps ?redirect= for the log-in step after verification. */
+/** /register — dedicated guest page for student registration. */
 export function RegisterPage() {
   useDocumentTitle('Create your account');
-  const { registerAccount, isPending, redirectTo } = useRegister();
+  const { registerStudent, isPending, redirectTo } = useStudentRegister();
   const loginTo = paths.login(redirectTo);
+  const trainerRegisterTo = paths.registerTrainer(redirectTo);
 
   return (
     <AuthCard
-      title="Create your account"
+      title="Create your student account"
       description="Take a short assessment, unlock your merit discount and start building real projects."
       showSocialAuth
       socialAuthMode="register"
       footer={
-        <>
-          Already have an account?{' '}
-          <Link to={loginTo} className={AUTH_LINK_CLASS}>
-            Log in
-          </Link>
-        </>
+        <div className="space-y-2 text-center">
+          <div>
+            Already have an account?{' '}
+            <Link to={loginTo} className={AUTH_LINK_CLASS}>
+              Log in
+            </Link>
+          </div>
+          <div className="text-xs text-slate-500">
+            Want to mentor students?{' '}
+            <Link to={trainerRegisterTo} className={AUTH_LINK_CLASS}>
+              Apply as a Trainer
+            </Link>
+          </div>
+        </div>
       }
     >
-      <RegisterForm onSubmit={registerAccount} isPending={isPending} loginTo={loginTo} />
+      <StudentRegisterForm onSubmit={registerStudent} isPending={isPending} loginTo={loginTo} />
     </AuthCard>
   );
 }

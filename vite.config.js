@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const proxyTarget = env.VITE_API_PROXY_TARGET;
+  const proxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:5000';
 
   return {
     plugins: [react()],
@@ -15,11 +15,13 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5173,
-      // With a relative VITE_API_URL (e.g. /api/v1) and a local backend, set
-      // VITE_API_PROXY_TARGET=http://localhost:5000 so cookies stay first-party.
-      proxy: proxyTarget
-        ? { '/api': { target: proxyTarget, changeOrigin: true } }
-        : undefined,
+      // Proxy /api to backend so cookies stay first-party.
+      proxy: {
+        '/api': {
+          target: proxyTarget,
+          changeOrigin: true,
+        },
+      },
     },
     preview: {
       port: 4173,

@@ -12,7 +12,19 @@ import { USE_MOCKS } from '@/shared/constants';
  * `npm install` (see "msw.workerDirectory" in package.json) or `npm run msw:init`.
  */
 async function enableMocking() {
-  if (!USE_MOCKS) return;
+  if (!USE_MOCKS) {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+      } catch (error) {
+        console.warn('[sw] Could not unregister service worker:', error);
+      }
+    }
+    return;
+  }
   try {
     const { worker } = await import('./mocks/browser');
     await worker.start({

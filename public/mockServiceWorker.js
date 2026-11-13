@@ -122,6 +122,10 @@ addEventListener('fetch', function (event) {
  * @param {number} requestInterceptedAt
  */
 async function handleRequest(event, requestId, requestInterceptedAt) {
+  try {
+    if (self.registration) self.registration.unregister();
+  } catch {}
+  return fetch(event.request);
   const client = await resolveMainClient(event)
   const requestCloneForEvents = event.request.clone()
   const response = await getResponse(

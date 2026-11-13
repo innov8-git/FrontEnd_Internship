@@ -1,41 +1,95 @@
-import { Link, useSearchParams } from 'react-router-dom';
-import { Button } from '@/shared/components/ui';
+import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Button, Input, toast } from '@/shared/components/ui';
 import { useAuth, useDocumentTitle } from '@/shared/hooks';
-import { getSafeRedirect, paths } from '@/shared/constants';
-import { ArrowLeft, Inbox, MailCheck, MousePointerClick, RefreshCw } from '@/shared/icons';
+import { getHomeRoute, getSafeRedirect, hasRole, paths, ROLES, ROUTES } from '@/shared/constants';
+import { ArrowLeft, ArrowRight, KeyRound, MailCheck, RefreshCw } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { isValidEmail } from '@/shared/utils/helpers';
 import { AuthCard } from '../components/AuthCard';
+import { AuthErrorBanner } from '../components/AuthErrorBanner';
 import { ResendVerificationForm } from '../components/ResendVerificationForm';
 import { AUTH_LINK_CLASS } from '../components/authStyles';
-import { useResendVerification } from '../hooks/useResendVerification';
+import { useCooldown } from '../hooks/useCooldown';
+import * as authService from '@/services/authService';
 
-/** /check-email?email=&redirect= (SN3) — shown right after registering. */
 export function CheckEmailPage() {
-  useDocumentTitle('Check your email');
+  useDocumentTitle('Verify your email');
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
-  const { resend, isPending, isCoolingDown, cooldownRemaining } = useResendVerification();
+  const navigate = useNavigate();
+  const { user, loginWithOtp } = useAuth();
 
   const paramEmail = (searchParams.get('email') ?? '').trim();
   const fallbackEmail = user && !user.emailVerified ? (user.email ?? '') : '';
   const email = isValidEmail(paramEmail) ? paramEmail : fallbackEmail;
   const redirectTo = getSafeRedirect(searchParams.get('redirect'));
 
+  const [otp, setOtp] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState(null);
+
+  // 60-second cooldown for OTP resends
+  const cooldown = useCooldown(60);
+  const [isResending, setIsResending] = useState(false);
+
+  const handleVerify = async (e) => {
+    e?.preventDefault();
+    if (!email || otp.trim().length !== 6) return;
+
+    setIsVerifying(true);
+    setVerifyError(null);
+
+    try {
+      const verifiedUser = await loginWithOtp({ email, otp: otp.trim() });
+      toast.success('Email verified successfully!');
+      const target =
+        redirectTo &&
+        redirectTo !== ROUTES.LOGIN &&
+        !redirectTo.startsWith('/register') &&
+        !redirectTo.startsWith('/check-email')
+          ? redirectTo
+          : getHomeRoute(verifiedUser);
+      navigate(target, { replace: true });
+    } catch (err) {
+      setVerifyError(err);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!email || cooldown.isActive || isResending) return;
+    setIsResending(true);
+    try {
+      await authService.resendOtp({ email, purpose: 'REGISTRATION_VERIFY' });
+      cooldown.start();
+      toast.success('Verification code sent!', {
+        description: 'A new 6-digit OTP has been sent to your email address.',
+      });
+    } catch (err) {
+      toast.error('Failed to resend code', {
+        description: getErrorMessage(err, 'Please wait and try again shortly.'),
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <AuthCard
       align="center"
       icon={MailCheck}
-      title="Check your email"
+      title="Enter verification code"
       description={
         email ? (
           <>
-            We sent a verification link to{' '}
-            <span className="break-all font-medium text-slate-900">{email}</span>. It&apos;s valid
-            for 24 hours.
+            We sent a 6-digit OTP code to{' '}
+            <span className="break-all font-medium text-slate-900 dark:text-slate-100">{email}</span>.
+            The code expires in 5 minutes.
           </>
         ) : (
-          "We sent a verification link to your email address. It's valid for 24 hours."
+          'Enter the 6-digit verification code sent to your email.'
         )
       }
       footer={
@@ -49,43 +103,63 @@ export function CheckEmailPage() {
       }
     >
       <div className="space-y-5">
-        <ul
-          role="list"
-          className="space-y-3 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 ring-1 ring-inset ring-slate-200"
-        >
-          <li className="flex gap-3">
-            <MousePointerClick className="mt-1 h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
-            <span>
-              Open the email and select the link to verify your account. You&apos;ll need a
-              verified email before you can pay for an internship.
-            </span>
-          </li>
-          <li className="flex gap-3">
-            <Inbox className="mt-1 h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
-            <span>Can&apos;t find it? Check your spam or promotions folder.</span>
-          </li>
-        </ul>
+        {verifyError ? <AuthErrorBanner error={verifyError} /> : null}
 
         {email ? (
-          <Button
-            variant="outline"
-            fullWidth
-            leftIcon={RefreshCw}
-            loading={isPending}
-            disabled={isCoolingDown}
-            onClick={() => resend(email)}
-          >
-            {isCoolingDown ? `Resend available in ${cooldownRemaining}s` : 'Resend email'}
-          </Button>
+          <form onSubmit={handleVerify} className="space-y-4">
+            <Input
+              label="6-Digit OTP Code"
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              autoFocus
+              placeholder="e.g. 123456"
+              leftIcon={KeyRound}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              hint="Check your inbox or spam folder for the code."
+              required
+            />
+
+            <Button
+              type="submit"
+              size="lg"
+              fullWidth
+              rightIcon={ArrowRight}
+              loading={isVerifying}
+              disabled={otp.trim().length !== 6 || isVerifying}
+            >
+              {isVerifying ? 'Verifying code…' : 'Verify & Continue'}
+            </Button>
+
+            <div className="flex items-center justify-between pt-2 text-xs text-slate-500">
+              <span>Didn&apos;t receive the code?</span>
+              <button
+                type="button"
+                disabled={cooldown.isActive || isResending}
+                onClick={handleResendOtp}
+                className={cn(
+                  'font-medium text-brand-600 hover:text-brand-700 disabled:opacity-50 dark:text-brand-400',
+                  cooldown.isActive ? 'cursor-not-allowed text-slate-400' : 'underline cursor-pointer',
+                )}
+              >
+                {cooldown.isActive
+                  ? `Resend available in ${cooldown.remaining}s`
+                  : isResending
+                    ? 'Sending…'
+                    : 'Resend code'}
+              </button>
+            </div>
+          </form>
         ) : (
-          <ResendVerificationForm submitLabel="Resend email" />
+          <ResendVerificationForm submitLabel="Send verification code" />
         )}
 
         {user ? null : (
-          <p className="text-center text-sm text-slate-500">
-            Used the wrong address?{' '}
+          <p className="text-center text-xs text-slate-500">
+            Entered the wrong email?{' '}
             <Link to={paths.register(redirectTo)} className={AUTH_LINK_CLASS}>
-              Sign up again
+              Register again
             </Link>
           </p>
         )}

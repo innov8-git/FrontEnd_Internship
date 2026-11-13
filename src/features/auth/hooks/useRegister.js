@@ -4,11 +4,75 @@ import * as authService from '@/services/authService';
 import { ROUTES, buildPath, getSafeRedirect } from '@/shared/constants';
 
 /**
- * Registration (SN3). On success the student goes to /check-email?email=… (keeping `redirect`
- * so they come back to where they started after verifying and logging in).
- *
- *   const { registerAccount, isPending, error, redirectTo } = useRegister();
- *   await registerAccount({ name, email, password })   // rejects with ApiError on failure
+ * Student Registration hook.
+ * Calls POST /api/v1/auth/register/student.
+ * On success redirects to /check-email?email=...
+ */
+export function useStudentRegister() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = getSafeRedirect(searchParams.get('redirect'));
+
+  const mutation = useMutation({
+    mutationFn: (values) =>
+      authService.registerStudent({
+        name: String(values?.name ?? '').trim(),
+        email: String(values?.email ?? '').trim(),
+        password: String(values?.password ?? ''),
+      }),
+    onSuccess: (data, variables) => {
+      const email = data?.user?.email ?? String(variables?.email ?? '').trim();
+      navigate(buildPath(ROUTES.CHECK_EMAIL, {}, { email, redirect: redirectTo }));
+    },
+  });
+
+  return {
+    registerStudent: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error,
+    redirectTo,
+  };
+}
+
+/**
+ * Trainer Registration hook.
+ * Calls POST /api/v1/auth/register/trainer.
+ * On success redirects to /check-email?email=...
+ */
+export function useTrainerRegister() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = getSafeRedirect(searchParams.get('redirect'));
+
+  const mutation = useMutation({
+    mutationFn: (values) =>
+      authService.registerTrainer({
+        name: String(values?.name ?? '').trim(),
+        email: String(values?.email ?? '').trim(),
+        password: String(values?.password ?? ''),
+        domain: String(values?.domain ?? '').trim(),
+        experience: String(values?.experience ?? '').trim(),
+        organization: values?.organization ? String(values.organization).trim() : undefined,
+        linkedinUrl: values?.linkedinUrl ? String(values.linkedinUrl).trim() : undefined,
+        resumeUrl: values?.resumeUrl ? String(values.resumeUrl).trim() : undefined,
+      }),
+    onSuccess: (data, variables) => {
+      const email = data?.user?.email ?? String(variables?.email ?? '').trim();
+      navigate(buildPath(ROUTES.CHECK_EMAIL, {}, { email, redirect: redirectTo }));
+    },
+  });
+
+  return {
+    registerTrainer: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error,
+    redirectTo,
+  };
+}
+
+/**
+ * Backward-compatible registration hook.
+ * Supports legacy single-form callers by routing dynamically to student or trainer endpoints.
  */
 export function useRegister() {
   const navigate = useNavigate();
@@ -16,18 +80,26 @@ export function useRegister() {
   const redirectTo = getSafeRedirect(searchParams.get('redirect'));
 
   const mutation = useMutation({
-    mutationFn: (values) =>
-      authService.register({
+    mutationFn: (values) => {
+      if (values?.role === 'TRAINER') {
+        return authService.registerTrainer({
+          name: String(values?.name ?? '').trim(),
+          email: String(values?.email ?? '').trim(),
+          password: String(values?.password ?? ''),
+          domain: String(values?.domain ?? '').trim(),
+          experience: String(values?.experience ?? '').trim(),
+          organization: values?.organization ? String(values.organization).trim() : undefined,
+          linkedinUrl: values?.linkedinUrl ? String(values.linkedinUrl).trim() : undefined,
+          resumeUrl: values?.resumeUrl ? String(values.resumeUrl).trim() : undefined,
+        });
+      }
+
+      return authService.registerStudent({
         name: String(values?.name ?? '').trim(),
         email: String(values?.email ?? '').trim(),
         password: String(values?.password ?? ''),
-        role: values?.role === 'TRAINER' ? 'TRAINER' : 'STUDENT',
-        domain: values?.domain ? String(values.domain).trim() : undefined,
-        experience: values?.experience ? String(values.experience).trim() : undefined,
-        linkedinUrl: values?.linkedinUrl ? String(values.linkedinUrl).trim() : undefined,
-        organization: values?.organization ? String(values.organization).trim() : undefined,
-        resumeName: values?.resume?.name ? String(values.resume.name).trim() : (typeof values?.resume === 'string' ? values.resume : undefined),
-      }),
+      });
+    },
     onSuccess: (data, variables) => {
       const email = data?.user?.email ?? String(variables?.email ?? '').trim();
       navigate(buildPath(ROUTES.CHECK_EMAIL, {}, { email, redirect: redirectTo }));

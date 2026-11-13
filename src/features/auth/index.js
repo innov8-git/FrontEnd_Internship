@@ -6,6 +6,8 @@ export { AuthCard } from './components/AuthCard';
 export { AuthErrorBanner } from './components/AuthErrorBanner';
 export { LoginForm } from './components/LoginForm';
 export { RegisterForm } from './components/RegisterForm';
+export { StudentRegisterForm } from './components/StudentRegisterForm';
+export { TrainerRegisterForm } from './components/TrainerRegisterForm';
 export { ForgotPasswordForm } from './components/ForgotPasswordForm';
 export { ResetPasswordForm } from './components/ResetPasswordForm';
 export { ResendVerificationForm } from './components/ResendVerificationForm';
@@ -16,7 +18,7 @@ export { ResumeUpload } from './components/ResumeUpload';
 
 export { useLogin } from './hooks/useLogin';
 export { useGoogleAuth } from './hooks/useGoogleAuth';
-export { useRegister } from './hooks/useRegister';
+export { useRegister, useStudentRegister, useTrainerRegister } from './hooks/useRegister';
 export { useVerifyEmail } from './hooks/useVerifyEmail';
 export { useForgotPassword, useResetPassword } from './hooks/usePasswordReset';
 export { useResendVerification, RESEND_COOLDOWN_SECONDS } from './hooks/useResendVerification';
@@ -28,6 +30,10 @@ export {
   isPasswordStrongEnough,
   loginSchema,
   registerSchema,
+  studentRegisterSchema,
+  trainerRegisterSchema,
+  STUDENT_REGISTER_DEFAULTS,
+  TRAINER_REGISTER_DEFAULTS,
   forgotPasswordSchema,
   resetPasswordSchema,
   resendSchema,
