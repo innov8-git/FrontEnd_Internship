@@ -43,9 +43,9 @@ const LINKS = [
     icon: CalendarDays,
   },
   {
-    label: 'Trainer assignments',
-    description: 'Who reviews whose work',
-    to: ROUTES.ADMIN_ASSIGNMENTS,
+    label: 'Trainers',
+    description: 'Resumes, privileges and assigned students',
+    to: ROUTES.ADMIN_TRAINERS,
     icon: UserCog,
   },
 ];

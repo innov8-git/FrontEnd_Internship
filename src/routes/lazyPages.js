@@ -92,3 +92,4 @@ export const ScheduleEditorPage = lazy(
 export const TaskEditorPage = lazy(() => import('@/features/schedule-builder/pages/TaskEditorPage'));
 export const TasksIndexPage = lazy(() => import('@/features/schedule-builder/pages/TasksIndexPage'));
 export const AssignmentsPage = lazy(() => import('@/features/assignments/pages/AssignmentsPage'));
+export const TrainersPage = lazy(() => import('@/features/admin/pages/TrainersPage'));

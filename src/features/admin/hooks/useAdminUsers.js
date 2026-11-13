@@ -1,9 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getUsers, updateUserRoles, updateUserStatus } from '@/services/adminService';
+import {
+  getUsers,
+  updateStudentTrainer,
+  updateUserRoles,
+  updateUserStatus,
+} from '@/services/adminService';
 import { queryKeys } from '@/services/queryKeys';
 import { OPTIONS_PAGE_LIMIT, OPTIONS_STALE_MS } from '../constants';
 
-/** DataTable fetcher for /admin/users (GP7): params = { page, limit, search, sort, role, status }. */
+/** DataTable fetcher for /admin/users (GP7): params = { page, limit, search, sort, role, status, trainerAssignment }. */
 export const fetchAdminUsers = (params) => getUsers(params);
 
 /** After a role or status change: the user list, the dashboard counts and the audit log are stale. */
@@ -12,6 +17,8 @@ function useInvalidateUserData() {
   return () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.users }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.trainers }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.assignments }),
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats }),
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.audit }),
     ]);
@@ -31,6 +38,16 @@ export function useUpdateUserStatus() {
   const invalidate = useInvalidateUserData();
   return useMutation({
     mutationFn: ({ id, status }) => updateUserStatus(id, status),
+    onSuccess: () => invalidate(),
+  });
+}
+
+/** PATCH /admin/users/:id/trainer — mutate({ id, trainerId, unassign }). */
+export function useUpdateStudentTrainer() {
+  const invalidate = useInvalidateUserData();
+  return useMutation({
+    mutationFn: ({ id, trainerId, unassign }) =>
+      updateStudentTrainer(id, { trainerId, unassign }),
     onSuccess: () => invalidate(),
   });
 }
