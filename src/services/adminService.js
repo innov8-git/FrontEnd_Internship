@@ -23,3 +23,14 @@ export const resendCertificateEmail = (id) =>
 
 // Audit log (append-only)
 export const getAuditLogs = (params = {}) => api.get('/admin/audit-logs', params);
+
+// Trainers management
+export const getTrainers = (params = {}) => api.get('/admin/trainers', params);
+export const updateTrainerStatus = (id, payload) =>
+  api.patch(`/admin/trainers/${encodeURIComponent(id)}`, payload);
+export const getTrainerAssignments = (trainerId) =>
+  api.get(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`);
+export const assignToTrainer = (trainerId, payload) =>
+  api.post(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`, payload);
+export const removeTrainerAssignment = (trainerId, assignmentId) =>
+  api.delete(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments/${encodeURIComponent(assignmentId)}`);
