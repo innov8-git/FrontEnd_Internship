@@ -48,12 +48,6 @@ const LINKS = [
     to: ROUTES.ADMIN_TRAINERS,
     icon: UserCog,
   },
-  {
-    label: 'Trainer assignments',
-    description: 'Who reviews whose work',
-    to: ROUTES.ADMIN_ASSIGNMENTS,
-    icon: UserCog,
-  },
 ];
 
 /** KD1 shortcuts to the configuration screens. */

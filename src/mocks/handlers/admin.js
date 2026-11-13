@@ -213,14 +213,136 @@ export const adminHandlers = [
     const search = query.get('search');
     const roles = listParam(query, 'role');
     const statuses = listParam(query, 'status');
+    const trainerAssignmentFilter = query.get('trainerAssignment'); // 'assigned' | 'unassigned' | null
 
-    const filtered = db.users.filter(
-      (user) =>
-        matchesSearch(search, user.name, user.email) &&
-        (roles.length === 0 || roles.some((role) => (user.roles ?? []).includes(role))) &&
-        (statuses.length === 0 || statuses.includes(user.status)),
-    );
-    return json(pageOf(filtered, request, 'createdAt:desc', publicUser));
+    const users = usersById();
+
+    const getStudentTrainerInfo = (userId) => {
+      const userEnrollments = db.enrollments.filter((e) => e.userId === userId);
+      const enrollmentIds = new Set(userEnrollments.map((e) => e._id));
+      const teamIds = new Set(userEnrollments.map((e) => e.teamId).filter(Boolean));
+
+      const assignment = db.trainerAssignments.find(
+        (a) =>
+          a.active &&
+          ((a.enrollmentId && enrollmentIds.has(a.enrollmentId)) ||
+            (a.teamId && teamIds.has(a.teamId))),
+      );
+
+      const activeEnrollment =
+        userEnrollments.find((e) => !['CANCELLED', 'REFUNDED'].includes(e.status)) ||
+        userEnrollments[0];
+
+      if (!assignment) {
+        return {
+          assigned: false,
+          trainer: null,
+          enrollmentId: activeEnrollment?._id || null,
+          assignmentId: null,
+        };
+      }
+
+      const trainer = users.get(assignment.trainerId);
+      return {
+        assigned: true,
+        assignmentId: assignment._id,
+        trainerId: assignment.trainerId,
+        trainer: personRef(trainer),
+        enrollmentId: assignment.enrollmentId || activeEnrollment?._id || null,
+        teamId: assignment.teamId || null,
+        assignedAt: assignment.assignedAt,
+      };
+    };
+
+    const filtered = db.users.filter((user) => {
+      if (!matchesSearch(search, user.name, user.email)) return false;
+      if (roles.length > 0 && !roles.some((role) => (user.roles ?? []).includes(role))) return false;
+      if (statuses.length > 0 && !statuses.includes(user.status)) return false;
+
+      if (trainerAssignmentFilter === 'assigned') {
+        const isStudent = (user.roles ?? []).includes(ROLES.STUDENT);
+        if (!isStudent) return false;
+        const info = getStudentTrainerInfo(user._id);
+        if (!info.assigned) return false;
+      }
+
+      if (trainerAssignmentFilter === 'unassigned') {
+        const isStudent = (user.roles ?? []).includes(ROLES.STUDENT);
+        if (!isStudent) return false;
+        const info = getStudentTrainerInfo(user._id);
+        if (info.assigned) return false;
+      }
+
+      return true;
+    });
+
+    const toUserDto = (user) => {
+      const isStudent = (user.roles ?? []).includes(ROLES.STUDENT);
+      return {
+        ...publicUser(user),
+        assignedTrainer: isStudent ? getStudentTrainerInfo(user._id) : null,
+      };
+    };
+
+    return json(pageOf(filtered, request, 'createdAt:desc', toUserDto));
+  }),
+
+  // PATCH /admin/users/:id/trainer — change or assign or unassign trainer for a student
+  mock.patch('/admin/users/:id/trainer', async ({ request, params }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+
+    const studentId = decodeParam(params.id);
+    const student = db.users.find((u) => u._id === studentId);
+    if (!student) return notFound('User');
+
+    const body = await readJson(request);
+    const { trainerId, unassign } = body;
+
+    let enrollment = db.enrollments.find((e) => e.userId === studentId);
+    if (!enrollment && !unassign) {
+      const plan = db.internshipPlans?.[0];
+      enrollment = {
+        _id: `enr_${Date.now()}`,
+        userId: studentId,
+        planId: plan?._id || 'plan_default',
+        status: 'IN_PROGRESS',
+        createdAt: nowIso(),
+        activatedAt: nowIso(),
+      };
+      db.enrollments.push(enrollment);
+    }
+
+    const userEnrollments = db.enrollments.filter((e) => e.userId === studentId);
+    const enrollmentIds = new Set(userEnrollments.map((e) => e._id));
+    const now = nowIso();
+
+    db.trainerAssignments
+      .filter((a) => a.active && a.enrollmentId && enrollmentIds.has(a.enrollmentId))
+      .forEach((a) => {
+        a.active = false;
+        a.unassignedAt = now;
+      });
+
+    if (!unassign && trainerId) {
+      const trainer = db.users.find((u) => u._id === trainerId);
+      if (!trainer) return notFound('Trainer');
+
+      const assignment = {
+        _id: `ta_${Date.now()}`,
+        trainerId,
+        enrollmentId: enrollment?._id || null,
+        teamId: null,
+        assignedBy: auth.user._id,
+        assignedAt: now,
+        active: true,
+        unassignedAt: null,
+      };
+      db.trainerAssignments.push(assignment);
+    }
+
+    persist();
+    return json({ success: true });
   }),
 
   mock.patch('/admin/users/:id/roles', async ({ request, params }) => {

@@ -9,6 +9,8 @@ export const updateUserRoles = (id, roles) =>
   api.patch(`/admin/users/${encodeURIComponent(id)}/roles`, { roles });
 export const updateUserStatus = (id, status) =>
   api.patch(`/admin/users/${encodeURIComponent(id)}/status`, { status });
+export const updateStudentTrainer = (id, payload) =>
+  api.patch(`/admin/users/${encodeURIComponent(id)}/trainer`, payload);
 
 // Enrollments and payments monitoring
 export const getAdminEnrollments = (params = {}) => api.get('/admin/enrollments', params);
