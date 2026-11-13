@@ -1,12 +1,14 @@
 import { api, orNullOn404 } from './api';
 
 /** Assessment (MM7). Questions never include answer keys; scoring happens on the server. */
-export const getAssessment = (designationId) =>
-  api.get(`/assessments/${encodeURIComponent(designationId)}`);
+export const getAssessment = (designationId, params = {}) =>
+  api.get(`/assessments/${encodeURIComponent(designationId)}`, params);
 
-/** answers: [{ questionId, selectedIndex }] -> Attempt */
-export const submitAssessment = (designationId, answers) =>
-  api.post(`/assessments/${encodeURIComponent(designationId)}/submit`, { answers });
+/** payload: { answers: [{ questionId, selectedIndex }], domainId?: string } | answers[] -> Attempt */
+export const submitAssessment = (designationId, payload) => {
+  const body = Array.isArray(payload) ? { answers: payload } : payload;
+  return api.post(`/assessments/${encodeURIComponent(designationId)}/submit`, body);
+};
 
 /** The current student's attempt for a designation, or null when not attempted yet. */
 export const getMyAttempt = (designationId) =>

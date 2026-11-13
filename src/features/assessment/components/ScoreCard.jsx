@@ -63,6 +63,7 @@ export function ScoreCard({
   score,
   totalQuestions = ASSESSMENT_QUESTION_COUNT,
   discountPercent,
+  domain,
   isTeam = false,
   submittedAt,
   className,
@@ -108,6 +109,11 @@ export function ScoreCard({
       <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:text-left">
         <ScoreRing score={safeScore} total={total} />
         <div className="min-w-0 flex-1">
+          {domain?.name ? (
+            <Badge variant="outline" size="sm" className="mb-1.5 font-medium">
+              {domain.name} Domain
+            </Badge>
+          ) : null}
           <p className="eyebrow">Your score</p>
           <p className="mt-1 text-lg font-semibold text-slate-900">
             {safeScore} of {total} answers correct

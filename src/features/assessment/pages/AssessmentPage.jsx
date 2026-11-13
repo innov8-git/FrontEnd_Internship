@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useBlocker, useNavigate, useParams } from 'react-router-dom';
+import { Link, useBlocker, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Button,
   ConfirmDialog,
@@ -81,6 +81,8 @@ function NotAvailable({ title }) {
  */
 export function AssessmentPage() {
   const { designationId } = useParams();
+  const [searchParams] = useSearchParams();
+  const domainId = searchParams.get('domainId') || undefined;
   const navigate = useNavigate();
 
   const attemptQuery = useMyAttempt(designationId);
@@ -101,7 +103,7 @@ export function AssessmentPage() {
 
   const existingAttempt = attemptQuery.data ?? null;
   const canLoadQuestions = attemptQuery.isSuccess && !existingAttempt && !alreadySubmitted;
-  const assessmentQuery = useAssessment(designationId, { enabled: canLoadQuestions });
+  const assessmentQuery = useAssessment(designationId, { domainId, enabled: canLoadQuestions });
   const submitMutation = useSubmitAssessment(designationId);
 
   const assessment = assessmentQuery.data;
@@ -198,9 +200,11 @@ export function AssessmentPage() {
   const submitAnswers = async () => {
     if (submitMutation.isPending) return;
     setSubmitError(null);
-    const payload = questions
+    const answersList = questions
       .filter((question) => answers[question._id] !== undefined)
       .map((question) => ({ questionId: question._id, selectedIndex: answers[question._id] }));
+
+    const payload = domainId ? { answers: answersList, domainId } : answersList;
 
     try {
       const attempt = await submitMutation.mutateAsync(payload);
@@ -228,7 +232,10 @@ export function AssessmentPage() {
   if (attemptQuery.isError) {
     return (
       <div className="space-y-6">
-        <PageHeader eyebrow="Skill assessment" title={pageTitle} />
+        <PageHeader
+          eyebrow={assessment?.domain?.name ? `${assessment.domain.name} Domain Track` : 'Skill assessment'}
+          title={pageTitle}
+        />
         <ErrorState
           error={attemptQuery.error}
           title="We couldn't load your assessment"
@@ -256,7 +263,10 @@ export function AssessmentPage() {
     if (getErrorStatus(assessmentQuery.error) === 404) return <NotAvailable title={pageTitle} />;
     return (
       <div className="space-y-6">
-        <PageHeader eyebrow="Skill assessment" title={pageTitle} />
+        <PageHeader
+          eyebrow={assessment?.domain?.name ? `${assessment.domain.name} Domain Track` : 'Skill assessment'}
+          title={pageTitle}
+        />
         <ErrorState
           error={assessmentQuery.error}
           title="We couldn't load the questions"
@@ -286,7 +296,10 @@ export function AssessmentPage() {
   } else if (phase === PHASE.QUESTIONS) {
     content = (
       <div className="space-y-6">
-        <PageHeader eyebrow="Skill assessment" title={pageTitle} />
+        <PageHeader
+          eyebrow={assessment?.domain?.name ? `${assessment.domain.name} Domain Track` : 'Skill assessment'}
+          title={pageTitle}
+        />
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
           <div className="min-w-0 space-y-4">
             <AssessmentProgress current={safeIndex} total={total} answeredCount={answeredCount} />
@@ -349,7 +362,10 @@ export function AssessmentPage() {
   } else {
     content = (
       <div className="space-y-6">
-        <PageHeader eyebrow="Skill assessment" title={pageTitle} />
+        <PageHeader
+          eyebrow={assessment?.domain?.name ? `${assessment.domain.name} Domain Track` : 'Skill assessment'}
+          title={pageTitle}
+        />
 
         <section aria-labelledby="review-heading" className="space-y-4">
           <div>
