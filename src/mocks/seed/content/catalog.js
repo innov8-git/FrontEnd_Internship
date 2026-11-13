@@ -11,52 +11,10 @@
 
 export const DESIGNATIONS = [
   {
-    name: 'Java Developer',
-    slug: 'java-developer',
+    name: 'Trainee Software Engineer',
+    slug: 'trainee-software-engineer',
     description:
-      'Build and maintain backend services with Java 17 and Spring Boot the way enterprise teams do. You start by debugging, merging and reviewing code in an existing repository, then design REST APIs, JPA persistence, transactions, logging and automated tests. Key skills: core Java, collections and streams, Spring Boot, SQL, JUnit 5 and a disciplined Git workflow.',
-    status: 'PUBLISHED',
-  },
-  {
-    name: 'Full Stack Developer',
-    slug: 'full-stack-developer',
-    description:
-      'Ship complete features across a React front end and a Node.js and Express API backed by MongoDB. You build responsive interfaces, REST endpoints, authentication and checkout flows, and learn to debug across the browser, the network and the server. Key skills: modern JavaScript, React hooks, Express middleware, MongoDB, HTTP and web security.',
-    status: 'PUBLISHED',
-  },
-  {
-    name: '.NET Developer',
-    slug: 'dotnet-developer',
-    description:
-      'Build secure, well-tested web APIs with C#, ASP.NET Core and Entity Framework Core. You work with dependency injection, middleware, LINQ, async code and database migrations, and cover your work with xUnit tests. Key skills: C#, ASP.NET Core, EF Core, SQL Server and clean API design.',
-    status: 'PUBLISHED',
-  },
-  {
-    name: 'DevOps Engineer',
-    slug: 'devops-engineer',
-    description:
-      'Automate how software is built, shipped and run in production. You write CI/CD pipelines, package services with Docker, deploy them to Kubernetes, manage infrastructure with Terraform and set up monitoring and alerts. Key skills: Linux and shell, Git, Docker, Kubernetes, Terraform, cloud networking and observability.',
-    status: 'PUBLISHED',
-  },
-  {
-    name: 'Data Engineer',
-    slug: 'data-engineer',
-    description:
-      'Design pipelines that turn raw data into reliable, query-ready tables. You model warehouses, write SQL and PySpark transformations, orchestrate jobs with Airflow and add data-quality checks. Key skills: advanced SQL, Python and pandas, Spark, data modelling, partitioning and orchestration.',
-    status: 'DRAFT',
-  },
-  {
-    name: 'Trainee Software Engineer – Web Development',
-    slug: 'trainee-se-web',
-    description:
-      'Design, develop, test, and maintain modern responsive web applications across real-world domains. Build interactive user interfaces, RESTful APIs, and secure database integrations. Key skills: HTML5, CSS3, JavaScript, React.js / Angular, Core Java / Python / Node.js, SQL, REST APIs, Git, and web security.',
-    status: 'PUBLISHED',
-  },
-  {
-    name: 'Trainee Software Engineer – App Development',
-    slug: 'trainee-se-app',
-    description:
-      'Design, develop, test, and maintain mobile applications for Android and cross-platform environments. Build responsive mobile interfaces, API integrations, and local caching. Key skills: Core Java, Kotlin, Dart, Android Studio, Flutter / React Native, XML layout, Room DB / SQLite, Firebase, and mobile debugging.',
+      'Comprehensive enterprise software engineering internship covering both Web Development and Mobile App Development across industry domains. Master modern architectures, responsive web frontends, mobile client applications, RESTful APIs, databases, and production Git workflows.',
     status: 'PUBLISHED',
   },
 ];
@@ -122,30 +80,7 @@ export const DOMAINS = [
 
 export const PLAN_MATRIX = [
   {
-    designation: 'java-developer',
-    domains: ['banking', 'healthcare', 'e-commerce'],
-    status: 'PUBLISHED',
-  },
-  {
-    designation: 'full-stack-developer',
-    domains: ['e-commerce', 'banking', 'healthcare'],
-    status: 'PUBLISHED',
-  },
-  { designation: 'dotnet-developer', domains: ['healthcare', 'banking'], status: 'PUBLISHED' },
-  { designation: 'dotnet-developer', domains: ['insurance'], status: 'DRAFT' },
-  {
-    designation: 'devops-engineer',
-    domains: ['telecom', 'banking', 'e-commerce'],
-    status: 'PUBLISHED',
-  },
-  { designation: 'data-engineer', domains: ['banking'], status: 'DRAFT' },
-  {
-    designation: 'trainer-se-web',
-    domains: ['banking', 'finance', 'telecom', 'e-commerce', 'healthcare', 'insurance', 'loan', 'erp-crm'],
-    status: 'PUBLISHED',
-  },
-  {
-    designation: 'trainer-se-app',
+    designation: 'trainee-software-engineer',
     domains: ['banking', 'finance', 'telecom', 'e-commerce', 'healthcare', 'insurance', 'loan', 'erp-crm'],
     status: 'PUBLISHED',
   },
@@ -162,11 +97,5 @@ export const BASE_PRICE_BY_DURATION = {
 
 /** Paise added to the base price of every duration for a designation. */
 export const PRICE_ADJUSTMENT_BY_DESIGNATION = {
-  'java-developer': 0,
-  'full-stack-developer': 50000,
-  'dotnet-developer': 0,
-  'devops-engineer': 100000,
-  'data-engineer': 100000,
-  'trainer-se-web': 50000,
-  'trainer-se-app': 50000,
+  'trainee-software-engineer': 0,
 };

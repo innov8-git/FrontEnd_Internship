@@ -49,6 +49,8 @@ export const ROUTES = Object.freeze({
   ADMIN_USERS: '/admin/users',
   ADMIN_DESIGNATIONS: '/admin/designations',
   ADMIN_DOMAINS: '/admin/domains',
+  ADMIN_PROJECTS: '/admin/projects',
+  ADMIN_PROJECT_ASSIGNMENTS: '/admin/project-assignments',
   ADMIN_PLANS: '/admin/plans',
   ADMIN_ASSESSMENTS: '/admin/assessments',
   ADMIN_ASSESSMENT: '/admin/assessments/:designationId',

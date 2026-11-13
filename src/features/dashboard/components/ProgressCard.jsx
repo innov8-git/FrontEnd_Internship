@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button, Card, CardFooter, ProgressBar, StatusBadge } from '@/shared/components/ui';
-import { ArrowRight, CalendarDays, ClipboardList, Users } from '@/shared/icons';
+import { ArrowRight, CalendarDays, ClipboardList, FolderGit2, Users } from '@/shared/icons';
 import { ENROLLMENT_STATUS, ROUTES, paths } from '@/shared/constants';
 import { cn } from '@/shared/utils/cn';
 import { formatDate, pluralize } from '@/shared/utils/helpers';
@@ -56,6 +56,48 @@ export function ProgressCard({ enrollment, approved = 0, total = 0, team, classN
             </span>
           </p>
         ) : null}
+
+        {/* Assigned Capstone Project Card for Web & App Development */}
+        {enrollment.project ? (
+          <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50/60 p-3.5 space-y-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-[11px] font-bold text-brand-900 uppercase tracking-wider flex items-center gap-1.5">
+                <FolderGit2 className="h-3.5 w-3.5 text-brand-600" />
+                Assigned Capstone Project
+              </span>
+              <span className="rounded-md bg-white border border-brand-200 px-2 py-0.5 text-[10px] font-semibold text-brand-700">
+                {enrollment.track === 'app' ? '📱 Mobile App Track' : '🌐 Web Development Track'}
+              </span>
+            </div>
+            <p className="text-sm font-bold text-slate-900">{enrollment.project.title}</p>
+            {enrollment.project.description ? (
+              <p className="text-xs text-slate-600 line-clamp-2">
+                {enrollment.project.description}
+              </p>
+            ) : null}
+            {enrollment.track === 'app' && enrollment.project.appDeliverables ? (
+              <p className="text-[11px] text-brand-800 bg-white/80 rounded-md p-2 border border-brand-200/80">
+                <strong>Track Scope:</strong> {enrollment.project.appDeliverables}
+              </p>
+            ) : enrollment.project.webDeliverables ? (
+              <p className="text-[11px] text-brand-800 bg-white/80 rounded-md p-2 border border-brand-200/80">
+                <strong>Track Scope:</strong> {enrollment.project.webDeliverables}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold text-amber-900">Capstone Project Allocation Pending</p>
+              <p className="text-amber-700 mt-0.5 text-[11px]">
+                Your mentor or administrator will assign your domain capstone project shortly.
+              </p>
+            </div>
+            <span className="rounded-md bg-white border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-800 shrink-0">
+              Pending Admin Assignment
+            </span>
+          </div>
+        )}
 
         <div className="mt-6">
           {total > 0 ? (

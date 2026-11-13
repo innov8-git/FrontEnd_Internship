@@ -10,7 +10,14 @@ export const DEMO_ACCOUNTS = [
     email: 'student@demo.dev',
     name: 'Aarav Sharma',
     role: 'STUDENT',
-    description: 'Java / Banking internship in progress, tasks in every state',
+    description: '2 Months Web Development · Banking domain',
+  },
+  {
+    key: 'student6m',
+    email: 'student6m@demo.dev',
+    name: 'Rohan Verma',
+    role: 'STUDENT',
+    description: '6 Months Web Development · Banking domain',
   },
   {
     key: 'new',

@@ -47,6 +47,7 @@ export function PageHeader({
   title,
   description,
   actions,
+  action,
   breadcrumbs,
   backTo,
   eyebrow,
@@ -54,6 +55,7 @@ export function PageHeader({
   className,
   ...rest
 }) {
+  const headerActions = actions ?? action;
   return (
     <div className={cn('min-w-0', className)} {...rest}>
       {backTo?.to ? (
@@ -79,8 +81,8 @@ export function PageHeader({
             <div className="mt-1 max-w-3xl text-sm text-slate-500">{description}</div>
           ) : null}
         </div>
-        {actions ? (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+        {headerActions ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">{headerActions}</div>
         ) : null}
       </div>
 
