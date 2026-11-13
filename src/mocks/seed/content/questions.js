@@ -702,3 +702,5 @@ export const QUESTION_BANK = {
     },
   ],
 };
+
+QUESTION_BANK['trainee-software-engineer'] = QUESTION_BANK['java-developer'];

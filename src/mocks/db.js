@@ -10,8 +10,8 @@ import { COLLECTIONS, placeholderScreenshot } from './seed/helpers';
  */
 
 /** Bump when the seed or the document shapes change: older saved databases are then ignored. */
-export const DB_VERSION = 1;
-export const DB_STORAGE_KEY = 'ip.mockdb.v1';
+export const DB_VERSION = 9;
+export const DB_STORAGE_KEY = 'ip.mockdb.v9';
 export { COLLECTIONS };
 
 const SAVE_DELAY_MS = 150;
@@ -85,6 +85,10 @@ function readStoredData() {
   const storage = getStorage();
   if (!storage) return null;
   try {
+    // Purge legacy mock DB storage keys so user's browser doesn't hold stale projects or roles
+    ['ip.mockdb.v1', 'ip.mockdb.v2', 'ip.mockdb.v3', 'ip.mockdb.v4', 'ip.mockdb.v5', 'ip.mockdb.v6', 'ip.mockdb.v7', 'ip.mockdb.v8'].forEach((k) => {
+      try { storage.removeItem(k); } catch { /* ignore */ }
+    });
     const raw = storage.getItem(DB_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
@@ -92,6 +96,15 @@ function readStoredData() {
     const { data } = parsed;
     if (!data || typeof data !== 'object') return null;
     if (!COLLECTIONS.every((name) => Array.isArray(data[name]))) return null;
+    // Discard stale cache if missing any of the 8 home page domains or if legacy designations exist
+    if (!data.domains || data.domains.length < 8) return null;
+    if (
+      !data.designations ||
+      data.designations.length !== 1 ||
+      data.designations[0].slug !== 'trainee-software-engineer'
+    ) {
+      return null;
+    }
     // blob: urls only live as long as the page that created them.
     data.taskSubmissions = withPlaceholderScreenshots(data.taskSubmissions, isBlobUrl);
     return data;

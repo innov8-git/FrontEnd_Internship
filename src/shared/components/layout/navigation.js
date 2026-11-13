@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   CreditCard,
+  FolderGit2,
   GraduationCap,
   History,
   Inbox,
@@ -14,6 +15,7 @@ import {
   LayoutDashboard,
   ListChecks,
   User,
+  UserCheck,
   UserCog,
   Users,
 } from '@/shared/icons';
@@ -122,8 +124,10 @@ export function getAdminNavigation() {
     {
       title: 'Catalog',
       items: [
-        { label: 'Designations', to: ROUTES.ADMIN_DESIGNATIONS, icon: Briefcase },
         { label: 'Domains', to: ROUTES.ADMIN_DOMAINS, icon: Building2 },
+        { label: 'Projects', to: ROUTES.ADMIN_PROJECTS, icon: FolderGit2 },
+        { label: 'Project assignments', to: ROUTES.ADMIN_PROJECT_ASSIGNMENTS, icon: UserCheck },
+        { label: 'Designations', to: ROUTES.ADMIN_DESIGNATIONS, icon: Briefcase },
         { label: 'Plans & pricing', to: ROUTES.ADMIN_PLANS, icon: IndianRupee },
         { label: 'Assessments', to: ROUTES.ADMIN_ASSESSMENTS, icon: ClipboardCheck },
       ],

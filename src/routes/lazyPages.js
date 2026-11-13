@@ -73,6 +73,8 @@ export const AdminCertificatesPage = lazy(() => import('@/features/admin/pages/C
 export const AuditLogPage = lazy(() => import('@/features/admin/pages/AuditLogPage'));
 export const DesignationsPage = lazy(() => import('@/features/catalog/pages/DesignationsPage'));
 export const DomainsPage = lazy(() => import('@/features/catalog/pages/DomainsPage'));
+export const ProjectsPage = lazy(() => import('@/features/catalog/pages/ProjectsPage'));
+export const ProjectAssignmentsPage = lazy(() => import('@/features/catalog/pages/ProjectAssignmentsPage'));
 export const DomainQuestionsPage = lazy(
   () => import('@/features/catalog/pages/DomainQuestionsPage'),
 );

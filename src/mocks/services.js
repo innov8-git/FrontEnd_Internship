@@ -61,6 +61,8 @@ import {
   TEAM_STATUS,
   USER_STATUS,
 } from '@/shared/constants';
+import { slugify } from '@/shared/utils/helpers';
+import { generateDailyTasksForProject } from '../features/catalog/utils/projectTaskGenerator';
 
 // Shared with the seed; re-exported so handlers have one import for domain helpers.
 export {
@@ -399,6 +401,352 @@ export function findDesignation(idOrSlug) {
 /** Accepts an id or a slug. */
 export function findDomain(idOrSlug) {
   return findCatalogItem(db.domains, idOrSlug);
+}
+
+export function findProject(idOrSlug) {
+  if (!db.projects) return undefined;
+  return findCatalogItem(db.projects, idOrSlug);
+}
+
+export function projectRef(project) {
+  if (!project) return null;
+  return {
+    _id: project._id,
+    title: project.title,
+    slug: project.slug,
+    domainId: project.domainId,
+    designationId: project.designationId,
+  };
+}
+
+export function projectDto(project) {
+  if (!project) return null;
+  const domain = findDomain(project.domainId);
+  const designation = findDesignation(project.designationId);
+  return {
+    _id: project._id,
+    title: project.title,
+    slug: project.slug,
+    domainId: project.domainId,
+    domain: domain ? { _id: domain._id, name: domain.name, slug: domain.slug } : null,
+    designationId: project.designationId,
+    designation: designation
+      ? { _id: designation._id, name: designation.name, slug: designation.slug }
+      : null,
+    starterRepoUrl: project.starterRepoUrl ?? '',
+    technologies: Array.isArray(project.technologies) ? project.technologies : [],
+    webTechStack: Array.isArray(project.webTechStack) ? project.webTechStack : (Array.isArray(project.technologies) ? project.technologies : []),
+    webDeliverables: project.webDeliverables ?? '',
+    appTechStack: Array.isArray(project.appTechStack) ? project.appTechStack : [],
+    appDeliverables: project.appDeliverables ?? '',
+    durationsSupported: Array.isArray(project.durationsSupported)
+      ? project.durationsSupported
+      : [1, 2, 3, 6],
+    isDefault: Boolean(project.isDefault),
+    status: project.status ?? 'PUBLISHED',
+    description: project.description ?? '',
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
+  };
+}
+
+export function listProjects({
+  domainId,
+  designationId,
+  status,
+  search,
+  page = 1,
+  limit = 50,
+} = {}) {
+  let list = db.projects ?? [];
+  if (domainId) {
+    const domain = findDomain(domainId);
+    list = list.filter((p) => p.domainId === (domain?._id ?? domainId));
+  }
+  if (designationId) {
+    const designation = findDesignation(designationId);
+    list = list.filter((p) => p.designationId === (designation?._id ?? designationId));
+  }
+  if (status) {
+    list = list.filter((p) => p.status === status);
+  }
+  if (search) {
+    const q = search.trim().toLowerCase();
+    list = list.filter(
+      (p) =>
+        p.title?.toLowerCase().includes(q) ||
+        p.slug?.toLowerCase().includes(q) ||
+        p.technologies?.some((t) => t.toLowerCase().includes(q)) ||
+        p.webTechStack?.some((t) => t.toLowerCase().includes(q)) ||
+        p.appTechStack?.some((t) => t.toLowerCase().includes(q)),
+    );
+  }
+  const total = list.length;
+  const start = (page - 1) * limit;
+  const items = list.slice(start, start + limit).map(projectDto);
+  return { items, total, page, limit };
+}
+
+export function createProjectRecord(actor, data) {
+  if (!Array.isArray(db.projects)) db.projects = [];
+  const projectDoc = {
+    _id: oid(),
+    title: data.title,
+    slug: data.slug || slugify(data.title),
+    domainId: data.domainId,
+    designationId: data.designationId,
+    starterRepoUrl: data.starterRepoUrl || '',
+    technologies: Array.isArray(data.technologies) ? data.technologies : [],
+    webTechStack: Array.isArray(data.webTechStack)
+      ? data.webTechStack
+      : typeof data.webTechStack === 'string'
+        ? data.webTechStack.split(',').map((s) => s.trim()).filter(Boolean)
+        : (Array.isArray(data.technologies) ? data.technologies : []),
+    webDeliverables: data.webDeliverables || '',
+    appTechStack: Array.isArray(data.appTechStack)
+      ? data.appTechStack
+      : typeof data.appTechStack === 'string'
+        ? data.appTechStack.split(',').map((s) => s.trim()).filter(Boolean)
+        : [],
+    appDeliverables: data.appDeliverables || '',
+    durationsSupported: Array.isArray(data.durationsSupported)
+      ? data.durationsSupported
+      : [1, 2, 3, 6],
+    isDefault: Boolean(data.isDefault),
+    status: data.status || 'PUBLISHED',
+    description: data.description || '',
+    createdBy: actor?._id,
+    updatedBy: actor?._id,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  if (projectDoc.isDefault) {
+    db.projects.forEach((p) => {
+      if (p.domainId === projectDoc.domainId) p.isDefault = false;
+    });
+  }
+  db.projects.unshift(projectDoc);
+  persist();
+  return projectDto(projectDoc);
+}
+
+export function updateProjectRecord(id, actor, data) {
+  const project = findProject(id);
+  if (!project) throw new Error('Project not found');
+  Object.assign(project, {
+    ...data,
+    updatedBy: actor?._id,
+    updatedAt: new Date().toISOString(),
+  });
+  if (data.isDefault) {
+    db.projects.forEach((p) => {
+      if (p._id !== project._id && p.domainId === project.domainId) p.isDefault = false;
+    });
+  }
+  persist();
+  return projectDto(project);
+}
+
+export function setProjectRecordStatus(id, actor, status) {
+  const project = findProject(id);
+  if (!project) throw new Error('Project not found');
+  project.status = status;
+  project.updatedBy = actor?._id;
+  project.updatedAt = new Date().toISOString();
+  persist();
+  return projectDto(project);
+}
+
+export function deleteProjectRecord(id) {
+  const index = (db.projects ?? []).findIndex((p) => p._id === id);
+  if (index === -1) throw new Error('Project not found');
+  const [removed] = db.projects.splice(index, 1);
+  persist();
+  return projectDto(removed);
+}
+
+export function findDefaultProjectForDomain(domainId) {
+  const domain = findDomain(domainId);
+  const dId = domain?._id || domainId;
+  const projects = (db.projects ?? []).filter(
+    (p) => p.domainId === dId && p.status === 'PUBLISHED',
+  );
+  return projects.find((p) => p.isDefault) || projects[0] || null;
+}
+
+export function assignmentDto(enrollment) {
+  const student = findUser(enrollment.userId);
+  const plan = findPlan(enrollment.planId);
+  const domain = plan ? findDomain(plan.domainId) : null;
+  const designation = plan ? findDesignation(plan.designationId) : null;
+  const project = enrollment.projectId ? findProject(enrollment.projectId) : null;
+  const durationMonths = plan?.durationMonths || 2;
+  const workingDays = durationMonths === 1 ? 20 : durationMonths === 2 ? 40 : durationMonths === 3 ? 60 : 120;
+
+  return {
+    enrollmentId: enrollment._id,
+    student: student
+      ? {
+          _id: student._id,
+          name: student.name,
+          email: student.email,
+          avatarUrl: student.avatarUrl ?? null,
+        }
+      : null,
+    domain: domain
+      ? {
+          _id: domain._id,
+          name: domain.name,
+          slug: domain.slug,
+        }
+      : null,
+    designation: designation
+      ? {
+          _id: designation._id,
+          name: designation.name,
+          slug: designation.slug,
+        }
+      : {
+          _id: 'trainee-software-engineer',
+          name: 'Trainee Software Engineer',
+          slug: 'trainee-software-engineer',
+        },
+    durationMonths,
+    workingDays,
+    track: enrollment.track || 'web',
+    enrollmentStatus: enrollment.status,
+    projectId: enrollment.projectId ?? null,
+    project: projectDto(project),
+    assignedAt: enrollment.projectAssignedAt ?? null,
+    createdAt: enrollment.createdAt,
+  };
+}
+
+export function listProjectAssignments({
+  domainId,
+  track,
+  status,
+  search,
+  page = 1,
+  limit = 20,
+} = {}) {
+  const enrollments = (db.enrollments ?? []).filter((e) => e.status !== 'CANCELLED');
+  const mapped = enrollments
+    .map(assignmentDto)
+    .filter((a) => a.student && a.domain); // must have student and domain
+
+  let filtered = mapped;
+
+  if (domainId) {
+    filtered = filtered.filter((a) => a.domain?._id === domainId || a.domain?.slug === domainId);
+  }
+
+  if (track) {
+    filtered = filtered.filter((a) => (a.track || 'web').toLowerCase() === track.toLowerCase());
+  }
+
+  if (status === 'ASSIGNED') {
+    filtered = filtered.filter((a) => Boolean(a.projectId));
+  } else if (status === 'UNASSIGNED') {
+    filtered = filtered.filter((a) => !a.projectId);
+  }
+
+  if (search && search.trim()) {
+    const q = search.trim().toLowerCase();
+    filtered = filtered.filter(
+      (a) =>
+        a.student?.name?.toLowerCase().includes(q) ||
+        a.student?.email?.toLowerCase().includes(q) ||
+        a.project?.title?.toLowerCase().includes(q),
+    );
+  }
+
+  const start = Math.max(0, (Number(page) - 1) * Number(limit));
+  const items = filtered.slice(start, start + Number(limit));
+
+  return {
+    items,
+    total: filtered.length,
+    page: Number(page),
+    totalPages: Math.ceil(filtered.length / Number(limit)) || 1,
+  };
+}
+
+export function assignProjectToEnrollment({ enrollmentId, projectId }) {
+  const enrollment = findEnrollment(enrollmentId);
+  if (!enrollment) throw new Error('Enrollment not found');
+  const project = findProject(projectId);
+  if (!project) throw new Error('Project not found');
+
+  enrollment.projectId = project._id;
+  enrollment.projectAssignedAt = new Date().toISOString();
+
+  // Dynamically generate daily tasks for the student based on project, track, and duration
+  const plan = findPlan(enrollment.planId);
+  const durationMonths = plan?.durationMonths || 2;
+  const track = enrollment.track || 'web';
+  const domain = findDomain(project.domainId);
+  const populatedProject = { ...project, domain };
+  const generatedTasks = generateDailyTasksForProject(populatedProject, durationMonths, track);
+
+  // Replace task progress for this enrollment
+  db.taskProgress = db.taskProgress.filter((p) => p.enrollmentId !== enrollment._id);
+
+  let previousTaskId = null;
+  const now = new Date().toISOString();
+
+  generatedTasks.forEach((task, index) => {
+    const existingIndex = db.taskDefinitions.findIndex((t) => t._id === task._id);
+    const taskDef = {
+      _id: task._id,
+      templateId: enrollment.scheduleTemplateId,
+      templateVersion: 1,
+      sequence: task.sequence,
+      dayNumber: task.dayNumber,
+      title: task.title,
+      problemStatement: task.problemStatement,
+      expectedOutcome: task.expectedOutcome,
+      acceptanceCriteria: task.acceptanceCriteria,
+      starterRepoUrl: project.starterRepoUrl || '',
+      estimatedHours: task.estimatedHours || 4,
+      requiresTrainerReview: Boolean(task.requiresTrainerReview),
+      prerequisiteTaskIds: previousTaskId ? [previousTaskId] : [],
+    };
+
+    if (existingIndex >= 0) {
+      db.taskDefinitions[existingIndex] = taskDef;
+    } else {
+      db.taskDefinitions.push(taskDef);
+    }
+
+    db.taskProgress.push({
+      _id: oid(),
+      enrollmentId: enrollment._id,
+      teamId: enrollment.teamId || null,
+      taskId: taskDef._id,
+      status: index === 0 ? 'AVAILABLE' : 'LOCKED',
+      startedAt: null,
+      submittedAt: null,
+      approvedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    previousTaskId = taskDef._id;
+  });
+
+  persist();
+  return assignmentDto(enrollment);
+}
+
+export function unassignProjectFromEnrollment(enrollmentId) {
+  const enrollment = findEnrollment(enrollmentId);
+  if (!enrollment) throw new Error('Enrollment not found');
+
+  enrollment.projectId = null;
+  enrollment.projectAssignedAt = null;
+  persist();
+  return assignmentDto(enrollment);
 }
 
 export function findPlan(id) {
@@ -1358,6 +1706,10 @@ export function enrollmentDto(enrollment) {
       total: progress.length,
     },
     certificateId: certificate?._id ?? null,
+    track: enrollment.track || 'web',
+    projectId: enrollment.projectId ?? null,
+    project: enrollment.projectId ? projectDto(findProject(enrollment.projectId)) : null,
+    projectAssignedAt: enrollment.projectAssignedAt ?? null,
     createdAt: enrollment.createdAt ?? null,
     activatedAt: enrollment.activatedAt ?? null,
     completedAt: enrollment.completedAt ?? null,

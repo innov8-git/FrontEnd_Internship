@@ -11,6 +11,7 @@ import {
   PLAN_MATRIX,
   PRICE_ADJUSTMENT_BY_DESIGNATION,
 } from './content/catalog';
+import { SEED_PROJECTS } from './content/projects';
 import { QUESTION_BANK } from './content/questions';
 import { SCHEDULE_TEMPLATES } from './content/schedules';
 import { TASK_TEMPLATES } from './content/tasks';
@@ -61,13 +62,13 @@ export function buildSeed() {
       emailVerified,
       trainerProfile: roles.includes('TRAINER')
         ? {
-            domain: 'Full Stack Web Development',
-            experience: '5-8 years',
-            organization: 'Infosys',
-            linkedinUrl: 'https://linkedin.com/in/priyanair',
-            resumeName: 'Priya_Nair_Resume.pdf',
-            resumeSize: 1450000,
-          }
+          domain: 'Full Stack Web Development',
+          experience: '5-8 years',
+          organization: 'Infosys',
+          linkedinUrl: 'https://linkedin.com/in/priyanair',
+          resumeName: 'Priya_Nair_Resume.pdf',
+          resumeSize: 1450000,
+        }
         : undefined,
       createdAt: created,
       updatedAt: created,
@@ -189,10 +190,47 @@ export function buildSeed() {
   });
 
   const planFor = (designationSlug, domainSlug, months) => {
-    const plan = planByKey[`${designationSlug}|${domainSlug}|${months}`];
-    if (!plan) throw new Error(`[seed] no plan ${designationSlug}/${domainSlug}/${months}`);
+    const slug = designationBySlug[designationSlug] ? designationSlug : 'trainee-software-engineer';
+    const plan = planByKey[`${slug}|${domainSlug}|${months}`] || Object.values(planByKey)[0];
+    if (!plan) throw new Error(`[seed] no plan ${slug}/${domainSlug}/${months}`);
     return plan;
   };
+
+  // ---------------------------------------------------------------------------------------
+  // Domain Projects (Capstones under each domain for Trainee Software Engineer)
+  // ---------------------------------------------------------------------------------------
+  const projectByDomain = {};
+  SEED_PROJECTS.forEach((item, index) => {
+    const domain = domainBySlug[item.domainSlug];
+    const designation =
+      designationBySlug[item.designationSlug] ||
+      designationBySlug['trainee-software-engineer'] ||
+      Object.values(designationBySlug)[0];
+    if (!domain) return;
+    const projectDoc = {
+      _id: nextId(),
+      title: item.title,
+      slug: item.slug,
+      domainId: domain._id,
+      designationId: designation ? designation._id : '',
+      starterRepoUrl: item.starterRepoUrl ?? '',
+      technologies: [...(item.technologies || [])],
+      webTechStack: item.webTechStack ? [...item.webTechStack] : [...(item.technologies || [])],
+      webDeliverables: item.webDeliverables || '',
+      appTechStack: item.appTechStack ? [...item.appTechStack] : [],
+      appDeliverables: item.appDeliverables || '',
+      durationsSupported: [...(item.durationsSupported || [1, 2, 3, 6])],
+      isDefault: Boolean(item.isDefault),
+      status: item.status || 'PUBLISHED',
+      description: item.description || '',
+      createdBy: admin._id,
+      updatedBy: admin._id,
+      createdAt: daysAgo(210 - index * 5),
+      updatedAt: daysAgo(120 - index * 2),
+    };
+    data.projects.push(projectDoc);
+    projectByDomain[domain._id] = projectDoc;
+  });
 
   // ---------------------------------------------------------------------------------------
   // Assessment configs (15 questions + slabs per designation)
@@ -338,7 +376,7 @@ export function buildSeed() {
         createdAt: daysAgo(6),
       });
     } else {
-      bundleByDesignation[spec.designation] = makeTemplate(spec, {
+      makeTemplate(spec, {
         version: 1,
         status: 'PUBLISHED',
         days: spec.days,
@@ -349,7 +387,10 @@ export function buildSeed() {
   });
 
   const bundleFor = (designationSlug) => {
-    const bundle = bundleByDesignation[designationSlug];
+    const bundle =
+      bundleByDesignation[designationSlug] ||
+      bundleByDesignation['trainee-software-engineer'] ||
+      Object.values(bundleByDesignation)[0];
     if (!bundle) throw new Error(`[seed] no published template for ${designationSlug}`);
     return bundle;
   };
@@ -360,11 +401,15 @@ export function buildSeed() {
   const formatInr = (paise) => `₹${(paise / 100).toLocaleString('en-IN')}`;
 
   function makeAttempt(student, designationSlug, score, submittedAt) {
-    const config = publishedConfigBySlug[designationSlug];
+    const slug = publishedConfigBySlug[designationSlug]
+      ? designationSlug
+      : 'trainee-software-engineer';
+    const config = publishedConfigBySlug[slug] || Object.values(publishedConfigBySlug)[0];
+    const targetDesig = designationBySlug[slug] || Object.values(designationBySlug)[0];
     const attempt = {
       _id: nextId(),
       userId: student._id,
-      designationId: designationBySlug[designationSlug]._id,
+      designationId: targetDesig._id,
       configVersion: config.version,
       answers: config.questions.map((question, index) => ({
         questionId: question._id,
@@ -683,83 +728,28 @@ export function buildSeed() {
   }
 
   // ---------------------------------------------------------------------------------------
-  // 1. Aarav — Java / Banking in progress, tasks in every state
+  // 1. Aarav — Trainee Software Engineer / Banking (2 Months, Web Track)
   // ---------------------------------------------------------------------------------------
   const aarav = user('student@demo.dev');
-  const aaravAttempt = makeAttempt(aarav, 'java-developer', 12, daysAgo(40));
+  const aaravAttempt = makeAttempt(aarav, 'trainee-software-engineer', 12, daysAgo(40));
   const { enrollment: aaravEnrollment, bundle: javaBundle } = makeEnrollment({
     student: aarav,
-    plan: planFor('java-developer', 'banking', 3),
+    plan: planFor('trainee-software-engineer', 'banking', 2),
     attempt: aaravAttempt,
     status: 'IN_PROGRESS',
     createdAt: daysAgo(36),
     activatedAt: daysAgo(35),
     payments: [{ status: 'SUCCESS', at: daysAgo(35.2) }],
   });
-  const aaravProgress = makeProgress({
+  aaravEnrollment.track = 'web';
+  aaravEnrollment.projectId = null; // Unassigned initially: admin creates project and assigns to student
+  aaravEnrollment.projectAssignedAt = null;
+  const _aaravProgress = makeProgress({
     enrollment: aaravEnrollment,
     bundle: javaBundle,
     startedAt: daysAgo(35),
-    statuses: {
-      T1: 'APPROVED',
-      T2: 'APPROVED',
-      T3: 'CHANGES_REQUESTED',
-      T5: 'SUBMITTED',
-      T8: 'IN_PROGRESS',
-      T10: 'AVAILABLE',
-    },
+    statuses: {}, // Initially clean: Task 1 is AVAILABLE (open), remaining tasks are LOCKED
   });
-  const aaravRepo = 'https://github.com/aarav-sharma-dev/java-banking-ledger';
-  makeSubmission({
-    progress: aaravProgress.byKey.T1,
-    enrollment: aaravEnrollment,
-    submitter: aarav,
-    submittedAt: daysAgo(31),
-    reviewStatus: 'APPROVED',
-    githubUrl: `${aaravRepo}/pull/1`,
-    review: { trainer: priya, decision: 'APPROVED', feedback: feedback('APPROVED', 0), reviewedAt: daysAgo(30) },
-  });
-  makeSubmission({
-    progress: aaravProgress.byKey.T2,
-    enrollment: aaravEnrollment,
-    submitter: aarav,
-    submittedAt: daysAgo(26),
-    reviewStatus: 'CHANGES_REQUESTED',
-    githubUrl: `${aaravRepo}/pull/2`,
-    review: { trainer: priya, decision: 'CHANGES_REQUESTED', feedback: feedback('CHANGES_REQUESTED', 0), reviewedAt: daysAgo(25) },
-  });
-  makeSubmission({
-    progress: aaravProgress.byKey.T2,
-    enrollment: aaravEnrollment,
-    submitter: aarav,
-    attemptNumber: 2,
-    submittedAt: daysAgo(23),
-    reviewStatus: 'APPROVED',
-    githubUrl: `${aaravRepo}/commit/8f3c2a91d4e5b6c7a8f90123456789abcdef0123`,
-    review: { trainer: priya, decision: 'APPROVED', feedback: feedback('APPROVED', 1), reviewedAt: daysAgo(22) },
-  });
-  makeSubmission({
-    progress: aaravProgress.byKey.T3,
-    enrollment: aaravEnrollment,
-    submitter: aarav,
-    submittedAt: daysAgo(4),
-    reviewStatus: 'CHANGES_REQUESTED',
-    githubUrl: `${aaravRepo}/pull/3`,
-    review: { trainer: priya, decision: 'CHANGES_REQUESTED', feedback: feedback('CHANGES_REQUESTED', 1), reviewedAt: daysAgo(3) },
-  });
-  makeSubmission({
-    progress: aaravProgress.byKey.T5,
-    enrollment: aaravEnrollment,
-    submitter: aarav,
-    submittedAt: hoursAgo(6),
-    reviewStatus: 'PENDING',
-    githubUrl: `${aaravRepo}/pull/4`,
-    automatedChecks: [
-      { name: 'Unit tests', status: 'PASSED', required: true },
-      { name: 'Lint', status: 'PASSED', required: false },
-    ],
-  });
-  aaravProgress.byKey.T8.startedAt = daysAgo(2);
   data.githubConnections.push({
     _id: nextId(),
     userId: aarav._id,
@@ -772,9 +762,47 @@ export function buildSeed() {
   queueEmail({
     to: aarav.email,
     template: 'payment-success',
-    subject: 'Payment received — your Java Developer internship is active',
+    subject: 'Payment received — your Trainee Software Engineer (2 Months) internship is active',
     link: '/dashboard',
     createdAt: daysAgo(35),
+  });
+
+  // ---------------------------------------------------------------------------------------
+  // 1b. Rohan Verma — Trainee Software Engineer / Banking (6 Months, Web Track)
+  // ---------------------------------------------------------------------------------------
+  const rohanVerma = user('student6m@demo.dev');
+  const rohanVermaAttempt = makeAttempt(rohanVerma, 'trainee-software-engineer', 14, daysAgo(45));
+  const { enrollment: rohanVermaEnrollment, bundle: rohanVermaBundle } = makeEnrollment({
+    student: rohanVerma,
+    plan: planFor('trainee-software-engineer', 'banking', 6),
+    attempt: rohanVermaAttempt,
+    status: 'IN_PROGRESS',
+    createdAt: daysAgo(42),
+    activatedAt: daysAgo(40),
+    payments: [{ status: 'SUCCESS', at: daysAgo(40.2) }],
+  });
+  rohanVermaEnrollment.track = 'web';
+  rohanVermaEnrollment.projectId = null; // Left unassigned initially so admin can test assigning from admin console
+  const _rohanVermaProgress = makeProgress({
+    enrollment: rohanVermaEnrollment,
+    bundle: rohanVermaBundle,
+    startedAt: daysAgo(40),
+    statuses: {}, // Initially clean: Task 1 is AVAILABLE (open), remaining tasks are LOCKED
+  });
+  data.githubConnections.push({
+    _id: nextId(),
+    userId: rohanVerma._id,
+    githubUsername: 'rohan-verma',
+    scopes: ['read:user', 'public_repo'],
+    connectedAt: daysAgo(39),
+  });
+  assignTrainer(priya, { enrollmentId: rohanVermaEnrollment._id, assignedAt: daysAgo(40) });
+  queueEmail({
+    to: rohanVerma.email,
+    template: 'payment-success',
+    subject: 'Payment received — your Trainee Software Engineer (6 Months) internship is active',
+    link: '/dashboard',
+    createdAt: daysAgo(40),
   });
 
   // ---------------------------------------------------------------------------------------
@@ -1127,9 +1155,9 @@ export function buildSeed() {
           reviewStatus: 'PENDING',
           automatedChecks: entry.failedCheck
             ? [
-                { name: 'Unit tests', status: 'FAILED', required: true },
-                { name: 'Lint', status: 'PASSED', required: false },
-              ]
+              { name: 'Unit tests', status: 'FAILED', required: true },
+              { name: 'Lint', status: 'PASSED', required: false },
+            ]
             : undefined,
         });
       }

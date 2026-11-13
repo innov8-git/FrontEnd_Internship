@@ -13,6 +13,7 @@ export const queryKeys = {
     designation: (idOrSlug) => ['catalog', 'designation', idOrSlug],
     domains: (params = {}) => ['catalog', 'domains', params],
     plans: (params = {}) => ['catalog', 'plans', params],
+    domainProjects: (domainId) => ['catalog', 'domainProjects', domainId],
     schedulePreview: (planId) => ['catalog', 'schedule-preview', planId],
   },
   assessment: {
@@ -59,6 +60,9 @@ export const queryKeys = {
     users: ['admin', 'users'],
     designations: ['admin', 'designations'],
     domains: ['admin', 'domains'],
+    projects: ['admin', 'projects'],
+    project: (id) => ['admin', 'projects', id],
+    projectAssignments: ['admin', 'project-assignments'],
     domainQuestions: (domainId, params = {}) => ['admin', 'domains', domainId, 'questions', params],
     plans: ['admin', 'plans'],
     assessments: ['admin', 'assessments'],

@@ -9,6 +9,7 @@ export const COLLECTIONS = Object.freeze([
   'authTokens',
   'designations',
   'domains',
+  'projects',
   'internshipPlans',
   'assessmentConfigs',
   'assessmentAttempts',

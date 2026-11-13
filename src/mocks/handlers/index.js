@@ -11,6 +11,7 @@ import { certificateHandlers } from './certificates';
 import { adminHandlers } from './admin';
 import { adminCatalogHandlers } from './adminCatalog';
 import { adminScheduleHandlers } from './adminSchedules';
+import { projectHandlers } from './projects';
 import { trainerHandlers } from './trainer';
 
 /**
@@ -31,6 +32,7 @@ export const handlers = [
   ...adminHandlers,
   ...adminCatalogHandlers,
   ...adminScheduleHandlers,
+  ...projectHandlers,
   ...trainerHandlers,
 ];
 
