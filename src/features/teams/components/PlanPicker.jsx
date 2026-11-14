@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ErrorState, Select } from '@/shared/components/ui';
-import { formatDuration, formatMoney } from '@/shared/utils/helpers';
+import { formatDuration } from '@/shared/utils/helpers';
 import { useDesignationPlans, usePublishedDesignations } from '../hooks/useTeamPlans';
 import { TeamPlanSummary } from './TeamPlanSummary';
 
@@ -57,7 +57,7 @@ export function PlanPicker({ initialDesignationId = '', onChange, error, disable
 
   const durationOptions = durationPlans.map((plan) => ({
     value: String(plan.durationMonths),
-    label: `${formatDuration(plan.durationMonths)} · ${formatMoney(plan.basePrice, plan.currency || 'INR')}`,
+    label: formatDuration(plan.durationMonths),
   }));
 
   let effectiveDuration = '';

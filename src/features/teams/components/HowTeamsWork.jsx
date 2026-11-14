@@ -10,7 +10,7 @@ const STEPS = [
   },
   {
     title: 'Everyone gets ready',
-    text: 'Each member accepts, takes the assessment and pays the full plan price for their seat.',
+    text: 'Each member accepts the invite and completes the short domain assessment.',
   },
   {
     title: 'Build together',
