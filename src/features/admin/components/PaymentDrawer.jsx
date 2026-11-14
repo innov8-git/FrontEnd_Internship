@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
 import {
-  Button,
   CopyButton,
   DescriptionList,
   Drawer,
@@ -8,10 +6,9 @@ import {
   StatusBadge,
   StatusBanner,
 } from '@/shared/components/ui';
-import { ArrowRight } from '@/shared/icons';
 import { formatDateTime, formatMoney, humanize } from '@/shared/utils/helpers';
 import { useAdminPayment } from '../hooks/useAdminPayments';
-import { adminLinks, planLabel } from '../utils/format';
+import { planLabel } from '../utils/format';
 import { DetailSection, DetailSkeleton } from './DetailSection';
 import { PaymentEventsTimeline } from './PaymentEventsTimeline';
 import { PersonCell } from './PersonCell';
@@ -67,21 +64,7 @@ function PaymentDetails({ payment }) {
       </DetailSection>
 
       <DetailSection
-        title="Enrollment"
-        action={
-          enrollment?._id ? (
-            <Button
-              as={Link}
-              to={adminLinks.enrollment(enrollment._id)}
-              variant="outline"
-              size="sm"
-              rightIcon={ArrowRight}
-            >
-              Open enrollment
-            </Button>
-          ) : null
-        }
-      >
+        title="Enrollment">
         {enrollment ? (
           <DescriptionList
             items={[

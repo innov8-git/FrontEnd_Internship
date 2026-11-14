@@ -81,17 +81,17 @@ export function TrainerAssignmentsDrawer({ trainer, open, onClose, onOpenAssign 
               No individual students assigned to this trainer yet.
             </div>
           ) : (
-            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
+            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
               {studentAssignments.map((assignment) => (
                 <li
                   key={assignment._id}
-                  className="flex items-center justify-between p-3 transition-colors hover:bg-slate-50"
+                  className="flex items-center justify-between p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-900">
+                    <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                       {assignment.student?.name || 'Student Enrollment'}
                     </p>
-                    <p className="truncate text-xs text-slate-500">
+                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">
                       {assignment.student?.email || 'Individual'} · Assigned {formatDate(assignment.assignedAt)}
                     </p>
                   </div>
@@ -114,25 +114,25 @@ export function TrainerAssignmentsDrawer({ trainer, open, onClose, onOpenAssign 
         {/* Assigned Student Groups (Teams) Section */}
         <div>
           <div className="flex items-center justify-between pb-2">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
               <Users className="h-4 w-4 text-purple-600" />
               <span>Assigned Groups / Teams ({teamAssignments.length})</span>
             </h3>
           </div>
 
           {teamAssignments.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-sm text-slate-500">
+            <div className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
               No student groups or teams assigned to this trainer yet.
             </div>
           ) : (
-            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
+            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
               {teamAssignments.map((assignment) => (
                 <li
                   key={assignment._id}
-                  className="flex items-center justify-between p-3 transition-colors hover:bg-slate-50"
+                  className="flex items-center justify-between p-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-900">
+                    <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                       {assignment.teamName || 'Student Group'}
                     </p>
                     <p className="truncate text-xs text-slate-500">

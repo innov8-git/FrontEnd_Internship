@@ -172,7 +172,7 @@ function DomainSkeletonSlider() {
         {Array.from({ length: 4 }, (_, index) => (
           <div
             key={index}
-            className="w-[270px] shrink-0 rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-sm p-5 shadow-sm"
+            className="w-[270px] shrink-0 rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-sm p-5 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70"
           >
             <div className="flex items-center justify-between">
               <Skeleton className="h-10 w-10" rounded="xl" />

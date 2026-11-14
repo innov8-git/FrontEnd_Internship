@@ -12,8 +12,8 @@ const OUTLET_CONTEXT = Object.freeze({ shell: 'focus' });
  */
 export function FocusLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
-      <header className="h-16 shrink-0 border-b border-slate-200 bg-white">
+    <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
+      <header className="h-16 shrink-0 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="mx-auto flex h-full w-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
           <Logo to={ROUTES.DASHBOARD} />
           <Button

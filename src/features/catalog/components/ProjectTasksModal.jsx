@@ -312,10 +312,10 @@ export function ProjectTasksModal({ open, onClose, project }) {
       >
         <div className="space-y-5">
           {/* Project Header Info */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/60">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-slate-900 text-base">{project.title}</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-base">{project.title}</span>
                 <Badge variant="neutral" icon={Building2}>
                   {project.domain?.name || 'Domain'}
                 </Badge>
@@ -323,11 +323,11 @@ export function ProjectTasksModal({ open, onClose, project }) {
                   Trainee Software Engineer
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500">
-                Fixed Templates: <strong className="text-slate-700">1M (20)</strong> ·{' '}
-                <strong className="text-slate-700">2M (40)</strong> ·{' '}
-                <strong className="text-slate-700">3M (60)</strong> ·{' '}
-                <strong className="text-slate-700">6M (120)</strong> tasks per track.
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Fixed Templates: <strong className="text-slate-700 dark:text-slate-300">1M (20)</strong> ·{' '}
+                <strong className="text-slate-700 dark:text-slate-300">2M (40)</strong> ·{' '}
+                <strong className="text-slate-700 dark:text-slate-300">3M (60)</strong> ·{' '}
+                <strong className="text-slate-700 dark:text-slate-300">6M (120)</strong> tasks per track.
               </p>
             </div>
 
@@ -348,15 +348,16 @@ export function ProjectTasksModal({ open, onClose, project }) {
           </div>
 
           {/* Track Switcher: Web vs Mobile App */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedTrack('web')}
-                className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${selectedTrack === 'web'
+                className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
+                  selectedTrack === 'web'
                     ? 'bg-sky-600 text-white shadow-xs ring-2 ring-sky-500/30'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
               >
                 <Code2 className="h-4 w-4" />
                 <span>Web Development Track (Track 1)</span>
@@ -365,26 +366,27 @@ export function ProjectTasksModal({ open, onClose, project }) {
               <button
                 type="button"
                 onClick={() => setSelectedTrack('app')}
-                className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${selectedTrack === 'app'
+                className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
+                  selectedTrack === 'app'
                     ? 'bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-500/30'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
               >
                 <Smartphone className="h-4 w-4" />
                 <span>Mobile App Development Track (Track 2)</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <GithubIcon className="h-3.5 w-3.5 text-slate-400" />
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <GithubIcon className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
               <span>Students submit daily commits to their personal GitHub repo</span>
             </div>
           </div>
 
           {/* Duration Tabs Switcher */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-semibold text-slate-500 mr-1">Internship Duration:</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">Internship Duration:</span>
               {DURATIONS.map((dur) => {
                 const active = selectedDuration === dur.value;
                 return (
@@ -392,16 +394,18 @@ export function ProjectTasksModal({ open, onClose, project }) {
                     key={dur.value}
                     type="button"
                     onClick={() => setSelectedDuration(dur.value)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${active
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                      active
                         ? 'bg-brand-600 text-white shadow-xs ring-2 ring-brand-600/30'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                      }`}
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                    }`}
                   >
                     <Clock className="h-3.5 w-3.5" />
                     <span>{dur.label}</span>
                     <span
-                      className={`rounded px-1.5 py-0.2 text-[10px] font-mono ${active ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-600'
-                        }`}
+                      className={`rounded px-1.5 py-0.2 text-[10px] font-mono ${
+                        active ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                      }`}
                     >
                       {dur.days} Fixed Tasks
                     </span>
@@ -459,9 +463,9 @@ export function ProjectTasksModal({ open, onClose, project }) {
           </div>
 
           {/* Slots Status Header & Search */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-slate-800">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                 Template Slots: {configuredCount} / {targetDayCount} Tasks Configured
               </span>
               <Badge
@@ -480,7 +484,7 @@ export function ProjectTasksModal({ open, onClose, project }) {
                     ? `${configuredCount} Entered · ${targetDayCount - configuredCount} Empty`
                     : 'All Slots Empty (Manual Entry)'}
               </Badge>
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
                 (Task 1 opens immediately; subsequent tasks unlock sequentially)
               </span>
             </div>
@@ -495,7 +499,7 @@ export function ProjectTasksModal({ open, onClose, project }) {
                 placeholder="Filter by day # or feature title..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               />
             </div>
           </div>
@@ -503,10 +507,10 @@ export function ProjectTasksModal({ open, onClose, project }) {
           {/* Daily Task Slots Grid */}
           <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-1">
             {filteredSlots.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
+              <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-800 p-8 text-center dark:bg-slate-900">
                 <Layers className="mx-auto h-8 w-8 text-slate-400 mb-2" />
-                <p className="text-sm font-semibold text-slate-700">No matching daily tasks found</p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No matching daily tasks found</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Try clearing your search query or click &quot;Insert Task&quot; on an empty slot.
                 </p>
               </div>
@@ -519,15 +523,15 @@ export function ProjectTasksModal({ open, onClose, project }) {
                   return (
                     <div
                       key={task._id || `task_${task.dayNumber}`}
-                      className="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-4 transition-all hover:border-brand-400 hover:bg-white"
+                      className="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-4 transition-all hover:border-brand-400 hover:bg-white dark:border-slate-800 dark:bg-slate-800/40 dark:hover:border-brand-500 dark:hover:bg-slate-800/80"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="inline-flex items-center rounded-md bg-slate-200 border border-slate-300 px-2 py-0.5 text-xs font-bold text-slate-700">
+                            <span className="inline-flex items-center rounded-md bg-slate-200 border border-slate-300 px-2 py-0.5 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                               Day {task.dayNumber}
                             </span>
-                            <span className="text-sm italic font-medium text-slate-400">
+                            <span className="text-sm italic font-medium text-slate-400 dark:text-slate-500">
                               Empty Slot — Ready for Manual Insertion
                             </span>
                             {isFirst ? (
@@ -535,12 +539,12 @@ export function ProjectTasksModal({ open, onClose, project }) {
                                 Open on Start
                               </Badge>
                             ) : (
-                              <span className="text-[11px] text-slate-400">
+                              <span className="text-[11px] text-slate-400 dark:text-slate-500">
                                 Prereq: Day {task.dayNumber - 1}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-slate-400 dark:text-slate-500">
                             No task entered for Day {task.dayNumber}. Click &quot;Insert Task&quot; to define title, problem statement, and deliverables.
                           </p>
                         </div>
@@ -561,21 +565,21 @@ export function ProjectTasksModal({ open, onClose, project }) {
                 return (
                   <div
                     key={task._id || `task_${task.dayNumber}`}
-                    className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-brand-300 transition-colors"
+                    className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-brand-300 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-500/50"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="space-y-1.5 max-w-2xl">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="inline-flex items-center rounded-md bg-brand-50 border border-brand-200 px-2 py-0.5 text-xs font-bold text-brand-700">
+                          <span className="inline-flex items-center rounded-md bg-brand-50 border border-brand-200 px-2 py-0.5 text-xs font-bold text-brand-700 dark:border-brand-900/60 dark:bg-brand-950/60 dark:text-brand-300">
                             Day {task.dayNumber}
                           </span>
-                          <span className="text-sm font-bold text-slate-900">{task.title}</span>
+                          <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{task.title}</span>
                           {isFirst ? (
                             <Badge variant="success" size="sm" icon={CheckCircle2}>
                               Open on Start
                             </Badge>
                           ) : (
-                            <span className="text-[11px] text-slate-400">
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500">
                               Prereq: Day {task.dayNumber - 1}
                             </span>
                           )}
@@ -586,11 +590,11 @@ export function ProjectTasksModal({ open, onClose, project }) {
                           ) : null}
                         </div>
 
-                        <p className="text-xs text-slate-600 line-clamp-2">{task.problemStatement}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{task.problemStatement}</p>
 
                         {task.expectedOutcome ? (
-                          <div className="text-[11px] text-slate-500">
-                            <strong className="text-slate-700">Expected Outcome:</strong> {task.expectedOutcome}
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                            <strong className="text-slate-700 dark:text-slate-300">Expected Outcome:</strong> {task.expectedOutcome}
                           </div>
                         ) : null}
 
@@ -599,9 +603,9 @@ export function ProjectTasksModal({ open, onClose, project }) {
                             {task.acceptanceCriteria.map((c, i) => (
                               <span
                                 key={i}
-                                className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 font-medium"
+                                className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-300 font-medium"
                               >
-                                <Check className="h-3 w-3 text-emerald-600" />
+                                <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                                 {c}
                               </span>
                             ))}
@@ -610,7 +614,7 @@ export function ProjectTasksModal({ open, onClose, project }) {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400 whitespace-nowrap">
+                        <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
                           ~{task.estimatedHours || 4} hrs
                         </span>
                         <Button
@@ -627,6 +631,17 @@ export function ProjectTasksModal({ open, onClose, project }) {
                 );
               })
             )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
+            <span>
+              Showing {filteredSlots.length} daily tasks for{' '}
+              <strong className="text-slate-700 dark:text-slate-200">{selectedDuration} Month(s)</strong>.
+            </span>
+            <Button size="sm" variant="outline" onClick={onClose}>
+              Close
+            </Button>
           </div>
         </div>
       </Modal>
@@ -650,7 +665,7 @@ export function ProjectTasksModal({ open, onClose, project }) {
         >
           <form onSubmit={handleSaveSlotEdit} className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                 Task Title *
               </label>
               <input
@@ -659,13 +674,13 @@ export function ProjectTasksModal({ open, onClose, project }) {
                 placeholder="e.g. Repository Setup, User Authentication, Checkout Flow..."
                 value={editForm.title}
                 onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                   Estimated Hours
                 </label>
                 <input
@@ -674,12 +689,12 @@ export function ProjectTasksModal({ open, onClose, project }) {
                   max="12"
                   value={editForm.estimatedHours}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, estimatedHours: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                 />
               </div>
 
               <div className="flex items-end pb-2">
-                <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={editForm.requiresTrainerReview}
@@ -694,7 +709,7 @@ export function ProjectTasksModal({ open, onClose, project }) {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                 Problem Statement & Requirements *
               </label>
               <textarea
@@ -703,12 +718,12 @@ export function ProjectTasksModal({ open, onClose, project }) {
                 placeholder="Describe what the student must implement for this day..."
                 value={editForm.problemStatement}
                 onChange={(e) => setEditForm((prev) => ({ ...prev, problemStatement: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                 Expected Outcome
               </label>
               <textarea
@@ -716,12 +731,12 @@ export function ProjectTasksModal({ open, onClose, project }) {
                 placeholder="Deliverable after finishing this task (e.g. running component, unit tests passing)..."
                 value={editForm.expectedOutcome}
                 onChange={(e) => setEditForm((prev) => ({ ...prev, expectedOutcome: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                 Acceptance Criteria (1 item per line)
               </label>
               <textarea
@@ -729,11 +744,11 @@ export function ProjectTasksModal({ open, onClose, project }) {
                 placeholder="Dev server starts with zero errors&#10;Design tokens defined&#10;Clean commit pushed to feature branch"
                 value={editForm.acceptanceCriteria}
                 onChange={(e) => setEditForm((prev) => ({ ...prev, acceptanceCriteria: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-[11px]"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-[11px] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
               <Button size="sm" variant="outline" onClick={() => setEditingTask(null)}>
                 Cancel
               </Button>

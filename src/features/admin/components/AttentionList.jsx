@@ -12,7 +12,6 @@ import {
 } from '@/shared/icons';
 import {
   EMAIL_STATUS,
-  ENROLLMENT_STATUS,
   PAYMENT_STATUS,
   ROUTES,
   USER_STATUS,
@@ -22,9 +21,9 @@ import { pluralize } from '@/shared/utils/helpers';
 import { adminLinks } from '../utils/format';
 
 const TONES = {
-  warning: 'bg-amber-50 text-amber-600',
-  danger: 'bg-rose-50 text-rose-600',
-  neutral: 'bg-slate-100 text-slate-600',
+  warning: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+  danger: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+  neutral: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
 };
 
 const count = (value) => Math.max(0, Number(value) || 0);
@@ -74,7 +73,7 @@ function buildAttentionItems(stats) {
       count: count(stats.enrollments?.pendingPayment),
       title: (n) => `${pluralize(n, 'enrollment')} awaiting payment`,
       description: 'Students who enrolled but have not paid yet.',
-      to: adminLinks.enrollments({ status: ENROLLMENT_STATUS.PENDING_PAYMENT }),
+      to: ROUTES.ADMIN_PAYMENTS,
       icon: Clock,
       tone: 'neutral',
     },
@@ -125,14 +124,14 @@ export function AttentionList({ stats, loading = false, className }) {
     );
   } else {
     body = (
-      <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100">
+      <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-800 dark:border-slate-800">
         {items.map((item) => {
           const Icon = item.icon;
           return (
             <li key={item.key}>
               <Link
                 to={item.to}
-                className="group flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
+                className="group flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 dark:hover:bg-slate-800/50 dark:focus-visible:bg-slate-800/50"
               >
                 <span
                   className={cn(
@@ -144,11 +143,11 @@ export function AttentionList({ stats, loading = false, className }) {
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-medium text-slate-900">{item.title(item.count)}</span>
-                  <span className="block text-sm text-slate-500">{item.description}</span>
+                  <span className="block text-sm font-medium text-slate-900 dark:text-slate-100">{item.title(item.count)}</span>
+                  <span className="block text-sm text-slate-500 dark:text-slate-400">{item.description}</span>
                 </span>
                 <ChevronRight
-                  className="h-4 w-4 shrink-0 text-slate-400 transition-colors duration-150 group-hover:text-slate-600"
+                  className="h-4 w-4 shrink-0 text-slate-400 transition-colors duration-150 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300"
                   aria-hidden="true"
                 />
               </Link>

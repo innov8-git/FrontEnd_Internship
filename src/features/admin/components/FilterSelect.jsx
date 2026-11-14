@@ -25,7 +25,7 @@ export function FilterSelect({
       options={[{ value: '', label: allLabel }, ...options]}
       disabled={disabled}
       className={cn('w-full sm:w-44', className)}
-      selectClassName={current ? 'border-brand-300 bg-brand-50/60 text-brand-800' : undefined}
+      selectClassName={current ? 'border-brand-300 bg-brand-50/60 text-brand-800 dark:border-brand-700 dark:bg-brand-950/60 dark:text-brand-300' : undefined}
       {...rest}
     />
   );

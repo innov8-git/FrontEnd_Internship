@@ -54,13 +54,13 @@ function focusRowActions(userId) {
 
 function EmailVerified({ verified }) {
   return verified ? (
-    <span className="inline-flex items-center gap-1.5 text-sm text-slate-700">
-      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
+    <span className="inline-flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300">
+      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
       Verified
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1.5 text-sm text-slate-500">
-      <Clock className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+    <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+      <Clock className="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500" aria-hidden="true" />
       Not verified
     </span>
   );
@@ -128,17 +128,17 @@ export function UsersPage() {
             return (
               <div className="flex items-center justify-between gap-3 min-w-[210px]">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900" title={trainer.name}>
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100" title={trainer.name}>
                     {trainer.name}
                   </p>
-                  <p className="truncate text-xs text-slate-500" title={trainer.email}>
+                  <p className="truncate text-xs text-slate-500 dark:text-slate-400" title={trainer.email}>
                     {trainer.email}
                   </p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 shrink-0 px-2.5 text-xs font-medium text-brand-600 hover:bg-brand-50 hover:text-brand-700 border-slate-200"
+                  className="h-7 shrink-0 px-2.5 text-xs font-medium text-brand-600 hover:bg-brand-50 hover:text-brand-700 border-slate-200 dark:border-slate-700 dark:text-brand-400 dark:hover:bg-slate-800"
                   onClick={() => setTrainerTarget(user)}
                 >
                   Change
@@ -149,13 +149,13 @@ export function UsersPage() {
 
           return (
             <div className="flex items-center justify-between gap-3 min-w-[210px]">
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 shrink-0">
+              <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 shrink-0 dark:bg-slate-800 dark:text-slate-400">
                 Unassigned
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 shrink-0 px-2.5 text-xs font-medium text-sky-600 hover:bg-sky-50 hover:text-sky-700 border-slate-200"
+                className="h-7 shrink-0 px-2.5 text-xs font-medium text-sky-600 hover:bg-sky-50 hover:text-sky-700 border-slate-200 dark:border-slate-700 dark:text-sky-400 dark:hover:bg-slate-800"
                 onClick={() => setTrainerTarget(user)}
               >
                 Assign
@@ -180,7 +180,7 @@ export function UsersPage() {
         key: 'createdAt',
         header: 'Joined',
         sortable: true,
-        cell: (user) => <span className="whitespace-nowrap text-slate-600">{formatDate(user.createdAt)}</span>,
+        cell: (user) => <span className="whitespace-nowrap text-slate-600 dark:text-slate-400">{formatDate(user.createdAt)}</span>,
       },
       {
         key: 'actions',
@@ -292,8 +292,8 @@ export function UsersPage() {
                 variant="outline"
                 size="icon"
                 className={cn(
-                  'h-10 w-10 shrink-0 text-slate-500 hover:text-brand-600 hover:border-brand-300 transition-colors',
-                  activeCount > 0 && 'border-brand-400 bg-brand-50/60 text-brand-600 hover:bg-brand-100',
+                  'h-10 w-10 shrink-0 text-slate-500 hover:text-brand-600 hover:border-brand-300 transition-colors dark:text-slate-400 dark:hover:text-brand-400 dark:border-slate-700 dark:hover:border-brand-500',
+                  activeCount > 0 && 'border-brand-400 bg-brand-50/60 text-brand-600 hover:bg-brand-100 dark:border-brand-600 dark:bg-brand-950/60 dark:text-brand-400 dark:hover:bg-brand-900/60',
                 )}
                 aria-label="Reload and reset filters"
                 onClick={handleResetFilters}

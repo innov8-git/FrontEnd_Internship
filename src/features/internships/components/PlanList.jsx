@@ -47,7 +47,7 @@ export function PlanList({ plans = [], onPreview, domainsById, className }) {
           <section
             key={domain._id}
             aria-labelledby={headingId}
-            className="rounded-xl border border-slate-200 bg-white shadow-card"
+            className="rounded-xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="flex items-start gap-3 px-5 pt-5">
               <span

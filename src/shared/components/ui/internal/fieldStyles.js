@@ -21,23 +21,24 @@ export const FIELD_ICON_OFFSET_CLASSES = Object.freeze({
 const LEFT_ICON_PADDING = { sm: 'pl-8', md: 'pl-9' };
 const RIGHT_ELEMENT_PADDING = { sm: 'pr-8', md: 'pr-10' };
 
-export const fieldLabelClasses = 'mb-1.5 block text-sm font-medium text-slate-700';
-export const fieldHintClasses = 'text-xs text-slate-500';
-export const fieldErrorClasses = 'text-xs text-rose-600';
-export const fieldIconClasses = 'h-4 w-4 shrink-0 text-slate-400';
-export const requiredMarkClasses = 'ml-0.5 text-rose-600';
+export const fieldLabelClasses = 'mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200';
+export const fieldHintClasses = 'text-xs text-slate-500 dark:text-slate-400';
+export const fieldErrorClasses = 'text-xs text-rose-600 dark:text-rose-400';
+export const fieldIconClasses = 'h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500';
+export const requiredMarkClasses = 'ml-0.5 text-rose-600 dark:text-rose-400';
 
 const FIELD_BASE = [
   'block w-full min-w-0 rounded-lg border bg-white text-slate-900 shadow-sm',
   'transition-colors duration-150 placeholder:text-slate-400',
   'focus:outline-none focus:ring-4',
   'disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 disabled:shadow-none',
+  'dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:disabled:bg-slate-900/60 dark:disabled:text-slate-600',
 ].join(' ');
 
 const FIELD_VALID =
-  'border-slate-300 hover:border-slate-400 focus:border-brand-500 focus:ring-brand-500/15 disabled:border-slate-200';
+  'border-slate-300 hover:border-slate-400 focus:border-brand-500 focus:ring-brand-500/15 disabled:border-slate-200 dark:border-slate-700 dark:hover:border-slate-600 dark:focus:border-brand-500 dark:disabled:border-slate-800';
 
-const FIELD_INVALID = 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15';
+const FIELD_INVALID = 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15 dark:border-rose-500 dark:focus:border-rose-400';
 
 /**
  * Classes for a text-like field (input, select, textarea).

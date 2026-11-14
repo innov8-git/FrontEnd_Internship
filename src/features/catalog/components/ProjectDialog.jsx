@@ -240,12 +240,12 @@ export function ProjectDialog({ open, onClose, project }) {
         {formError ? <StatusBanner variant="error">{formError}</StatusBanner> : null}
 
         {/* Single unified designation for Web & App */}
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5 dark:border-slate-800 dark:bg-slate-800/60">
           <div>
-            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Internship Role & Designation
             </p>
-            <p className="text-sm font-bold text-slate-900 mt-0.5">
+            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
               Trainee Software Engineer
             </p>
           </div>
@@ -289,24 +289,24 @@ export function ProjectDialog({ open, onClose, project }) {
         />
 
         {/* Informational callout for student GitHub repos */}
-        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-          <GithubIcon className="h-4 w-4 text-slate-500 shrink-0" />
+        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
+          <GithubIcon className="h-4 w-4 text-slate-500 dark:text-slate-400 shrink-0" />
           <span>
             <strong>Student Git Repositories:</strong> Each student will link and upload their personal GitHub repository URL as they execute and submit their daily tasks.
           </span>
         </div>
 
         {/* Track 1: Web Development Track Specification */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs dark:border-slate-800 dark:bg-slate-800/60">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
               <Code2 className="h-4 w-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                 Track 1: Web Development Specification
               </h4>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Technologies and scope for students assigned as Web Developers.
               </p>
             </div>
@@ -328,16 +328,16 @@ export function ProjectDialog({ open, onClose, project }) {
         </div>
 
         {/* Track 2: Mobile App Development Track Specification */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs dark:border-slate-800 dark:bg-slate-800/60">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
               <Smartphone className="h-4 w-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                 Track 2: Mobile App Development Specification
               </h4>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Technologies and scope for students assigned as Mobile App Developers.
               </p>
             </div>
@@ -359,7 +359,7 @@ export function ProjectDialog({ open, onClose, project }) {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
             Supported Internship Durations <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -371,8 +371,8 @@ export function ProjectDialog({ open, onClose, project }) {
                   key={choice.value}
                   onClick={() => toggleDuration(choice.value)}
                   className={`flex items-center justify-center rounded-lg border p-2.5 text-xs font-medium transition-all ${active
-                      ? 'border-brand-600 bg-brand-50 text-brand-900 ring-2 ring-brand-500/30'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      ? 'border-brand-600 bg-brand-50 text-brand-900 ring-2 ring-brand-500/30 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-500'
+                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
                     }`}
                 >
                   {choice.label}
@@ -385,7 +385,7 @@ export function ProjectDialog({ open, onClose, project }) {
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-800/60">
           <label className="flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"
@@ -393,10 +393,10 @@ export function ProjectDialog({ open, onClose, project }) {
               className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
             />
             <div>
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
                 Default project for this domain
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Automatically assigned when students select this domain during enrollment.
               </p>
             </div>

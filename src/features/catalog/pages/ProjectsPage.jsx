@@ -142,7 +142,7 @@ export default function ProjectsPage() {
       <CatalogTabs />
 
       {/* Filter and search bar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900">
         <div className="relative flex-1">
           <Input
             placeholder="Search projects by title, tech stack..."

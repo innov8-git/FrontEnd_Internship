@@ -3,8 +3,6 @@ import { Card, CardBody, CardHeader } from '@/shared/components/ui';
 import {
   Briefcase,
   Building2,
-  CalendarDays,
-  ClipboardCheck,
   IndianRupee,
   UserCog,
 } from '@/shared/icons';
@@ -31,18 +29,6 @@ const LINKS = [
     icon: IndianRupee,
   },
   {
-    label: 'Assessments',
-    description: 'Questions and discount slabs',
-    to: ROUTES.ADMIN_ASSESSMENTS,
-    icon: ClipboardCheck,
-  },
-  {
-    label: 'Schedules',
-    description: 'Day-by-day plans, SOPs and tasks',
-    to: ROUTES.ADMIN_SCHEDULES,
-    icon: CalendarDays,
-  },
-  {
     label: 'Trainers',
     description: 'Resumes, privileges and assigned students',
     to: ROUTES.ADMIN_TRAINERS,
@@ -64,20 +50,20 @@ export function QuickLinks({ className }) {
                 <Link
                   to={link.to}
                   className={cn(
-                    'flex h-full items-start gap-3 rounded-lg border border-slate-200 p-3 transition-colors duration-150',
-                    'hover:border-slate-300 hover:bg-slate-50',
+                    'flex h-full items-start gap-3 rounded-lg border border-slate-200 p-3 transition-colors duration-150 dark:border-slate-800',
+                    'hover:border-slate-300 hover:bg-slate-50 dark:hover:border-slate-700 dark:hover:bg-slate-800/50',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
                   )}
                 >
                   <span
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-950/60 dark:text-brand-400"
                     aria-hidden="true"
                   >
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm font-medium text-slate-900">{link.label}</span>
-                    <span className="block text-xs text-slate-500">{link.description}</span>
+                    <span className="block text-sm font-medium text-slate-900 dark:text-slate-100">{link.label}</span>
+                    <span className="block text-xs text-slate-500 dark:text-slate-400">{link.description}</span>
                   </span>
                 </Link>
               </li>

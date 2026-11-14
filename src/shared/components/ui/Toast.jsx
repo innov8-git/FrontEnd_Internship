@@ -95,18 +95,18 @@ function ToastItem({ item }) {
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="pointer-events-auto flex animate-slide-up gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-elevated"
+      className="pointer-events-auto flex animate-slide-up gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-elevated dark:border-slate-800 dark:bg-slate-900"
     >
       <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', style.className)} aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-        {item.description ? <p className="mt-1 text-sm text-slate-600">{item.description}</p> : null}
+        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.title}</p>
+        {item.description ? <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{item.description}</p> : null}
       </div>
       <button
         type="button"
         onClick={() => dismiss(item.id)}
         aria-label="Dismiss notification"
-        className="-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+        className="-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
       >
         <X className="h-4 w-4" aria-hidden="true" />
       </button>

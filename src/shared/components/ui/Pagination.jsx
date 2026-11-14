@@ -68,15 +68,15 @@ export function Pagination({
       {...rest}
     >
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <p className="tabular text-sm text-slate-600" aria-live="polite">
-          Showing <span className="font-medium text-slate-900">{formatNumber(from)}</span>–
-          <span className="font-medium text-slate-900">{formatNumber(to)}</span> of{' '}
-          <span className="font-medium text-slate-900">{formatNumber(safeTotal)}</span>
+        <p className="tabular text-sm text-slate-600 dark:text-slate-400" aria-live="polite">
+          Showing <span className="font-medium text-slate-900 dark:text-slate-100">{formatNumber(from)}</span>–
+          <span className="font-medium text-slate-900 dark:text-slate-100">{formatNumber(to)}</span> of{' '}
+          <span className="font-medium text-slate-900 dark:text-slate-100">{formatNumber(safeTotal)}</span>
         </p>
 
         {onLimitChange ? (
           <div className="flex items-center gap-2">
-            <label htmlFor={selectId} className="whitespace-nowrap text-sm text-slate-500">
+            <label htmlFor={selectId} className="whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
               Rows per page
             </label>
             <div className="relative">
@@ -84,16 +84,16 @@ export function Pagination({
                 id={selectId}
                 value={safeLimit}
                 onChange={(event) => onLimitChange(Number(event.target.value))}
-                className="tabular h-10 cursor-pointer appearance-none rounded-lg border border-slate-300 bg-white py-0 pl-3 pr-8 text-sm text-slate-700 shadow-sm transition-colors duration-150 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 sm:h-8"
+                className="tabular h-10 cursor-pointer appearance-none rounded-lg border border-slate-300 bg-white py-0 pl-3 pr-8 text-sm text-slate-700 shadow-sm transition-colors duration-150 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 sm:h-8"
               >
                 {sizeOptions.map((option) => (
-                  <option key={option} value={option}>
+                  <option key={option} value={option} className="dark:bg-slate-800 dark:text-slate-100">
                     {option}
                   </option>
                 ))}
               </select>
               <ChevronDown
-                className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               />
             </div>

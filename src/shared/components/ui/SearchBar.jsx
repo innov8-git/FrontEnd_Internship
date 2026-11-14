@@ -102,7 +102,7 @@ export const SearchBar = forwardRef(function SearchBar(
           aria-label="Clear search"
           className={cn(
             'absolute inset-y-0 right-0 flex items-center justify-center rounded-r-lg text-slate-400 transition-colors duration-150',
-            'hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500',
+            'hover:text-slate-700 dark:hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500',
             sizeKey === 'sm' ? 'w-8' : 'w-10',
           )}
         >

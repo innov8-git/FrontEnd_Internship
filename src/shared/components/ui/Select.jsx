@@ -81,7 +81,7 @@ export const Select = forwardRef(function Select(
             fieldClasses({ error: invalid, size: sizeKey, hasRightElement: true }),
             'cursor-pointer appearance-none truncate',
             hasPlaceholder &&
-              'has-[option:checked:disabled]:text-slate-400 [&>option]:text-slate-900',
+              'has-[option:checked:disabled]:text-slate-400 [&>option]:text-slate-900 dark:[&>option]:bg-slate-800 dark:[&>option]:text-slate-100',
             selectClassName,
           )}
           {...initialValueProps}

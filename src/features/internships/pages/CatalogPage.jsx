@@ -11,7 +11,7 @@ export function CatalogPage() {
   useDocumentTitle('Internships');
 
   return (
-    <div className="bg-slate-50 min-h-screen">
+    <div className="bg-slate-50 min-h-screen dark:bg-slate-950">
       <div className="container-page space-y-6 py-8 sm:py-10">
         <PageHeader
           breadcrumbs={[
