@@ -257,24 +257,6 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
   const coord = PIN_COORDINATES[index];
   const { icon: Icon, title, shortTitle, badge, perk, description, accent, glow, gradient, badgeClass, stepNumber } = step;
   const isActive = active === index;
-  const cardRef = useRef(null);
-
-  // Auto-scroll card smoothly only if completely clipped outside viewport
-  useEffect(() => {
-    if (isActive && cardRef.current) {
-      const timer = setTimeout(() => {
-        if (!cardRef.current) return;
-        const rect = cardRef.current.getBoundingClientRect();
-        const navbarHeight = 85;
-        if (rect.top < 0) {
-          window.scrollBy({ top: rect.top - navbarHeight - 16, behavior: 'smooth' });
-        } else if (rect.bottom > window.innerHeight && rect.top > navbarHeight) {
-          window.scrollBy({ top: rect.bottom - window.innerHeight + 16, behavior: 'smooth' });
-        }
-      }, 80);
-      return () => clearTimeout(timer);
-    }
-  }, [isActive]);
 
   // Active cards open INWARDS to guarantee 100% visibility without scrolling!
   const getPositionStyle = () => {
@@ -388,7 +370,6 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
         {isActive ? (
           /* ── Full Expanded Card (Displays DIRECTLY & IMMEDIATELY on click or hover) ── */
           <div
-            ref={cardRef}
             className={cn(cardBaseClass, 'animate-in fade-in zoom-in-95 duration-200 hover:shadow-2xl')}
             onClick={(e) => e.stopPropagation()}
             style={{
@@ -564,7 +545,7 @@ function StepSelectorBar({ active, onSelect }) {
 
 /** Desktop View: Animated horizontal serpentine track */
 function HorizontalRoadmap() {
-  const [active, setActive] = useState(0); // Default to Step 1
+  const [active, setActive] = useState(null);
   const wrapRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -655,7 +636,7 @@ function HorizontalRoadmap() {
 
 /** Mobile View: Vertical Roadmap with Accordion Cards */
 function MobileRoadmap() {
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(null);
 
   const toggle = (i) => setActive((prev) => (prev === i ? null : i));
 
