@@ -14,7 +14,7 @@ export function PersonCell({ person, isYou = false, showAvatar = true, avatarSiz
       {showAvatar ? <Avatar name={name} size={avatarSize} aria-hidden="true" /> : null}
       <div className="min-w-0 max-w-[16rem]">
         <p className="flex min-w-0 items-center gap-2">
-          <span className="truncate font-medium text-slate-900" title={name}>
+          <span className="truncate font-medium text-slate-900 dark:text-slate-100" title={name}>
             {name}
           </span>
           {isYou ? (
@@ -24,7 +24,7 @@ export function PersonCell({ person, isYou = false, showAvatar = true, avatarSiz
           ) : null}
         </p>
         {email ? (
-          <p className="truncate text-xs text-slate-500" title={email}>
+          <p className="truncate text-xs text-slate-500 dark:text-slate-400" title={email}>
             {email}
           </p>
         ) : null}

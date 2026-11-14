@@ -276,11 +276,11 @@ function DataTableView({
 
   return (
     <div
-      className={cn('overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card', className)}
+      className={cn('overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900', className)}
       {...rest}
     >
       {hasToolbar ? (
-        <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
           {searchable ? (
             <div className="w-full sm:max-w-xs">
               <SearchBar
@@ -338,7 +338,7 @@ function DataTableView({
         >
           <table className="min-w-full text-sm" aria-busy={isLoading || isRefreshing || undefined}>
             {caption ? <caption className="sr-only">{caption}</caption> : null}
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-400">
               <tr>
                 {columns.map((column, columnIndex) => {
                   const sortKey = column.sortKey ?? column.key;
@@ -371,14 +371,14 @@ function DataTableView({
                           type="button"
                           onClick={() => toggleSort(sortKey)}
                           className={cn(
-                            '-mx-1 inline-flex items-center gap-1 rounded px-1 py-0.5 font-semibold uppercase tracking-wide transition-colors duration-150 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
-                            isSorted && 'text-slate-900',
+                            '-mx-1 inline-flex items-center gap-1 rounded px-1 py-0.5 font-semibold uppercase tracking-wide transition-colors duration-150 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:text-slate-100',
+                            isSorted ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400',
                             column.align === 'right' && 'flex-row-reverse',
                           )}
                         >
                           <span>{headerContent}</span>
                           <SortIcon
-                            className={cn('h-3.5 w-3.5 shrink-0', isSorted ? 'text-slate-700' : 'text-slate-400')}
+                            className={cn('h-3.5 w-3.5 shrink-0', isSorted ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500')}
                             aria-hidden="true"
                           />
                         </button>
@@ -392,14 +392,14 @@ function DataTableView({
             </thead>
 
             {isLoading ? (
-              <tbody className="divide-y divide-slate-100" aria-hidden="true">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800" aria-hidden="true">
                 {Array.from({ length: Math.min(limit, 6) }, (_, rowIndex) => (
                   <tr key={`skeleton-${rowIndex}`}>
                     {columns.map((column, columnIndex) => (
                       <td key={column.key ?? columnIndex} className="px-4 py-3.5">
                         <div
                           className={cn(
-                            'h-4 max-w-[12rem] animate-pulse rounded bg-slate-200/80',
+                            'h-4 max-w-[12rem] animate-pulse rounded bg-slate-200/80 dark:bg-slate-700/60',
                             SKELETON_WIDTHS[(rowIndex + columnIndex) % SKELETON_WIDTHS.length],
                             column.align === 'right' && 'ml-auto',
                             column.align === 'center' && 'mx-auto',
@@ -413,7 +413,7 @@ function DataTableView({
             ) : (
               <tbody
                 className={cn(
-                  'divide-y divide-slate-100 transition-opacity duration-150',
+                  'divide-y divide-slate-100 dark:divide-slate-800 transition-opacity duration-150',
                   isRefreshing && 'opacity-60',
                 )}
               >
@@ -426,9 +426,9 @@ function DataTableView({
                       onClick={isClickable ? (event) => handleRowClick(event, row) : undefined}
                       onKeyDown={isClickable ? (event) => handleRowKeyDown(event, row) : undefined}
                       className={cn(
-                        'transition-colors duration-150 hover:bg-slate-50',
+                        'transition-colors duration-150 hover:bg-slate-50 dark:hover:bg-slate-800/50',
                         isClickable &&
-                          'cursor-pointer focus-visible:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:[outline-offset:-2px]',
+                          'cursor-pointer focus-visible:bg-slate-50 dark:focus-visible:bg-slate-800/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 focus-visible:[outline-offset:-2px]',
                         extraRowClass,
                       )}
                     >
@@ -436,7 +436,7 @@ function DataTableView({
                         <td
                           key={column.key ?? columnIndex}
                           className={cn(
-                            'px-4 py-3 align-middle text-slate-700',
+                            'px-4 py-3 align-middle text-slate-700 dark:text-slate-300',
                             ALIGN[column.align] ?? ALIGN.left,
                             column.className,
                           )}
@@ -457,7 +457,7 @@ function DataTableView({
       ) : null}
 
       {showPagination ? (
-        <div className="border-t border-slate-200 px-4 py-3">
+        <div className="border-t border-slate-200 px-4 py-3 dark:border-slate-800">
           <Pagination
             page={page}
             limit={limit}
