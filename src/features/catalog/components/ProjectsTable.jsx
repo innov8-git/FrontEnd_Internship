@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Badge,
   Button,
@@ -32,8 +31,6 @@ export function ProjectsTable({
   onDelete,
   onViewTasks,
 }) {
-  const navigate = useNavigate();
-
   const columns = useMemo(
     () => [
       {
@@ -198,7 +195,7 @@ export function ProjectsTable({
         },
       },
     ],
-    [navigate, onEdit, onChangeStatus, onDelete, onViewTasks],
+    [onEdit, onChangeStatus, onDelete, onViewTasks],
   );
 
   return (

@@ -12,7 +12,6 @@ import {
 } from '@/shared/icons';
 import {
   EMAIL_STATUS,
-  ENROLLMENT_STATUS,
   PAYMENT_STATUS,
   ROUTES,
   USER_STATUS,
