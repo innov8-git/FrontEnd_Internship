@@ -146,14 +146,22 @@ export function StartAssessmentButton({
  * Secondary CTA: start a team for this designation (SN10). Signed-out visitors register first and
  * come back to the team form; non-students see it disabled.
  */
-export function JoinTeamButton({ designationId, planId, size = 'lg', variant = 'outline', className }) {
+export function JoinTeamButton({
+  designationId,
+  planId,
+  size = 'lg',
+  variant = 'outline',
+  className,
+  children,
+}) {
   const { isAuthenticated, isLoading: authLoading, hasRole } = useAuth();
   const teamPath = paths.teamNew({ designationId, planId });
+  const label = children ?? 'Join as a team';
 
   if (authLoading) {
     return (
       <Button size={size} variant={variant} leftIcon={Users} disabled className={className}>
-        Join as a team
+        {label}
       </Button>
     );
   }
@@ -168,7 +176,7 @@ export function JoinTeamButton({ designationId, planId, size = 'lg', variant = '
         leftIcon={Users}
         className={className}
       >
-        Join as a team
+        {label}
       </Button>
     );
   }
@@ -176,7 +184,7 @@ export function JoinTeamButton({ designationId, planId, size = 'lg', variant = '
   if (!hasRole(ROLES.STUDENT)) {
     return (
       <UnavailableButton size={size} variant={variant} leftIcon={Users} className={className}>
-        Join as a team
+        {label}
       </UnavailableButton>
     );
   }
@@ -190,7 +198,7 @@ export function JoinTeamButton({ designationId, planId, size = 'lg', variant = '
       leftIcon={Users}
       className={className}
     >
-      Join as a team
+      {label}
     </Button>
   );
 }

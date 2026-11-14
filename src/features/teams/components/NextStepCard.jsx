@@ -4,7 +4,6 @@ import { Button, Skeleton } from '@/shared/components/ui';
 import { ArrowRight, CheckCircle2, ClipboardCheck, CreditCard, Hourglass, Mail } from '@/shared/icons';
 import { ASSESSMENT_QUESTION_COUNT, MEMBER_STATUS, paths } from '@/shared/constants';
 import { cn } from '@/shared/utils/cn';
-import { formatMoney } from '@/shared/utils/helpers';
 import {
   isMemberReady,
   memberDisplayName,
@@ -49,12 +48,12 @@ function getStep(team, me, members) {
     return {
       tone: 'brand',
       icon: CreditCard,
-      title: 'Get your quote and pay (full price)',
-      description: `Your seat is charged at the full plan price of ${formatMoney(plan?.basePrice, plan?.currency || 'INR')}. The assessment discount applies to individual enrollments only.`,
+      title: 'Complete your enrollment',
+      description: 'Confirm your team seat to finalize your onboarding with the team.',
       action:
         designationId && planId
           ? {
-              label: 'Get your quote and pay',
+              label: 'Complete enrollment',
               to: paths.enroll({ designationId, planId, teamId: team._id }),
             }
           : null,

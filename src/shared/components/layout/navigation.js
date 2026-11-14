@@ -50,7 +50,7 @@ function formatBadge(count) {
   return count > MAX_BADGE ? `${MAX_BADGE}+` : count;
 }
 
-/** Student workspace. The Team link only appears once the student belongs to a team. */
+/** Student workspace. The Team link takes the student to their team dashboard or to create/join a team. */
 export function getStudentNavigation({ teamId } = {}) {
   return [
     {
@@ -63,7 +63,6 @@ export function getStudentNavigation({ teamId } = {}) {
           label: 'Team',
           to: teamId ? paths.team(teamId) : ROUTES.TEAM_NEW,
           icon: Users,
-          hidden: !teamId,
         },
         { label: 'Certificate', to: ROUTES.CERTIFICATE, icon: Award },
       ],

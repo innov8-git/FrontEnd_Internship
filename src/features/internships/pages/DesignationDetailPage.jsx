@@ -19,6 +19,7 @@ import {
   IndianRupee,
   ListChecks,
   Search,
+  Users,
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 import { getErrorStatus } from '@/shared/utils/errors';
@@ -266,21 +267,26 @@ export function DesignationDetailPage() {
                   ) : null
                 }
               />
-              <StartAssessmentButton
-                designationId={designation._id}
-                onStartAssessment={() => setDomainModalOpen(true)}
-                className="mt-6"
-              />
-              <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
-                <span>Enrolling with friends?</span>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <StartAssessmentButton
+                  designationId={designation._id}
+                  onStartAssessment={() => setDomainModalOpen(true)}
+                />
                 <JoinTeamButton
                   designationId={designation._id}
-                  variant="link"
-                  size="sm"
-                  className="min-h-[2.5rem]"
+                  variant="outline"
+                  size="lg"
+                  className="h-11 border-slate-300 bg-white/90 font-medium text-slate-800 hover:bg-slate-50 hover:text-brand-600 hover:border-brand-300 shadow-xs"
                 />
-                <span className="text-slate-500">Teams pay the full plan price.</span>
-              </p>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2.5 rounded-xl border border-brand-100 bg-gradient-to-r from-brand-50/80 to-sky-50/60 px-3.5 py-2.5 text-xs text-brand-950">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-xs">
+                  <Users className="h-3 w-3" aria-hidden="true" />
+                </span>
+                <span className="font-semibold text-brand-900">Enrolling with friends or classmates?</span>
+                <span className="text-brand-700">Form a team of up to 4 to collaborate on a shared schedule, tasks, and GitHub repository.</span>
+              </div>
             </div>
             <span
               className={cn(
