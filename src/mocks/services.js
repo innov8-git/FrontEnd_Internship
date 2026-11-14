@@ -445,6 +445,7 @@ export function projectDto(project) {
     isDefault: Boolean(project.isDefault),
     status: project.status ?? 'PUBLISHED',
     description: project.description ?? '',
+    taskTemplates: project.taskTemplates ?? null,
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
   };
@@ -687,7 +688,12 @@ export function assignProjectToEnrollment({ enrollmentId, projectId }) {
   const track = enrollment.track || 'web';
   const domain = findDomain(project.domainId);
   const populatedProject = { ...project, domain };
-  const generatedTasks = generateDailyTasksForProject(populatedProject, durationMonths, track);
+  
+  // Check if admin has configured a custom fixed task template for this track and duration
+  const customSet = project.taskTemplates?.[track]?.[durationMonths];
+  const generatedTasks = Array.isArray(customSet) && customSet.length > 0
+    ? customSet
+    : generateDailyTasksForProject(populatedProject, durationMonths, track);
 
   // Replace task progress for this enrollment
   db.taskProgress = db.taskProgress.filter((p) => p.enrollmentId !== enrollment._id);

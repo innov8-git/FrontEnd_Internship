@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ProjectsPage from '@/features/catalog/pages/ProjectsPage';
@@ -126,6 +127,51 @@ describe('Projects UI Table Component', () => {
     expect(screen.getByText('Trainee Software Engineer')).toBeInTheDocument();
     expect(screen.getByText('1m')).toBeInTheDocument();
     expect(screen.getByText('6m')).toBeInTheDocument();
+  });
+
+  it('triggers action menu items on click', async () => {
+    const user = userEvent.setup();
+    const onViewTasks = vi.fn();
+    const onEdit = vi.fn();
+    const onChangeStatus = vi.fn();
+    const onDelete = vi.fn();
+
+    const mockProject = {
+      _id: 'proj_1',
+      title: 'LedgerCore Banking',
+      slug: 'ledgercore-banking',
+      domainId: 'domain-banking',
+      domain: { _id: 'domain-banking', name: 'Banking' },
+      designation: { name: 'Trainee Software Engineer' },
+      durationsSupported: [1, 2, 3, 6],
+      status: 'PUBLISHED',
+    };
+
+    render(
+      <MemoryRouter>
+        <ProjectsTable
+          projects={[mockProject]}
+          isLoading={false}
+          onViewTasks={onViewTasks}
+          onEdit={onEdit}
+          onChangeStatus={onChangeStatus}
+          onDelete={onDelete}
+        />
+      </MemoryRouter>,
+    );
+
+    const actionTrigger = screen.getByRole('button', { name: /actions for LedgerCore Banking/i });
+    await user.click(actionTrigger);
+
+    expect(screen.getByRole('menuitem', { name: /manage task templates/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /edit project details/i })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /manage schedule builder/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /unpublish/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /delete project/i })).toBeInTheDocument();
+
+    // Check clicking Edit
+    await user.click(screen.getByRole('menuitem', { name: /edit project details/i }));
+    expect(onEdit).toHaveBeenCalledWith(mockProject);
   });
 });
 
