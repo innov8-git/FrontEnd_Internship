@@ -1,22 +1,30 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   Badge,
   Button,
   Modal,
+  toast,
 } from '@/shared/components/ui';
 import {
   Building2,
   CalendarDays,
+  Check,
   CheckCircle2,
   Clock,
   Code2,
+  Download,
   GithubIcon,
   Layers,
+  Pencil,
   Plus,
+  RotateCcw,
+  Save,
   Smartphone,
   Sparkles,
+  Upload,
 } from '@/shared/icons';
-import { generateDailyTasksForProject } from '../utils/projectTaskGenerator';
+import { generateDailyTasksForProject, WORKING_DAYS_BY_DURATION } from '../utils/projectTaskGenerator';
+import { useUpdateProject } from '../hooks/useProjects';
 
 const DURATIONS = [
   { value: 1, label: '1 Month', days: 20 },
@@ -26,341 +34,733 @@ const DURATIONS = [
 ];
 
 export function ProjectTasksModal({ open, onClose, project }) {
+  const fileInputRef = useRef(null);
+  const updateProjectMutation = useUpdateProject();
+
   const [selectedDuration, setSelectedDuration] = useState(1);
   const [selectedTrack, setSelectedTrack] = useState('web');
-  const [searchDay, setSearchDay] = useState('');
-  const [customTasks, setCustomTasks] = useState([]);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newTaskDay, setNewTaskDay] = useState('');
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskProblem, setNewTaskProblem] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
 
-  const baseTasks = useMemo(() => {
-    if (!project) return [];
-    return generateDailyTasksForProject(project, selectedDuration, selectedTrack);
-  }, [project, selectedDuration, selectedTrack]);
+  // Edit slot modal state
+  const [editingTask, setEditingTask] = useState(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    problemStatement: '',
+    expectedOutcome: '',
+    acceptanceCriteria: '',
+    estimatedHours: 4,
+    requiresTrainerReview: false,
+  });
 
-  // Combine with custom tasks
-  const allTasks = useMemo(() => {
-    const combined = [...baseTasks];
-    customTasks.forEach((ct) => {
-      const idx = combined.findIndex((t) => t.dayNumber === ct.dayNumber);
-      if (idx !== -1) {
-        combined[idx] = { ...combined[idx], ...ct };
-      } else {
-        combined.push(ct);
-      }
+  const targetDayCount = WORKING_DAYS_BY_DURATION[selectedDuration] || 20;
+
+  // Helper to create blank empty slot boxes for manual entry
+  const createEmptySlots = (p, track, count) => {
+    return Array.from({ length: count }, (_, i) => {
+      const day = i + 1;
+      return {
+        _id: `task_${p?._id || 'new'}_${track}_day_${day}`,
+        dayNumber: day,
+        sequence: day,
+        title: '',
+        problemStatement: '',
+        expectedOutcome: '',
+        acceptanceCriteria: [],
+        estimatedHours: 4,
+        requiresTrainerReview: false,
+        track: track === 'web' ? 'Web Development' : 'Mobile App Development',
+      };
     });
-    return combined.sort((a, b) => a.dayNumber - b.dayNumber);
-  }, [baseTasks, customTasks]);
-
-  const filteredTasks = useMemo(() => {
-    if (!searchDay.trim()) return allTasks;
-    const q = searchDay.trim().toLowerCase();
-    return allTasks.filter(
-      (t) =>
-        String(t.dayNumber).includes(q) ||
-        t.title.toLowerCase().includes(q) ||
-        t.phase?.toLowerCase().includes(q) ||
-        t.track?.toLowerCase().includes(q),
-    );
-  }, [allTasks, searchDay]);
-
-  const handleAddCustomTask = (e) => {
-    e.preventDefault();
-    if (!newTaskTitle.trim()) return;
-    const day = Number(newTaskDay) || allTasks.length + 1;
-    const trackLabel = selectedTrack === 'app' ? 'Mobile App Development' : 'Web Development';
-    const taskObj = {
-      _id: `custom_task_${selectedTrack}_${Date.now()}`,
-      dayNumber: day,
-      sequence: day,
-      phase: 'Custom Added Task',
-      title: newTaskTitle.trim(),
-      track: trackLabel,
-      estimatedHours: 4,
-      problemStatement: newTaskProblem.trim() || `Custom task for Day ${day}`,
-      acceptanceCriteria: ["Task deliverable committed to student's GitHub repo and approved by mentor"],
-      requiresTrainerReview: true,
-    };
-    setCustomTasks((prev) => [...prev, taskObj]);
-    setNewTaskTitle('');
-    setNewTaskDay('');
-    setNewTaskProblem('');
-    setShowAddForm(false);
   };
+
+  // Initialize slots from saved taskTemplates or default to empty slots for manual insertion
+  const [slots, setSlots] = useState([]);
+
+  useEffect(() => {
+    if (!project) return;
+    const savedSet = project.taskTemplates?.[selectedTrack]?.[selectedDuration];
+    if (Array.isArray(savedSet) && savedSet.length === targetDayCount) {
+      setSlots(savedSet);
+    } else {
+      // Empty box slots by default so admin can insert tasks manually
+      setSlots(createEmptySlots(project, selectedTrack, targetDayCount));
+    }
+    setIsDirty(false);
+  }, [project, selectedTrack, selectedDuration, targetDayCount]);
+
+  const configuredCount = useMemo(() => {
+    return slots.filter((task) => Boolean(task.title?.trim())).length;
+  }, [slots]);
+
+  // Handle slot editing / manual insertion
+  const handleOpenEdit = (task, index) => {
+    setEditingTask({ ...task, slotIndex: index });
+    setEditForm({
+      title: task.title || '',
+      problemStatement: task.problemStatement || '',
+      expectedOutcome: task.expectedOutcome || '',
+      acceptanceCriteria: Array.isArray(task.acceptanceCriteria)
+        ? task.acceptanceCriteria.join('\n')
+        : task.acceptanceCriteria || '',
+      estimatedHours: task.estimatedHours || 4,
+      requiresTrainerReview: Boolean(task.requiresTrainerReview),
+    });
+  };
+
+  const handleSaveSlotEdit = (e) => {
+    e.preventDefault();
+    if (!editingTask) return;
+    const index = editingTask.slotIndex;
+    const isNewInsert = !editingTask.title?.trim();
+    const criteriaList = editForm.acceptanceCriteria
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    setSlots((prev) => {
+      const next = [...prev];
+      next[index] = {
+        ...next[index],
+        title: editForm.title.trim(),
+        problemStatement: editForm.problemStatement.trim(),
+        expectedOutcome: editForm.expectedOutcome.trim(),
+        acceptanceCriteria: criteriaList.length > 0 ? criteriaList : ['Task code committed to student GitHub branch'],
+        estimatedHours: Number(editForm.estimatedHours) || 4,
+        requiresTrainerReview: editForm.requiresTrainerReview,
+      };
+      return next;
+    });
+
+    setIsDirty(true);
+    setEditingTask(null);
+    toast.success(
+      isNewInsert ? `Day ${editingTask.dayNumber} Task Inserted` : `Day ${editingTask.dayNumber} Updated`,
+      {
+        description: 'Slot updated. Click "Save Template Set" at the top to persist your changes.',
+      },
+    );
+  };
+
+  // Optional: Pre-fill Blueprint if admin wants auto-filled starter tasks
+  const handlePreFillBlueprint = () => {
+    if (!project) return;
+    const blueprintTasks = generateDailyTasksForProject(project, selectedDuration, selectedTrack);
+    setSlots(blueprintTasks);
+    setIsDirty(true);
+    toast.info('Blueprint Loaded', {
+      description: `Populated ${targetDayCount}-day blueprint curriculum. Click "Save Template Set" to keep them.`,
+    });
+  };
+
+  // Clear all slots back to blank empty boxes
+  const handleClearSlots = () => {
+    if (!project) return;
+    setSlots(createEmptySlots(project, selectedTrack, targetDayCount));
+    setIsDirty(true);
+    toast.info('Slots Cleared', {
+      description: `Reset all ${targetDayCount} daily task slots to empty boxes for manual entry.`,
+    });
+  };
+
+  // Save the current template set to project record in DB
+  const handleSaveTemplateSet = () => {
+    if (!project) return;
+    const nextTemplates = {
+      ...(project.taskTemplates || {}),
+      [selectedTrack]: {
+        ...(project.taskTemplates?.[selectedTrack] || {}),
+        [selectedDuration]: slots,
+      },
+    };
+
+    updateProjectMutation.mutate(
+      {
+        id: project._id,
+        data: { taskTemplates: nextTemplates },
+      },
+      {
+        onSuccess: () => {
+          setIsDirty(false);
+          toast.success('Task Template Saved', {
+            description: `Successfully saved ${configuredCount} of ${slots.length} ${selectedTrack === 'web' ? 'Web' : 'Mobile App'} tasks for ${selectedDuration} Month(s).`,
+          });
+        },
+        onError: (err) => {
+          toast.error('Failed to Save Template', {
+            description: err?.message || 'Could not save project template.',
+          });
+        },
+      },
+    );
+  };
+
+  // Export CSV
+  const handleExportCsv = () => {
+    if (slots.length === 0) return;
+    const header = ['Day', 'Title', 'Hours', 'ReviewRequired', 'ProblemStatement', 'ExpectedOutcome', 'Criteria'];
+    const rows = slots.map((s) => [
+      s.dayNumber,
+      `"${(s.title || '').replace(/"/g, '""')}"`,
+      s.estimatedHours || 4,
+      s.requiresTrainerReview ? 'YES' : 'NO',
+      `"${(s.problemStatement || '').replace(/"/g, '""')}"`,
+      `"${(s.expectedOutcome || '').replace(/"/g, '""')}"`,
+      `"${(Array.isArray(s.acceptanceCriteria) ? s.acceptanceCriteria.join('; ') : '').replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = [header.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${project.slug || 'project'}-${selectedTrack}-${selectedDuration}m-tasks.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Import CSV
+  const handleImportCsv = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target.result;
+        const lines = text.split('\n').filter((l) => l.trim().length > 0);
+        if (lines.length <= 1) throw new Error('CSV is empty or missing data rows');
+
+        // Parse CSV rows
+        const parsedRows = lines.slice(1).map((line, idx) => {
+          // Basic CSV quote-aware split
+          const matches = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
+          const day = idx + 1;
+          const clean = (val) => (val || '').replace(/^"|"$/g, '').trim();
+          return {
+            _id: `task_${project._id}_${selectedTrack}_day_${day}`,
+            dayNumber: day,
+            sequence: day,
+            title: clean(matches[1]) || `Day ${day} Development Task`,
+            estimatedHours: Number(clean(matches[2])) || 4,
+            requiresTrainerReview: clean(matches[3])?.toUpperCase() === 'YES',
+            problemStatement: clean(matches[4]) || `Core task requirement for Day ${day}`,
+            expectedOutcome: clean(matches[5]) || `Verified working deliverable for Day ${day}`,
+            acceptanceCriteria: clean(matches[6]) ? clean(matches[6]).split(';').map((s) => s.trim()).filter(Boolean) : ['Delivered to GitHub repo'],
+            track: selectedTrack === 'web' ? 'Web Development' : 'Mobile App Development',
+          };
+        });
+
+        // Ensure we fit exactly targetDayCount slots
+        const paddedSlots = [...parsedRows];
+        while (paddedSlots.length < targetDayCount) {
+          const nextDay = paddedSlots.length + 1;
+          paddedSlots.push({
+            _id: `task_${project._id}_${selectedTrack}_day_${nextDay}`,
+            dayNumber: nextDay,
+            sequence: nextDay,
+            title: `Sprint Feature Implementation - Day ${nextDay}`,
+            estimatedHours: 4,
+            problemStatement: `Develop and test assigned feature for Day ${nextDay}`,
+            expectedOutcome: `Working deliverable committed to GitHub`,
+            acceptanceCriteria: ['Code committed to student repository'],
+            track: selectedTrack === 'web' ? 'Web Development' : 'Mobile App Development',
+          });
+        }
+
+        setSlots(paddedSlots.slice(0, targetDayCount));
+        setIsDirty(true);
+        toast.success('CSV Imported', {
+          description: `Loaded ${Math.min(parsedRows.length, targetDayCount)} tasks from CSV.`,
+        });
+      } catch (err) {
+        toast.error('CSV Import Failed', {
+          description: err?.message || 'Could not parse CSV file.',
+        });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const filteredSlots = useMemo(() => {
+    if (!searchQuery.trim()) return slots;
+    const q = searchQuery.trim().toLowerCase();
+    return slots.filter(
+      (s) =>
+        String(s.dayNumber).includes(q) ||
+        (s.title || '').toLowerCase().includes(q) ||
+        (s.problemStatement || '').toLowerCase().includes(q),
+    );
+  }, [slots, searchQuery]);
+
+  const searchInputId = useId();
 
   if (!project) return null;
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-brand-600" />
-          <span>Project Daily Tasks & Schedule</span>
-        </div>
-      }
-      description={`Daily task breakdown for ${project.title}. Tasks are divided separately for Web and Mobile App development across your chosen internship duration.`}
-      size="xl"
-    >
-      <div className="space-y-5">
-        {/* Project Snapshot Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/60">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-slate-900 dark:text-slate-100 text-base">{project.title}</span>
-              <Badge variant="neutral" icon={Building2}>
-                {project.domain?.name || 'Domain'}
-              </Badge>
-              <Badge variant="brand" icon={Sparkles}>
-                Trainee Software Engineer
-              </Badge>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Dual Track: <strong className="text-slate-700 dark:text-slate-300">Web Development</strong> & <strong className="text-slate-700 dark:text-slate-300">Mobile App Development</strong> ·
-              Supported Durations:{' '}
-              {(project.durationsSupported || [1, 2, 3, 6]).map((d) => `${d}m`).join(', ')}
-            </p>
-          </div>
-
-          <Button
-            size="sm"
-            variant="outline"
-            leftIcon={Plus}
-            onClick={() => setShowAddForm(!showAddForm)}
-          >
-            {showAddForm ? 'Cancel' : 'Add Custom Task'}
-          </Button>
-        </div>
-
-        {/* Track Switcher: Web vs Mobile App */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+    <>
+      <Modal
+        open={open}
+        onClose={onClose}
+        title={
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setSelectedTrack('web')}
-              className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
-                selectedTrack === 'web'
-                  ? 'bg-sky-600 text-white shadow-xs ring-2 ring-sky-500/30'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-              }`}
-            >
-              <Code2 className="h-4 w-4" />
-              <span>Web Development Tasks</span>
-            </button>
+            <CalendarDays className="h-5 w-5 text-brand-600" />
+            <span>Project Task Template Manager</span>
+          </div>
+        }
+        description={`Manage fixed daily task templates for ${project.title}. Tasks are divided separately for Web and Mobile App across 1M, 2M, 3M, and 6M durations. When a student is assigned this project, their duration's fixed task set is automatically allocated.`}
+        size="xl"
+      >
+        <div className="space-y-5">
+          {/* Project Header Info */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/60">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-base">{project.title}</span>
+                <Badge variant="neutral" icon={Building2}>
+                  {project.domain?.name || 'Domain'}
+                </Badge>
+                <Badge variant="brand" icon={Sparkles}>
+                  Trainee Software Engineer
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Fixed Templates: <strong className="text-slate-700 dark:text-slate-300">1M (20)</strong> ·{' '}
+                <strong className="text-slate-700 dark:text-slate-300">2M (40)</strong> ·{' '}
+                <strong className="text-slate-700 dark:text-slate-300">3M (60)</strong> ·{' '}
+                <strong className="text-slate-700 dark:text-slate-300">6M (120)</strong> tasks per track.
+              </p>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => setSelectedTrack('app')}
-              className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
-                selectedTrack === 'app'
-                  ? 'bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-500/30'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-              }`}
-            >
-              <Smartphone className="h-4 w-4" />
-              <span>Mobile App Development Tasks</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <Badge variant={isDirty ? 'warning' : 'success'} size="md">
+                {isDirty ? '● Unsaved Changes' : '✓ Template In Sync'}
+              </Badge>
+              <Button
+                size="sm"
+                variant="primary"
+                leftIcon={Save}
+                loading={updateProjectMutation.isPending}
+                onClick={handleSaveTemplateSet}
+              >
+                Save Template Set
+              </Button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <GithubIcon className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
-            <span>Students submit their own GitHub repo for each day's task</span>
+          {/* Track Switcher: Web vs Mobile App */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedTrack('web')}
+                className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
+                  selectedTrack === 'web'
+                    ? 'bg-sky-600 text-white shadow-xs ring-2 ring-sky-500/30'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Code2 className="h-4 w-4" />
+                <span>Web Development Track (Track 1)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedTrack('app')}
+                className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
+                  selectedTrack === 'app'
+                    ? 'bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-500/30'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Smartphone className="h-4 w-4" />
+                <span>Mobile App Development Track (Track 2)</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <GithubIcon className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+              <span>Students submit daily commits to their personal GitHub repo</span>
+            </div>
+          </div>
+
+          {/* Duration Tabs Switcher */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">Internship Duration:</span>
+              {DURATIONS.map((dur) => {
+                const active = selectedDuration === dur.value;
+                return (
+                  <button
+                    key={dur.value}
+                    type="button"
+                    onClick={() => setSelectedDuration(dur.value)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                      active
+                        ? 'bg-brand-600 text-white shadow-xs ring-2 ring-brand-600/30'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>{dur.label}</span>
+                    <span
+                      className={`rounded px-1.5 py-0.2 text-[10px] font-mono ${
+                        active ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      {dur.days} Fixed Tasks
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Template Actions Toolbar */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                size="xs"
+                variant="outline"
+                leftIcon={RotateCcw}
+                onClick={handleClearSlots}
+                title="Reset all slots to empty boxes for manual entry"
+              >
+                Clear All
+              </Button>
+              <Button
+                size="xs"
+                variant="outline"
+                leftIcon={Sparkles}
+                onClick={handlePreFillBlueprint}
+                title="Optional: Auto-populate slots with domain blueprint curriculum"
+              >
+                Pre-fill Blueprint
+              </Button>
+              <Button
+                size="xs"
+                variant="outline"
+                leftIcon={Upload}
+                onClick={() => fileInputRef.current?.click()}
+                title="Upload CSV to populate slots"
+              >
+                Import CSV
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={handleImportCsv}
+              />
+              <Button
+                size="xs"
+                variant="outline"
+                leftIcon={Download}
+                onClick={handleExportCsv}
+                title="Download this template as CSV"
+              >
+                Export CSV
+              </Button>
+            </div>
+          </div>
+
+          {/* Slots Status Header & Search */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                Template Slots: {configuredCount} / {targetDayCount} Tasks Configured
+              </span>
+              <Badge
+                variant={
+                  configuredCount === targetDayCount
+                    ? 'success'
+                    : configuredCount > 0
+                      ? 'warning'
+                      : 'neutral'
+                }
+                size="sm"
+              >
+                {configuredCount === targetDayCount
+                  ? 'All Tasks Configured'
+                  : configuredCount > 0
+                    ? `${configuredCount} Entered · ${targetDayCount - configuredCount} Empty`
+                    : 'All Slots Empty (Manual Entry)'}
+              </Badge>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                (Task 1 opens immediately; subsequent tasks unlock sequentially)
+              </span>
+            </div>
+
+            <div className="w-full sm:w-64">
+              <label htmlFor={searchInputId} className="sr-only">
+                Filter by day number or feature title
+              </label>
+              <input
+                id={searchInputId}
+                type="text"
+                placeholder="Filter by day # or feature title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+            </div>
+          </div>
+
+          {/* Daily Task Slots Grid */}
+          <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-1">
+            {filteredSlots.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-800 p-8 text-center dark:bg-slate-900">
+                <Layers className="mx-auto h-8 w-8 text-slate-400 mb-2" />
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No matching daily tasks found</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Try clearing your search query or click &quot;Insert Task&quot; on an empty slot.
+                </p>
+              </div>
+            ) : (
+              filteredSlots.map((task, idx) => {
+                const isFirst = task.dayNumber === 1;
+                const isFilled = Boolean(task.title?.trim());
+
+                if (!isFilled) {
+                  return (
+                    <div
+                      key={task._id || `task_${task.dayNumber}`}
+                      className="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-4 transition-all hover:border-brand-400 hover:bg-white dark:border-slate-800 dark:bg-slate-800/40 dark:hover:border-brand-500 dark:hover:bg-slate-800/80"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="inline-flex items-center rounded-md bg-slate-200 border border-slate-300 px-2 py-0.5 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                              Day {task.dayNumber}
+                            </span>
+                            <span className="text-sm italic font-medium text-slate-400 dark:text-slate-500">
+                              Empty Slot — Ready for Manual Insertion
+                            </span>
+                            {isFirst ? (
+                              <Badge variant="neutral" size="sm">
+                                Open on Start
+                              </Badge>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                                Prereq: Day {task.dayNumber - 1}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 dark:text-slate-500">
+                            No task entered for Day {task.dayNumber}. Click &quot;Insert Task&quot; to define title, problem statement, and deliverables.
+                          </p>
+                        </div>
+
+                        <Button
+                          size="xs"
+                          variant="primary"
+                          leftIcon={Plus}
+                          onClick={() => handleOpenEdit(task, idx)}
+                        >
+                          Insert Task
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={task._id || `task_${task.dayNumber}`}
+                    className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-brand-300 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-500/50"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="space-y-1.5 max-w-2xl">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="inline-flex items-center rounded-md bg-brand-50 border border-brand-200 px-2 py-0.5 text-xs font-bold text-brand-700 dark:border-brand-900/60 dark:bg-brand-950/60 dark:text-brand-300">
+                            Day {task.dayNumber}
+                          </span>
+                          <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{task.title}</span>
+                          {isFirst ? (
+                            <Badge variant="success" size="sm" icon={CheckCircle2}>
+                              Open on Start
+                            </Badge>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                              Prereq: Day {task.dayNumber - 1}
+                            </span>
+                          )}
+                          {task.requiresTrainerReview ? (
+                            <Badge variant="warning" size="sm">
+                              Trainer Review
+                            </Badge>
+                          ) : null}
+                        </div>
+
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{task.problemStatement}</p>
+
+                        {task.expectedOutcome ? (
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                            <strong className="text-slate-700 dark:text-slate-300">Expected Outcome:</strong> {task.expectedOutcome}
+                          </div>
+                        ) : null}
+
+                        {Array.isArray(task.acceptanceCriteria) && task.acceptanceCriteria.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {task.acceptanceCriteria.map((c, i) => (
+                              <span
+                                key={i}
+                                className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-300 font-medium"
+                              >
+                                <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                {c}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                          ~{task.estimatedHours || 4} hrs
+                        </span>
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          leftIcon={Pencil}
+                          onClick={() => handleOpenEdit(task, idx)}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
+            <span>
+              Showing {filteredSlots.length} daily tasks for{' '}
+              <strong className="text-slate-700 dark:text-slate-200">{selectedDuration} Month(s)</strong>.
+            </span>
+            <Button size="sm" variant="outline" onClick={onClose}>
+              Close
+            </Button>
           </div>
         </div>
+      </Modal>
 
-        {/* Add custom task inline form */}
-        {showAddForm ? (
-          <form
-            onSubmit={handleAddCustomTask}
-            className="rounded-xl border border-brand-200 bg-brand-50/50 p-4 space-y-3 dark:border-brand-900/60 dark:bg-brand-950/40"
-          >
-            <p className="text-xs font-bold text-brand-900 dark:text-brand-300 uppercase tracking-wide">
-              Add New Daily Task to {project.title}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <div className="sm:col-span-1">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
-                  Working Day #
+      {/* Edit Slot Sub-Modal */}
+      {editingTask ? (
+        <Modal
+          open={Boolean(editingTask)}
+          onClose={() => setEditingTask(null)}
+          title={
+            !editingTask.title?.trim()
+              ? `Insert Task — Day ${editingTask.dayNumber} (${selectedTrack === 'web' ? 'Web Track' : 'Mobile App Track'})`
+              : `Edit Task — Day ${editingTask.dayNumber} (${selectedTrack === 'web' ? 'Web Track' : 'Mobile App Track'})`
+          }
+          description={
+            !editingTask.title?.trim()
+              ? `Enter the requirements, expected outcome, and criteria for Day ${editingTask.dayNumber} of the ${selectedTrack === 'web' ? 'Web' : 'Mobile App'} template.`
+              : `Customize the requirements, expected outcome, and criteria for Day ${editingTask.dayNumber} of the ${selectedTrack === 'web' ? 'Web' : 'Mobile App'} template.`
+          }
+          size="md"
+        >
+          <form onSubmit={handleSaveSlotEdit} className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                Task Title *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Repository Setup, User Authentication, Checkout Flow..."
+                value={editForm.title}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  Estimated Hours
                 </label>
                 <input
                   type="number"
                   min="1"
-                  max="120"
-                  placeholder="e.g. 21"
-                  value={newTaskDay}
-                  onChange={(e) => setNewTaskDay(e.target.value)}
+                  max="12"
+                  value={editForm.estimatedHours}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, estimatedHours: e.target.value }))}
                   className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                 />
               </div>
-              <div className="sm:col-span-3">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
-                  Task Title *
+
+              <div className="flex items-end pb-2">
+                <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editForm.requiresTrainerReview}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, requiresTrainerReview: e.target.checked }))
+                    }
+                    className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 h-4 w-4"
+                  />
+                  <span>Requires Trainer Review</span>
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Build Biometric Fingerprint Auth & Push Notification Handler"
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                />
               </div>
             </div>
+
             <div>
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
-                Problem Statement & Deliverables
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                Problem Statement & Requirements *
               </label>
               <textarea
-                rows={2}
-                placeholder="Describe what the intern needs to code, test, and deliver on this day for Web and Mobile..."
-                value={newTaskProblem}
-                onChange={(e) => setNewTaskProblem(e.target.value)}
+                rows={3}
+                required
+                placeholder="Describe what the student must implement for this day..."
+                value={editForm.problemStatement}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, problemStatement: e.target.value }))}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               />
             </div>
-            <div className="flex justify-end gap-2">
-              <Button size="xs" variant="ghost" onClick={() => setShowAddForm(false)}>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                Expected Outcome
+              </label>
+              <textarea
+                rows={2}
+                placeholder="Deliverable after finishing this task (e.g. running component, unit tests passing)..."
+                value={editForm.expectedOutcome}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, expectedOutcome: e.target.value }))}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                Acceptance Criteria (1 item per line)
+              </label>
+              <textarea
+                rows={3}
+                placeholder="Dev server starts with zero errors&#10;Design tokens defined&#10;Clean commit pushed to feature branch"
+                value={editForm.acceptanceCriteria}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, acceptanceCriteria: e.target.value }))}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-[11px] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <Button size="sm" variant="outline" onClick={() => setEditingTask(null)}>
                 Cancel
               </Button>
-              <Button size="xs" variant="primary" type="submit">
-                Save Task
+              <Button size="sm" variant="primary" type="submit">
+                {!editingTask.title?.trim() ? `Insert Day ${editingTask.dayNumber} Task` : 'Update Task Slot'}
               </Button>
             </div>
           </form>
-        ) : null}
-
-        {/* Duration Tabs Switcher */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">Internship Span:</span>
-            {DURATIONS.map((dur) => {
-              const active = selectedDuration === dur.value;
-              return (
-                <button
-                  key={dur.value}
-                  type="button"
-                  onClick={() => setSelectedDuration(dur.value)}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                    active
-                      ? 'bg-brand-600 text-white shadow-xs ring-2 ring-brand-600/30'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>{dur.label}</span>
-                  <span
-                    className={`rounded px-1.5 py-0.2 text-[10px] font-mono ${
-                      active ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    {dur.days} Days
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="w-full sm:w-56">
-            <input
-              type="text"
-              placeholder="Search day or task..."
-              value={searchDay}
-              onChange={(e) => setSearchDay(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-            />
-          </div>
-        </div>
-
-        {/* Daily Tasks List View */}
-        <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-1">
-          {filteredTasks.length === 0 ? (
-            <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
-              No tasks match your filter.
-            </div>
-          ) : (
-            filteredTasks.map((task) => (
-              <div
-                key={task._id}
-                className="group relative rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs hover:border-brand-300 transition-colors dark:border-slate-800 dark:bg-slate-800/60 dark:hover:border-slate-700"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 font-mono font-bold text-xs border border-brand-200 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-800">
-                      D{task.dayNumber}
-                    </span>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{task.title}</h4>
-                        {task.requiresTrainerReview ? (
-                          <Badge variant="warning" size="sm">
-                            Mentor Review Required
-                          </Badge>
-                        ) : null}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 flex-wrap">
-                        <span className="flex items-center gap-1 font-medium text-slate-600 dark:text-slate-300">
-                          <Layers className="h-3 w-3 text-slate-400" />
-                          {task.phase}
-                        </span>
-                        <span>•</span>
-                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.2 text-slate-700 font-medium dark:bg-slate-700 dark:text-slate-300">
-                          {task.track.includes('App') ? (
-                            <Smartphone className="h-3 w-3 text-purple-600 dark:text-purple-400" />
-                          ) : (
-                            <Code2 className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                          )}
-                          {task.track}
-                        </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                          <Clock className="h-3 w-3" />
-                          ~{task.estimatedHours}h
-                        </span>
-                      </div>
-
-                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                        {task.problemStatement}
-                      </p>
-
-                      {task.acceptanceCriteria?.length > 0 ? (
-                        <div className="pt-1.5 space-y-1">
-                          {task.acceptanceCriteria.map((crit, cIdx) => (
-                            <div
-                              key={cIdx}
-                              className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400"
-                            >
-                              <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
-                              <span>{crit}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
-          <span>
-            Showing {filteredTasks.length} daily tasks for{' '}
-            <strong>{selectedDuration} Month(s)</strong>.
-          </span>
-          <Button size="sm" variant="outline" onClick={onClose}>
-            Close
-          </Button>
-        </div>
-      </div>
-    </Modal>
+        </Modal>
+      ) : null}
+    </>
   );
 }
 
 export default ProjectTasksModal;
-

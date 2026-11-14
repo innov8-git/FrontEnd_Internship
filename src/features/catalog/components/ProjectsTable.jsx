@@ -143,20 +143,28 @@ export function ProjectsTable({
         align: 'right',
         cell: (row) => {
           const isPublished = row.status === PUBLISH_STATUS.PUBLISHED;
+
           const items = [
             {
-              label: 'View daily tasks roadmap',
+              label: 'Manage task templates (1M, 2M, 3M, 6M)',
               icon: CalendarDays,
+              onClick: () => onViewTasks?.(row),
               onSelect: () => onViewTasks?.(row),
             },
             {
               label: 'Edit project details',
               icon: Pencil,
+              onClick: () => onEdit(row),
               onSelect: () => onEdit(row),
             },
             {
               label: isPublished ? 'Unpublish (hide from students)' : 'Publish to students',
               icon: isPublished ? EyeOff : Eye,
+              onClick: () =>
+                onChangeStatus(
+                  row,
+                  isPublished ? PUBLISH_STATUS.DRAFT : PUBLISH_STATUS.PUBLISHED,
+                ),
               onSelect: () =>
                 onChangeStatus(
                   row,
@@ -166,7 +174,9 @@ export function ProjectsTable({
             {
               label: 'Delete project',
               icon: Trash2,
+              danger: true,
               className: 'text-rose-600 hover:text-rose-700 hover:bg-rose-50',
+              onClick: () => onDelete?.(row),
               onSelect: () => onDelete?.(row),
             },
           ];
@@ -178,9 +188,9 @@ export function ProjectsTable({
                 size="xs"
                 leftIcon={CalendarDays}
                 onClick={() => onViewTasks?.(row)}
-                title="View daily tasks breakdown"
+                title="Manage and configure fixed task templates across 1M, 2M, 3M, 6M"
               >
-                Daily Tasks
+                Task Templates
               </Button>
               <DropdownMenu
                 trigger={
