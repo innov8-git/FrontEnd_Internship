@@ -3,7 +3,6 @@ import { Card, CardBody, CardHeader } from '@/shared/components/ui';
 import {
   Briefcase,
   Building2,
-  CalendarDays,
   IndianRupee,
   UserCog,
 } from '@/shared/icons';
@@ -28,12 +27,6 @@ const LINKS = [
     description: 'Durations and base prices',
     to: ROUTES.ADMIN_PLANS,
     icon: IndianRupee,
-  },
-  {
-    label: 'Schedules',
-    description: 'Day-by-day plans, SOPs and tasks',
-    to: ROUTES.ADMIN_SCHEDULES,
-    icon: CalendarDays,
   },
   {
     label: 'Trainers',

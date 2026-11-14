@@ -67,21 +67,7 @@ function PaymentDetails({ payment }) {
       </DetailSection>
 
       <DetailSection
-        title="Enrollment"
-        action={
-          enrollment?._id ? (
-            <Button
-              as={Link}
-              to={adminLinks.enrollment(enrollment._id)}
-              variant="outline"
-              size="sm"
-              rightIcon={ArrowRight}
-            >
-              Open enrollment
-            </Button>
-          ) : null
-        }
-      >
+        title="Enrollment">
         {enrollment ? (
           <DescriptionList
             items={[

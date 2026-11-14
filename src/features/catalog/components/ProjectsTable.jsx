@@ -20,7 +20,7 @@ import {
   Star,
   Trash2,
 } from '@/shared/icons';
-import { PUBLISH_STATUS, ROUTES } from '@/shared/constants';
+import { PUBLISH_STATUS } from '@/shared/constants';
 import { formatDate } from '@/shared/utils/helpers';
 
 export function ProjectsTable({
@@ -156,11 +156,6 @@ export function ProjectsTable({
               label: 'Edit project details',
               icon: Pencil,
               onSelect: () => onEdit(row),
-            },
-            {
-              label: 'Manage schedule builder',
-              icon: CalendarDays,
-              onSelect: () => navigate(ROUTES.ADMIN_SCHEDULES),
             },
             {
               label: isPublished ? 'Unpublish (hide from students)' : 'Publish to students',

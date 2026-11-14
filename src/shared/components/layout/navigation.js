@@ -7,12 +7,10 @@ import {
   ClipboardList,
   CreditCard,
   FolderGit2,
-  GraduationCap,
   History,
   Inbox,
   IndianRupee,
   LayoutDashboard,
-  ListChecks,
   User,
   UserCheck,
   UserCog,
@@ -131,16 +129,8 @@ export function getAdminNavigation() {
       ],
     },
     {
-      title: 'Learning',
-      items: [
-        { label: 'Schedules', to: ROUTES.ADMIN_SCHEDULES, icon: CalendarDays },
-        { label: 'Tasks', to: ROUTES.ADMIN_TASKS, icon: ListChecks },
-      ],
-    },
-    {
       title: 'Operations',
       items: [
-        { label: 'Enrollments', to: ROUTES.ADMIN_ENROLLMENTS, icon: GraduationCap },
         { label: 'Payments', to: ROUTES.ADMIN_PAYMENTS, icon: CreditCard },
         { label: 'Certificates', to: ROUTES.ADMIN_CERTIFICATES, icon: Award },
         { label: 'Audit log', to: ROUTES.ADMIN_AUDIT, icon: History },

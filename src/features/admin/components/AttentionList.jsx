@@ -74,7 +74,7 @@ function buildAttentionItems(stats) {
       count: count(stats.enrollments?.pendingPayment),
       title: (n) => `${pluralize(n, 'enrollment')} awaiting payment`,
       description: 'Students who enrolled but have not paid yet.',
-      to: adminLinks.enrollments({ status: ENROLLMENT_STATUS.PENDING_PAYMENT }),
+      to: ROUTES.ADMIN_PAYMENTS,
       icon: Clock,
       tone: 'neutral',
     },
