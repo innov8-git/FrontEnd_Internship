@@ -135,11 +135,11 @@ describe('Registration Form & Validation', () => {
       expect(screen.getByLabelText(/years of experience/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/current organization/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/linkedin \/ portfolio profile url/i)).toBeInTheDocument();
-      expect(screen.getByTestId('resume-dropzone')).toBeInTheDocument();
+      expect(screen.getByLabelText(/resume \/ cv link/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /register as trainer/i })).toBeInTheDocument();
     });
 
-    it('allows uploading and removing a resume for trainer registration', async () => {
+    it('allows entering a Google Drive link for trainer CV', async () => {
       const user = userEvent.setup();
       render(
         <MemoryRouter>
@@ -148,46 +148,25 @@ describe('Registration Form & Validation', () => {
       );
 
       await user.click(screen.getByTestId('role-trainer'));
-      expect(screen.getByTestId('resume-dropzone')).toBeInTheDocument();
+      const resumeInput = screen.getByLabelText(/resume \/ cv link/i);
+      expect(resumeInput).toBeInTheDocument();
 
-      const file = new File(['dummy content in pdf'], 'jane_resume.pdf', {
-        type: 'application/pdf',
-      });
-      const fileInput = screen.getByTestId('resume-file-input');
-
-      await user.upload(fileInput, file);
-
-      expect(screen.getByTestId('resume-file-card')).toBeInTheDocument();
-      expect(screen.getByText('jane_resume.pdf')).toBeInTheDocument();
-      expect(screen.getByText(/ready/i)).toBeInTheDocument();
-
-      // Remove resume
-      const removeBtn = screen.getByRole('button', { name: /remove resume/i });
-      await user.click(removeBtn);
-
-      expect(screen.queryByTestId('resume-file-card')).not.toBeInTheDocument();
-      expect(screen.getByTestId('resume-dropzone')).toBeInTheDocument();
+      await user.type(resumeInput, 'https://drive.google.com/file/d/12345/view');
+      expect(resumeInput).toHaveValue('https://drive.google.com/file/d/12345/view');
     });
 
-    it('shows error when uploading an invalid file format for resume', async () => {
-      const user = userEvent.setup();
-      render(
-        <MemoryRouter>
-          <RegisterForm onSubmit={vi.fn()} />
-        </MemoryRouter>,
-      );
-
-      await user.click(screen.getByTestId('role-trainer'));
-
-      const invalidFile = new File(['binary content'], 'script.exe', {
-        type: 'application/x-msdownload',
+    it('validates invalid URL format for resume link', async () => {
+      const parseResult = registerSchema.safeParse({
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        password: 'Password123',
+        confirmPassword: 'Password123',
+        role: 'TRAINER',
+        domain: 'Full Stack Web Development',
+        experience: '3-5 years',
+        resumeUrl: 'not-a-valid-url',
       });
-      const fileInput = screen.getByTestId('resume-file-input');
-
-      fireEvent.change(fileInput, { target: { files: [invalidFile] } });
-
-      expect(await screen.findByText(/please upload a pdf, doc, or docx document/i)).toBeInTheDocument();
-      expect(screen.queryByTestId('resume-file-card')).not.toBeInTheDocument();
+      expect(parseResult.success).toBe(false);
     });
 
     it('validates password matching on form submission', async () => {
@@ -237,11 +216,11 @@ describe('Registration Form & Validation', () => {
         'https://linkedin.com/in/smith',
       );
 
-      // Upload resume
-      const resumeFile = new File(['mock resume data'], 'prof_smith_cv.pdf', {
-        type: 'application/pdf',
-      });
-      await user.upload(screen.getByTestId('resume-file-input'), resumeFile);
+      // Enter Google Drive resume link
+      await user.type(
+        screen.getByLabelText(/resume \/ cv link/i),
+        'https://drive.google.com/file/d/mock-cv-link',
+      );
 
       await user.type(screen.getByLabelText(/^password/i), 'TrainerPass1');
       await user.type(screen.getByLabelText(/confirm password/i), 'TrainerPass1');
@@ -262,8 +241,7 @@ describe('Registration Form & Validation', () => {
       expect(submittedValues.experience).toBe('5-8 years');
       expect(submittedValues.organization).toBe('Tech Institute');
       expect(submittedValues.linkedinUrl).toBe('https://linkedin.com/in/smith');
-      expect(submittedValues.resume).toBeDefined();
-      expect(submittedValues.resume.name).toBe('prof_smith_cv.pdf');
+      expect(submittedValues.resumeUrl).toBe('https://drive.google.com/file/d/mock-cv-link');
     });
   });
 });

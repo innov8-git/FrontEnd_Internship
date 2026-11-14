@@ -14,16 +14,36 @@ let accessToken = null;
 let refreshPromise = null;
 let authFailureHandler = null;
 
+const ACCESS_TOKEN_KEY = 'alfre_access_token';
+
 export function getAccessToken() {
+  if (!accessToken && typeof window !== 'undefined') {
+    try {
+      accessToken = localStorage.getItem(ACCESS_TOKEN_KEY) || null;
+    } catch {
+      accessToken = null;
+    }
+  }
   return accessToken;
 }
 
 export function setAccessToken(token) {
   accessToken = token || null;
+  if (typeof window !== 'undefined') {
+    try {
+      if (token) localStorage.setItem(ACCESS_TOKEN_KEY, token);
+      else localStorage.removeItem(ACCESS_TOKEN_KEY);
+    } catch {}
+  }
 }
 
 export function clearAccessToken() {
   accessToken = null;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+    } catch {}
+  }
 }
 
 /** AuthProvider registers this so a failed refresh logs the user out everywhere. */
@@ -140,9 +160,10 @@ export function refreshAccessToken() {
 }
 
 apiClient.interceptors.request.use((config) => {
-  if (accessToken) {
+  const token = getAccessToken();
+  if (token) {
     config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${accessToken}`;
+    config.headers.Authorization = `Bearer ${token}`;
   }
   if (config.params) config.params = cleanParams(config.params);
   return config;

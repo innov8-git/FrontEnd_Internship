@@ -7,6 +7,7 @@ import {
   LoginPage,
   RegisterPage,
   ResetPasswordPage,
+  TrainerRegisterPage,
   VerifyEmailPage,
 } from './lazyPages';
 
@@ -23,6 +24,8 @@ export const authRoutes = [
         children: [
           { path: 'login', element: <LoginPage /> },
           { path: 'register', element: <RegisterPage /> },
+          { path: 'register/student', element: <RegisterPage /> },
+          { path: 'register/trainer', element: <TrainerRegisterPage /> },
         ],
       },
     ],

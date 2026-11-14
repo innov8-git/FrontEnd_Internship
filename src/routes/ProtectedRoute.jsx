@@ -14,7 +14,7 @@ export default function ProtectedRoute({ roles, children }) {
   const location = useLocation();
 
   if (status === 'loading') {
-    return <PageLoader fullScreen label="Restoring your session…" />;
+    return <PageLoader fullScreen label="Loading…" />;
   }
 
   if (status !== 'authenticated') {

@@ -104,6 +104,75 @@ export const EXPERIENCE_LEVELS = Object.freeze([
   '8+ years',
 ]);
 
+export const studentRegisterSchema = z
+  .object({
+    name: nameField,
+    email: emailField,
+    password: newPasswordField('Create a password.'),
+    confirmPassword: z
+      .string({ required_error: 'Confirm your password.' })
+      .min(1, 'Confirm your password.'),
+  })
+  .refine((values) => !values.confirmPassword || values.password === values.confirmPassword, {
+    path: ['confirmPassword'],
+    message: "Passwords don't match.",
+  });
+
+export const trainerRegisterSchema = z
+  .object({
+    name: nameField,
+    email: emailField,
+    password: newPasswordField('Create a password.'),
+    confirmPassword: z
+      .string({ required_error: 'Confirm your password.' })
+      .min(1, 'Confirm your password.'),
+    domain: z
+      .string({ required_error: 'Select your primary mentoring domain.' })
+      .trim()
+      .min(1, 'Select your primary mentoring domain.'),
+    experience: z
+      .string({ required_error: 'Select your years of experience.' })
+      .trim()
+      .min(1, 'Select your years of experience.'),
+    organization: z.string().trim().optional().or(z.literal('')),
+    linkedinUrl: z.string().trim().optional().or(z.literal('')),
+    resumeUrl: z.string().trim().optional().or(z.literal('')),
+  })
+  .refine((values) => !values.confirmPassword || values.password === values.confirmPassword, {
+    path: ['confirmPassword'],
+    message: "Passwords don't match.",
+  })
+  .refine(
+    (values) => {
+      if (!values.linkedinUrl || values.linkedinUrl.trim() === '') return true;
+      try {
+        const url = new URL(values.linkedinUrl);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    {
+      path: ['linkedinUrl'],
+      message: 'Enter a valid URL (e.g. https://linkedin.com/in/username).',
+    },
+  )
+  .refine(
+    (values) => {
+      if (!values.resumeUrl || values.resumeUrl.trim() === '') return true;
+      try {
+        const url = new URL(values.resumeUrl);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    {
+      path: ['resumeUrl'],
+      message: 'Enter a valid link (e.g. https://drive.google.com/file/d/...).',
+    },
+  );
+
 export const registerSchema = z
   .object({
     name: nameField,
@@ -118,6 +187,7 @@ export const registerSchema = z
     linkedinUrl: z.string().optional(),
     organization: z.string().optional(),
     resume: z.any().optional(),
+    resumeUrl: z.string().optional(),
   })
   .refine((values) => !values.confirmPassword || values.password === values.confirmPassword, {
     path: ['confirmPassword'],
@@ -154,6 +224,21 @@ export const registerSchema = z
       path: ['linkedinUrl'],
       message: 'Enter a valid URL (e.g. https://linkedin.com/in/username).',
     },
+  )
+  .refine(
+    (values) => {
+      if (!values.resumeUrl || values.resumeUrl.trim() === '') return true;
+      try {
+        const url = new URL(values.resumeUrl);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    {
+      path: ['resumeUrl'],
+      message: 'Enter a valid link (e.g. https://drive.google.com/file/d/...).',
+    },
   );
 
 export const forgotPasswordSchema = z.object({
@@ -176,6 +261,25 @@ export const resetPasswordSchema = z
     message: "Passwords don't match.",
   });
 
+export const STUDENT_REGISTER_DEFAULTS = Object.freeze({
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+});
+
+export const TRAINER_REGISTER_DEFAULTS = Object.freeze({
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  domain: '',
+  experience: '',
+  organization: '',
+  linkedinUrl: '',
+  resumeUrl: '',
+});
+
 export const LOGIN_DEFAULTS = Object.freeze({ email: '', password: '' });
 export const REGISTER_DEFAULTS = Object.freeze({
   name: '',
@@ -188,5 +292,6 @@ export const REGISTER_DEFAULTS = Object.freeze({
   linkedinUrl: '',
   organization: '',
   resume: null,
+  resumeUrl: '',
 });
 export const RESET_PASSWORD_DEFAULTS = Object.freeze({ password: '', confirmPassword: '' });

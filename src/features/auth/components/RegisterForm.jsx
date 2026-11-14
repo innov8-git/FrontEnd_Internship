@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, PasswordInput, Select } from '@/shared/components/ui';
 import { ROUTES } from '@/shared/constants';
-import { Award, Briefcase, Building2, Globe, GraduationCap, Info, Lock, Mail, User } from '@/shared/icons';
+import { Award, Briefcase, Building2, FileText, Globe, GraduationCap, Info, Lock, Mail, User } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 import { isErrorCode } from '@/shared/utils/errors';
 import {
@@ -16,7 +16,6 @@ import {
 import { AUTH_ERROR_CODES, applyKnownFieldErrors } from '../utils/authErrors';
 import { AuthErrorBanner } from './AuthErrorBanner';
 import { PasswordRules } from './PasswordRules';
-import { ResumeUpload } from './ResumeUpload';
 import { AUTH_LINK_CLASS } from './authStyles';
 
 const REGISTER_FIELDS = [
@@ -30,6 +29,7 @@ const REGISTER_FIELDS = [
   'linkedinUrl',
   'organization',
   'resume',
+  'resumeUrl',
 ];
 const EMAIL_TAKEN_ERROR = 'emailTaken';
 
@@ -248,11 +248,14 @@ export function RegisterForm({ onSubmit, isPending = false, loginTo = ROUTES.LOG
               {...register('linkedinUrl')}
             />
 
-            <ResumeUpload
-              value={resume}
-              onChange={(file) => setValue('resume', file, { shouldDirty: true, shouldValidate: true })}
-              error={errors.resume}
-              disabled={busy}
+            <Input
+              label="Resume / CV Link (Google Drive / Cloud Link)"
+              type="url"
+              placeholder="https://drive.google.com/file/d/..."
+              leftIcon={FileText}
+              hint="Ensure link access is set to 'Anyone with the link can view'."
+              error={errors.resumeUrl}
+              {...register('resumeUrl')}
             />
           </div>
         ) : null}

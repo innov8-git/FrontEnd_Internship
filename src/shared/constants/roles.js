@@ -16,7 +16,23 @@ export const ROLE_LABELS = Object.freeze({
 export const ROLE_PRIORITY = [ROLES.ADMIN, ROLES.TRAINER, ROLES.STUDENT];
 
 export function hasRole(user, role) {
-  return Boolean(user?.roles?.includes(role));
+  if (!user || !role) return false;
+  const target = String(role).toUpperCase();
+  if (typeof user.role === 'string' && user.role.toUpperCase() === target) {
+    return true;
+  }
+  if (Array.isArray(user.roles)) {
+    return user.roles.some((r) => {
+      if (typeof r === 'string') return r.toUpperCase() === target;
+      if (typeof r === 'object' && r !== null) {
+        if (typeof r.name === 'string') return r.name.toUpperCase() === target;
+        if (typeof r.role === 'string') return r.role.toUpperCase() === target;
+        if (typeof r.role?.name === 'string') return r.role.name.toUpperCase() === target;
+      }
+      return false;
+    });
+  }
+  return false;
 }
 
 export function hasAnyRole(user, roles = []) {
