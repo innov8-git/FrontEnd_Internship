@@ -29,6 +29,7 @@ import { useAuth, useDocumentTitle } from '@/shared/hooks';
 import { getErrorMessage, getErrorStatus, isErrorCode } from '@/shared/utils/errors';
 import { formatDate, formatRelativeTime, isPast } from '@/shared/utils/helpers';
 import { TeamPlanSummary } from '../components/TeamPlanSummary';
+import { TeamPricingNotice } from '../components/TeamPricingNotice';
 import { useTeamInvite } from '../hooks/useTeam';
 import { useAcceptInvite, useDeclineInvite } from '../hooks/useTeamMutations';
 import { sameEmail } from '../utils/teamUtils';
@@ -344,42 +345,7 @@ export function TeamInvitePage() {
             ]}
           />
 
-          <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-4">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Team Onboarding Journey
-            </p>
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-              <div className="flex items-start gap-2.5 rounded-lg border border-brand-200 bg-brand-50/80 p-2.5 text-xs text-brand-900 shadow-2xs">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-[11px] font-bold text-white">
-                  1
-                </span>
-                <div>
-                  <p className="font-semibold text-brand-950">Accept Invite</p>
-                  <p className="mt-0.5 text-[11px] text-brand-700">Join the team</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-700">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-700">
-                  2
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900">Assessment</p>
-                  <p className="mt-0.5 text-[11px] text-slate-500">15-min domain quiz</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-700">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-700">
-                  3
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900">Build Together</p>
-                  <p className="mt-0.5 text-[11px] text-slate-500">Shared repo & tasks</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <TeamPricingNotice />
         </CardBody>
         <div className="rounded-b-xl border-t border-slate-100 bg-slate-50/60 px-5 py-5">{actions}</div>
       </Card>

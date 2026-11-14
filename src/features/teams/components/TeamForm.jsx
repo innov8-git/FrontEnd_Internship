@@ -25,6 +25,7 @@ import { planDesignationId } from '../utils/teamUtils';
 import { EmailChipsInput } from './EmailChipsInput';
 import { PlanPicker } from './PlanPicker';
 import { TeamPlanSummary } from './TeamPlanSummary';
+import { TeamPricingNotice } from './TeamPricingNotice';
 
 /**
  * Create-team form (SN10): name (3-60), plan (fixed from ?planId or picked from published plans)
@@ -215,6 +216,8 @@ export function TeamForm({ initialPlanId = '', initialDesignationId = '', onCrea
             />
           )}
         />
+
+        <TeamPricingNotice />
       </CardBody>
       <CardFooter className="flex-col-reverse items-stretch sm:flex-row sm:items-center">
         <Button as={Link} to={ROUTES.DASHBOARD} variant="ghost">

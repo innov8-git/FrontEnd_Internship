@@ -1,10 +1,12 @@
 import { Briefcase } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
+import { formatMoney } from '@/shared/utils/helpers';
 import { planDetailsLabel } from '../utils/teamUtils';
 
 /**
- * Designation · domain · duration summary for team plan.
- * `action` (node) renders on the right, e.g. a "Change plan" button.
+ * Designation · domain · duration and the full plan price (teams never get the assessment discount).
+ * `plan` is a Plan or PlanRef; the price is the server's basePrice, only formatted here.
+ * `action` (node) renders beside the price, e.g. a "Change plan" button.
  */
 export function TeamPlanSummary({ plan, label = 'Internship plan', action, className }) {
   if (!plan) return null;
@@ -32,11 +34,15 @@ export function TeamPlanSummary({ plan, label = 'Internship plan', action, class
         </div>
       </div>
 
-      {action ? (
-        <div className="flex items-center justify-end">
-          <div className="shrink-0">{action}</div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-brand-100 pt-3 sm:justify-end sm:border-0 sm:pt-0">
+        <div className="sm:text-right">
+          <p className="text-xl font-semibold text-slate-900">
+            {formatMoney(plan.basePrice, plan.currency || 'INR')}
+          </p>
+          <p className="text-xs text-slate-500">Full price per member</p>
         </div>
-      ) : null}
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </div>
     </div>
   );
 }
