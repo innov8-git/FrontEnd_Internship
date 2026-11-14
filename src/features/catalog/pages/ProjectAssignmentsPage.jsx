@@ -96,12 +96,12 @@ export default function ProjectAssignmentsPage() {
         className: 'min-w-[14rem]',
         cell: (row) => (
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700 font-bold text-xs">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700 font-bold text-xs dark:bg-brand-950/60 dark:text-brand-300">
               {row.student?.name ? row.student.name.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
             </div>
             <div>
-              <p className="font-semibold text-slate-900 leading-snug">{row.student?.name || '—'}</p>
-              <p className="text-xs text-slate-500 font-mono">{row.student?.email || '—'}</p>
+              <p className="font-semibold text-slate-900 dark:text-slate-100 leading-snug">{row.student?.name || '—'}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">{row.student?.email || '—'}</p>
             </div>
           </div>
         ),
@@ -124,7 +124,7 @@ export default function ProjectAssignmentsPage() {
           const isWeb = (row.track || 'web').toLowerCase() === 'web';
           return (
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-slate-800">Trainee Software Engineer</p>
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">Trainee Software Engineer</p>
               <Badge variant={isWeb ? 'info' : 'brand'} size="xs" icon={isWeb ? Code2 : Smartphone}>
                 {isWeb ? 'Web Development' : 'Mobile App Development'}
               </Badge>
@@ -141,7 +141,7 @@ export default function ProjectAssignmentsPage() {
             <Badge variant="outline" size="sm" icon={CalendarDays}>
               {row.durationMonths} Months
             </Badge>
-            <p className="text-[11px] text-slate-500 font-medium">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
               {row.workingDays} working days
             </p>
           </div>
@@ -162,16 +162,16 @@ export default function ProjectAssignmentsPage() {
           return (
             <div className="space-y-1">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-semibold text-slate-900 text-xs">{row.project.title}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs">{row.project.title}</span>
                 <Badge variant="success" size="xs" icon={CheckCircle2}>
                   Assigned
                 </Badge>
               </div>
-              <p className="text-[11px] text-slate-500 line-clamp-1">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
                 {row.project.description}
               </p>
               {row.assignedAt ? (
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-slate-400 dark:text-slate-500">
                   Allocated on {formatDate(row.assignedAt)}
                 </p>
               ) : null}
@@ -213,7 +213,7 @@ export default function ProjectAssignmentsPage() {
       <CatalogTabs />
 
       {/* Filter and search bar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900">
         <div className="relative flex-1">
           <Input
             placeholder="Search student by name, email, or project..."

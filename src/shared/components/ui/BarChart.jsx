@@ -9,7 +9,7 @@ const SERIES_ACTIVE_COLOR = '#3987e5'; // one step lighter, for the hovered / fo
 const GRID_COLOR = '#e1e0d9'; // viz-grid, hairline gridlines
 const AXIS_COLOR = '#c3c2b7'; // viz-axis, the baseline
 const MAX_TIP_LABELS = 8; // horizontal: value at every bar tip up to this many bars, else the max only
-const ACTIVE_BAND = 'bg-slate-900/[0.04]';
+const ACTIVE_BAND = 'bg-slate-900/[0.04] dark:bg-slate-100/[0.06]';
 
 // ---------------------------------------------------------------------------
 // Scale helpers
@@ -76,7 +76,7 @@ function ChartTooltip({ value, label, className, style }) {
   return (
     <div
       className={cn(
-        'pointer-events-none absolute z-20 w-max max-w-[14rem] animate-fade-in rounded-lg bg-slate-900 px-2.5 py-1.5 text-left shadow-elevated',
+        'pointer-events-none absolute z-20 w-max max-w-[14rem] animate-fade-in rounded-lg bg-slate-900 px-2.5 py-1.5 text-left shadow-elevated dark:bg-slate-800 dark:border dark:border-slate-700',
         className,
       )}
       style={style}
@@ -115,7 +115,7 @@ function XAxisLabels({ items, step, className }) {
       {slots.map((slot) => (
         <span
           key={slot.index}
-          className="absolute top-1.5 truncate text-center text-xs leading-4 text-slate-500"
+          className="absolute top-1.5 truncate text-center text-xs leading-4 text-slate-500 dark:text-slate-400"
           style={{ left: `${slot.left}%`, width: `${slot.width}%` }}
         >
           {items[slot.index].label}
@@ -142,7 +142,7 @@ function VerticalBars({ items, height, formatValue, formatTick, activeIndex, get
     <div className="flex w-full" style={{ height }}>
       {/* Y axis: plot box is inset 20px from the top (room for the max label) and 24px from the bottom (x labels). */}
       <div
-        className="tabular relative shrink-0 text-xs text-slate-500"
+        className="tabular relative shrink-0 text-xs text-slate-500 dark:text-slate-400"
         style={{ width: `calc(${axisChars}ch + 0.75rem)` }}
         aria-hidden="true"
       >
@@ -198,7 +198,7 @@ function VerticalBars({ items, height, formatValue, formatTick, activeIndex, get
                   {index === maxIndex && !isActive ? (
                     <span
                       className={cn(
-                        'tabular pointer-events-none absolute whitespace-nowrap text-xs font-medium leading-4 text-slate-700',
+                        'tabular pointer-events-none absolute whitespace-nowrap text-xs font-medium leading-4 text-slate-700 dark:text-slate-300',
                         count > 1 && index === count - 1 ? 'right-0' : 'left-1/2 -translate-x-1/2',
                       )}
                       style={{ bottom: `calc(${percent}% + 4px)` }}
@@ -300,7 +300,7 @@ function HorizontalBars({ items, formatValue, formatTick, activeIndex, getPointP
                 }}
               />
               {showTip ? (
-                <span className="tabular relative ml-2 shrink-0 whitespace-nowrap font-medium text-slate-700">
+                <span className="tabular relative ml-2 shrink-0 whitespace-nowrap font-medium text-slate-700 dark:text-slate-300">
                   {formattedValues[index]}
                 </span>
               ) : null}
@@ -315,7 +315,7 @@ function HorizontalBars({ items, formatValue, formatTick, activeIndex, getPointP
       {!labelEveryBar ? (
         <div className={ROW_GRID} aria-hidden="true">
           <span />
-          <div className="tabular relative h-6 text-xs text-slate-500">
+          <div className="tabular relative h-6 text-xs text-slate-500 dark:text-slate-400">
             {scale.ticks.map((tick, index) => (
               <span
                 key={tick}
@@ -334,10 +334,10 @@ function HorizontalBars({ items, formatValue, formatTick, activeIndex, getPointP
 
 function ChartDataTable({ id, items, formatValue, caption, labelHeader, valueHeader }) {
   return (
-    <div id={id} className="scrollbar-thin mt-2 overflow-x-auto rounded-lg border border-slate-200">
+    <div id={id} className="scrollbar-thin mt-2 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
       <table className="min-w-full text-sm">
         <caption className="sr-only">{caption}</caption>
-        <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-400">
           <tr>
             <th scope="col" className="px-3 py-2 text-left font-semibold">
               {labelHeader}
@@ -347,13 +347,13 @@ function ChartDataTable({ id, items, formatValue, caption, labelHeader, valueHea
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {items.map((item) => (
             <tr key={item.key}>
-              <th scope="row" className="px-3 py-2 text-left font-normal text-slate-700">
+              <th scope="row" className="px-3 py-2 text-left font-normal text-slate-700 dark:text-slate-300">
                 {item.label}
               </th>
-              <td className="tabular px-3 py-2 text-right font-medium text-slate-900">
+              <td className="tabular px-3 py-2 text-right font-medium text-slate-900 dark:text-slate-100">
                 {formatValue(item.value)}
               </td>
             </tr>
@@ -481,7 +481,7 @@ export function BarChart({
           aria-expanded={showTable}
           aria-controls={tableId}
           onClick={() => setShowTable((open) => !open)}
-          className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
         >
           {showTable ? 'Hide table' : 'View as table'}
           <ChevronDown

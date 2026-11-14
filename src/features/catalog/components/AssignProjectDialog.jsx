@@ -106,15 +106,15 @@ export function AssignProjectDialog({ open, onClose, assignment }) {
         {actionError ? <StatusBanner variant="error">{actionError}</StatusBanner> : null}
 
         {/* Student Enrollment Card */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3 dark:border-slate-800 dark:bg-slate-800/60">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700 font-bold">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700 font-bold dark:bg-brand-950/60 dark:text-brand-300">
                 {assignment.student?.name ? assignment.student.name.charAt(0).toUpperCase() : <User className="h-5 w-5" />}
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">{assignment.student?.name}</h4>
-                <p className="text-xs text-slate-500">{assignment.student?.email}</p>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">{assignment.student?.name}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{assignment.student?.email}</p>
               </div>
             </div>
 
@@ -131,16 +131,16 @@ export function AssignProjectDialog({ open, onClose, assignment }) {
             </div>
           </div>
 
-          <div className="text-xs text-slate-600 bg-white rounded-lg p-2.5 border border-slate-200/80 flex items-center justify-between">
+          <div className="text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
             <span>
               Internship Role: <strong>Trainee Software Engineer</strong>
             </span>
             <span>
               Current Status:{' '}
               {isAssigned ? (
-                <strong className="text-emerald-700">Assigned ({assignment.project?.title})</strong>
+                <strong className="text-emerald-700 dark:text-emerald-400">Assigned ({assignment.project?.title})</strong>
               ) : (
-                <strong className="text-amber-700">Pending Allocation</strong>
+                <strong className="text-amber-700 dark:text-amber-400">Pending Allocation</strong>
               )}
             </span>
           </div>
@@ -150,27 +150,27 @@ export function AssignProjectDialog({ open, onClose, assignment }) {
         <div>
           <div className="flex items-center justify-between pb-2">
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <FolderGit2 className="h-4 w-4 text-brand-600" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <FolderGit2 className="h-4 w-4 text-brand-600 dark:text-brand-400" />
                 Available Projects for {assignment.domain?.name} Domain ({domainProjects.length})
               </h4>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Only projects registered under the <strong>{assignment.domain?.name}</strong> domain are eligible.
               </p>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="py-8 text-center text-xs text-slate-500">
+            <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
               Loading available domain projects...
             </div>
           ) : domainProjects.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center bg-white space-y-2">
+            <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900 space-y-2">
               <Layers className="h-8 w-8 text-slate-400 mx-auto" />
-              <p className="text-sm font-semibold text-slate-800">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                 No published projects found for {assignment.domain?.name}
               </p>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 Create a project under the {assignment.domain?.name} domain in the Projects tab before assigning.
               </p>
             </div>
@@ -191,8 +191,8 @@ export function AssignProjectDialog({ open, onClose, assignment }) {
                     onClick={() => setSelectedProjectId(p._id)}
                     className={`cursor-pointer rounded-xl border p-3.5 transition-all duration-150 ${
                       isSelected
-                        ? 'border-brand-500 bg-brand-50/50 shadow-sm ring-2 ring-brand-400/30'
-                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
+                        ? 'border-brand-500 bg-brand-50/50 shadow-sm ring-2 ring-brand-400/30 dark:bg-brand-950/40 dark:border-brand-500'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700 dark:hover:bg-slate-800/50'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -204,7 +204,7 @@ export function AssignProjectDialog({ open, onClose, assignment }) {
                           onChange={() => setSelectedProjectId(p._id)}
                           className="h-4 w-4 text-brand-600 focus:ring-brand-500"
                         />
-                        <span className="text-sm font-bold text-slate-900">{p.title}</span>
+                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{p.title}</span>
                       </div>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {p.isDefault ? (
@@ -221,35 +221,35 @@ export function AssignProjectDialog({ open, onClose, assignment }) {
                     </div>
 
                     {p.description ? (
-                      <p className="mt-1.5 text-xs text-slate-600 ml-6 leading-relaxed">
+                      <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 ml-6 leading-relaxed">
                         {p.description}
                       </p>
                     ) : null}
 
                     {/* Track-Specific Tech Stack Breakdown */}
                     <div className="mt-2.5 ml-6 grid gap-2 sm:grid-cols-2 text-[11px]">
-                      <div className={`rounded-lg border p-2 ${isWebTrack ? 'border-sky-300 bg-sky-50/70' : 'border-slate-200 bg-slate-50'}`}>
-                        <div className="flex items-center justify-between font-semibold text-slate-700">
+                      <div className={`rounded-lg border p-2 ${isWebTrack ? 'border-sky-300 bg-sky-50/70 dark:border-sky-900/60 dark:bg-sky-950/40' : 'border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/60'}`}>
+                        <div className="flex items-center justify-between font-semibold text-slate-700 dark:text-slate-300">
                           <span className="flex items-center gap-1">
-                            <Code2 className="h-3 w-3 text-sky-600" />
+                            <Code2 className="h-3 w-3 text-sky-600 dark:text-sky-400" />
                             Web Track Stack
                           </span>
                           {isWebTrack ? <Badge variant="brand" size="xs">Student Track</Badge> : null}
                         </div>
-                        <p className="mt-1 text-slate-600 font-mono text-[10px]">
+                        <p className="mt-1 text-slate-600 dark:text-slate-400 font-mono text-[10px]">
                           {webStack.length > 0 ? webStack.join(', ') : 'React, TypeScript, CSS'}
                         </p>
                       </div>
 
-                      <div className={`rounded-lg border p-2 ${!isWebTrack ? 'border-indigo-300 bg-indigo-50/70' : 'border-slate-200 bg-slate-50'}`}>
-                        <div className="flex items-center justify-between font-semibold text-slate-700">
+                      <div className={`rounded-lg border p-2 ${!isWebTrack ? 'border-indigo-300 bg-indigo-50/70 dark:border-indigo-900/60 dark:bg-indigo-950/40' : 'border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/60'}`}>
+                        <div className="flex items-center justify-between font-semibold text-slate-700 dark:text-slate-300">
                           <span className="flex items-center gap-1">
-                            <Smartphone className="h-3 w-3 text-indigo-600" />
+                            <Smartphone className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
                             App Track Stack
                           </span>
                           {!isWebTrack ? <Badge variant="brand" size="xs">Student Track</Badge> : null}
                         </div>
-                        <p className="mt-1 text-slate-600 font-mono text-[10px]">
+                        <p className="mt-1 text-slate-600 dark:text-slate-400 font-mono text-[10px]">
                           {appStack.length > 0 ? appStack.join(', ') : 'React Native / Flutter'}
                         </p>
                       </div>
@@ -262,7 +262,7 @@ export function AssignProjectDialog({ open, onClose, assignment }) {
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
           <div>
             {isAssigned ? (
               <Button

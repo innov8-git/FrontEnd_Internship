@@ -91,17 +91,17 @@ function FactsList({ facts }) {
       {facts.map(({ icon: Icon, label, value }) => (
         <div
           key={label}
-          className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-white/80 p-4 shadow-card backdrop-blur"
+          className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-white/80 p-4 shadow-card backdrop-blur dark:border-slate-800 dark:bg-slate-900/80"
         >
           <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-950/60 dark:text-brand-400"
             aria-hidden="true"
           >
             <Icon className="h-4 w-4" />
           </span>
           <div className="min-w-0">
-            <dt className="text-xs font-medium text-slate-500">{label}</dt>
-            <dd className="mt-0.5 text-sm font-semibold text-slate-900">{value}</dd>
+            <dt className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</dt>
+            <dd className="mt-0.5 text-sm font-semibold text-slate-900 dark:text-slate-100">{value}</dd>
           </div>
         </div>
       ))}
@@ -245,8 +245,8 @@ export function DesignationDetailPage() {
   }
 
   return (
-    <div className="bg-slate-50">
-      <section className="relative isolate overflow-hidden border-b border-slate-200 bg-gradient-to-b from-brand-50/80 to-white">
+    <div className="bg-slate-50 dark:bg-slate-950">
+      <section className="relative isolate overflow-hidden border-b border-slate-200 bg-gradient-to-b from-brand-50/80 to-white dark:border-slate-800 dark:from-slate-900 dark:to-slate-950">
         <div
           className={cn('bg-grid pointer-events-none absolute inset-0 -z-10', HERO_MASK)}
           aria-hidden="true"
@@ -260,7 +260,7 @@ export function DesignationDetailPage() {
                 title={designation.name}
                 description={
                   designation.description ? (
-                    <p className="text-base leading-relaxed text-slate-600">
+                    <p className="text-base leading-relaxed text-slate-600 dark:text-slate-300">
                       {designation.description}
                     </p>
                   ) : null
@@ -271,7 +271,7 @@ export function DesignationDetailPage() {
                 onStartAssessment={() => setDomainModalOpen(true)}
                 className="mt-6"
               />
-              <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
+              <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600 dark:text-slate-400">
                 <span>Enrolling with friends?</span>
                 <JoinTeamButton
                   designationId={designation._id}
@@ -279,7 +279,7 @@ export function DesignationDetailPage() {
                   size="sm"
                   className="min-h-[2.5rem]"
                 />
-                <span className="text-slate-500">Teams pay the full plan price.</span>
+                <span className="text-slate-500 dark:text-slate-400">Teams pay the full plan price.</span>
               </p>
             </div>
             <span
@@ -302,10 +302,10 @@ export function DesignationDetailPage() {
       <div className="container-page grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <section aria-labelledby="plans-heading" className="min-w-0 space-y-4">
           <div>
-            <h2 id="plans-heading" className="text-lg font-semibold text-slate-900">
+            <h2 id="plans-heading" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               Plans and pricing
             </h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               These are base prices. Individuals can lower theirs with a merit discount from the
               assessment; teams pay the base price. You choose your plan after the assessment.
             </p>

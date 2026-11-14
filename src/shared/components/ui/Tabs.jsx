@@ -88,10 +88,10 @@ export function Tabs({
         className={cn(
           'scrollbar-thin overflow-x-auto',
           isPills
-            ? cn('max-w-full gap-1 rounded-lg bg-slate-100 p-1', fullWidth ? 'flex w-full' : 'inline-flex')
+            ? cn('max-w-full gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800', fullWidth ? 'flex w-full' : 'inline-flex')
             : // The 1px baseline is an inset shadow so the active 2px bar can sit on top of it
               // without overflowing the horizontal scroll container.
-              cn('flex shadow-[inset_0_-1px_0_0_#e2e8f0]', fullWidth ? 'gap-2' : 'gap-6'),
+              cn('flex shadow-[inset_0_-1px_0_0_#e2e8f0] dark:shadow-[inset_0_-1px_0_0_#1e293b]', fullWidth ? 'gap-2' : 'gap-6'),
         )}
       >
         {items.map((item, index) => {
@@ -118,14 +118,14 @@ export function Tabs({
                   ? cn(
                       'rounded-md px-3 py-2 focus-visible:ring-2 focus-visible:ring-brand-500',
                       isActive
-                        ? 'bg-white text-slate-900 shadow-sm'
-                        : 'text-slate-600 enabled:hover:text-slate-900',
+                        ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100'
+                        : 'text-slate-600 enabled:hover:text-slate-900 dark:text-slate-400 dark:enabled:hover:text-slate-200',
                     )
                   : cn(
                       'rounded-t-md border-b-2 px-1 pb-3 pt-2 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500',
                       isActive
-                        ? 'border-brand-600 text-brand-700'
-                        : 'border-transparent text-slate-500 enabled:hover:border-slate-300 enabled:hover:text-slate-700',
+                        ? 'border-brand-600 text-brand-700 dark:border-brand-400 dark:text-brand-300'
+                        : 'border-transparent text-slate-500 enabled:hover:border-slate-300 enabled:hover:text-slate-700 dark:text-slate-400 dark:enabled:hover:border-slate-700 dark:enabled:hover:text-slate-300',
                     ),
                 fullWidth && 'flex-1',
               )}
@@ -137,10 +137,10 @@ export function Tabs({
                   className={cn(
                     'tabular rounded-full px-2 py-0.5 text-xs font-medium',
                     isActive
-                      ? 'bg-brand-50 text-brand-700'
+                      ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300'
                       : isPills
-                        ? 'bg-slate-200/70 text-slate-600'
-                        : 'bg-slate-100 text-slate-600',
+                        ? 'bg-slate-200/70 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
                   )}
                 >
                   {item.count}

@@ -36,7 +36,7 @@ export function InternshipFilters({
       role="search"
       aria-label="Filter internships"
       className={cn(
-        'rounded-xl border border-slate-200 bg-white p-3 shadow-card sm:p-4',
+        'rounded-xl border border-slate-200 bg-white p-3 shadow-card sm:p-4 dark:border-slate-800 dark:bg-slate-900',
         className,
       )}
     >

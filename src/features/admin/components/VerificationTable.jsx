@@ -25,12 +25,12 @@ function ReasonCell({ payment }) {
   }
   if (payment.reason === ATTENTION_REASONS.PENDING) {
     return (
-      <span className="text-sm text-slate-600">
-        Pending for <span className="tabular font-medium text-slate-900">{formatAge(payment.createdAt)}</span>
+      <span className="text-sm text-slate-600 dark:text-slate-400">
+        Pending for <span className="tabular font-medium text-slate-900 dark:text-slate-100">{formatAge(payment.createdAt)}</span>
       </span>
     );
   }
-  return <span className="text-sm text-slate-600">Failed {formatRelativeTime(payment.updatedAt ?? payment.createdAt)}</span>;
+  return <span className="text-sm text-slate-600 dark:text-slate-400">Failed {formatRelativeTime(payment.updatedAt ?? payment.createdAt)}</span>;
 }
 
 /**
@@ -47,7 +47,7 @@ export function VerificationTable({ items, totals, isLoading, error, onRetry, cl
         key: 'orderId',
         header: 'Order',
         cell: (payment) => (
-          <span className="font-mono text-xs text-slate-900">{payment.orderId || '—'}</span>
+          <span className="font-mono text-xs text-slate-900 dark:text-slate-100">{payment.orderId || '—'}</span>
         ),
       },
       {
@@ -60,7 +60,7 @@ export function VerificationTable({ items, totals, isLoading, error, onRetry, cl
         header: 'Amount',
         align: 'right',
         cell: (payment) => (
-          <span className="tabular font-medium text-slate-900">
+          <span className="tabular font-medium text-slate-900 dark:text-slate-100">
             {formatMoney(payment.amount, payment.currency)}
           </span>
         ),

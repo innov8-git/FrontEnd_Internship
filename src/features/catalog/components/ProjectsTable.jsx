@@ -49,15 +49,15 @@ export function ProjectsTable({
           return (
             <div className="space-y-1">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-semibold text-slate-900">{row.title}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">{row.title}</span>
                 {row.isDefault ? (
                   <Badge variant="warning" size="sm" icon={Star}>
                     Default
                   </Badge>
                 ) : null}
               </div>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[11px] text-slate-600">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[11px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   {row.slug}
                 </code>
               </div>
@@ -66,13 +66,13 @@ export function ProjectsTable({
                   {techList.slice(0, 4).map((tech) => (
                     <span
                       key={tech}
-                      className="inline-block rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-medium text-slate-600"
+                      className="inline-block rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                     >
                       {tech}
                     </span>
                   ))}
                   {techList.length > 4 ? (
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
                       +{techList.length - 4} more
                     </span>
                   ) : null}
@@ -96,7 +96,7 @@ export function ProjectsTable({
         header: 'Tracks & Role',
         cell: () => (
           <div className="space-y-0.5">
-            <span className="text-xs font-semibold text-slate-800 block">
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
               Trainee Software Engineer
             </span>
             <Badge variant="brand" size="sm" icon={Sparkles}>
@@ -117,7 +117,7 @@ export function ProjectsTable({
               {durations.map((m) => (
                 <span
                   key={m}
-                  className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-medium text-slate-700"
+                  className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300"
                 >
                   {m}m
                 </span>
@@ -135,7 +135,7 @@ export function ProjectsTable({
         key: 'updatedAt',
         header: 'Updated',
         cell: (row) => (
-          <span className="text-xs text-slate-500 whitespace-nowrap">
+          <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
             {row.updatedAt ? formatDate(row.updatedAt) : '—'}
           </span>
         ),

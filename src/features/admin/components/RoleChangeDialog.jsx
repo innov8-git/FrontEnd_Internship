@@ -110,19 +110,19 @@ export function RoleChangeDialog({ user, currentUserId, onClose, onSaved }) {
           ) : null}
         </fieldset>
 
-        <dl className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm sm:grid-cols-[7rem_minmax(0,1fr)] sm:items-center">
-          <dt className="text-slate-500">Now</dt>
+        <dl className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm sm:grid-cols-[7rem_minmax(0,1fr)] sm:items-center dark:border-slate-800 dark:bg-slate-800/60">
+          <dt className="text-slate-500 dark:text-slate-400">Now</dt>
           <dd>
             <RoleBadges roles={currentRoles} />
           </dd>
-          <dt className="text-slate-500">After saving</dt>
+          <dt className="text-slate-500 dark:text-slate-400">After saving</dt>
           <dd className="flex flex-wrap items-center gap-2">
             {isEmpty ? (
-              <span className="font-medium text-rose-700">No roles</span>
+              <span className="font-medium text-rose-700 dark:text-rose-400">No roles</span>
             ) : (
               <RoleBadges roles={nextRoles} />
             )}
-            {!isChanged ? <span className="text-xs text-slate-500">(no change)</span> : null}
+            {!isChanged ? <span className="text-xs text-slate-500 dark:text-slate-400">(no change)</span> : null}
           </dd>
         </dl>
       </div>

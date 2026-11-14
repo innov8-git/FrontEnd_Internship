@@ -115,34 +115,34 @@ export function ChangeTrainerDialog({ student, open, onClose }) {
     >
       <div className="space-y-4">
         {/* Student summary card */}
-        <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+        <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/60">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300">
             <GraduationCap className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-900">{student.name}</p>
-            <p className="truncate text-xs text-slate-500">{student.email}</p>
+            <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{student.name}</p>
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">{student.email}</p>
           </div>
         </div>
 
         {/* Current trainer status card */}
-        <div className="rounded-lg border border-slate-200 p-3 text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+        <div className="rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
             Current Assigned Trainer
           </p>
           {isAssigned ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <UserCog className="h-4 w-4 text-brand-600" />
-                <span className="font-medium text-slate-900">{currentTrainer.name}</span>
-                <span className="text-xs text-slate-500">({currentTrainer.email})</span>
+                <UserCog className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                <span className="font-medium text-slate-900 dark:text-slate-100">{currentTrainer.name}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">({currentTrainer.email})</span>
               </div>
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
                 Assigned
               </span>
             </div>
           ) : (
-            <p className="text-slate-500 italic">No trainer is currently assigned to this student.</p>
+            <p className="text-slate-500 dark:text-slate-400 italic">No trainer is currently assigned to this student.</p>
           )}
         </div>
 
@@ -160,7 +160,7 @@ export function ChangeTrainerDialog({ student, open, onClose }) {
             }}
           />
           {isAssigned && selectedTrainerId === currentAssignment?.trainerId && (
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               This trainer is currently assigned. Select another trainer to change.
             </p>
           )}

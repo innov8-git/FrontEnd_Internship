@@ -58,52 +58,52 @@ export function TrainerResumeModal({ trainer, open, onClose }) {
     >
       <div className="space-y-4">
         {/* Trainer Profile Highlights */}
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-            <User className="h-4 w-4 text-brand-600" />
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3 dark:border-slate-800 dark:bg-slate-800/60">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+            <User className="h-4 w-4 text-brand-600 dark:text-brand-400" />
             <span>Professional Details</span>
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-xs text-slate-500">Domain Expertise</p>
-              <p className="font-medium text-slate-800">{profile?.domain || 'Full Stack Web Development'}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Domain Expertise</p>
+              <p className="font-medium text-slate-800 dark:text-slate-200">{profile?.domain || 'Full Stack Web Development'}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Total Experience</p>
-              <p className="font-medium text-slate-800">{profile?.experience || '5+ years'}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Total Experience</p>
+              <p className="font-medium text-slate-800 dark:text-slate-200">{profile?.experience || '5+ years'}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Current / Prior Org</p>
-              <p className="font-medium text-slate-800">{profile?.organization || 'Infosys'}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Current / Prior Org</p>
+              <p className="font-medium text-slate-800 dark:text-slate-200">{profile?.organization || 'Infosys'}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">LinkedIn Profile</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">LinkedIn Profile</p>
               {profile?.linkedinUrl ? (
                 <a
                   href={profile.linkedinUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-brand-600 hover:underline"
+                  className="inline-flex items-center gap-1 text-brand-600 hover:underline dark:text-brand-400"
                 >
                   <span>View LinkedIn</span>
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               ) : (
-                <span className="text-slate-400">Not provided</span>
+                <span className="text-slate-400 dark:text-slate-500">Not provided</span>
               )}
             </div>
           </div>
         </div>
 
         {/* Uploaded Resume File Card */}
-        <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4 transition-colors hover:border-slate-300">
+        <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4 transition-colors hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-900">{resumeName}</p>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{resumeName}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 PDF Document · {resumeSize} · Verified upload
               </p>
             </div>

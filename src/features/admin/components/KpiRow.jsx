@@ -30,9 +30,9 @@ function MoneyValue({ paise, currency }) {
 }
 
 const MINI_TONES = {
-  warning: 'bg-amber-50 text-amber-600',
-  danger: 'bg-rose-50 text-rose-600',
-  brand: 'bg-brand-50 text-brand-600',
+  warning: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+  danger: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+  brand: 'bg-brand-50 text-brand-600 dark:bg-brand-950/60 dark:text-brand-400',
 };
 
 /** Smaller linked tile for the second row: a count that opens the matching filtered list. */
@@ -42,7 +42,7 @@ function MiniStat({ label, value, icon: Icon, tone = 'warning', to, loading }) {
     <span
       className={cn(
         'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9',
-        amount > 0 ? MINI_TONES[tone] : 'bg-slate-100 text-slate-500',
+        amount > 0 ? MINI_TONES[tone] : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
       )}
       aria-hidden="true"
     >
@@ -53,13 +53,13 @@ function MiniStat({ label, value, icon: Icon, tone = 'warning', to, loading }) {
   if (loading) {
     return (
       <div
-        className="flex h-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card"
+        className="flex h-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card dark:border-slate-800 dark:bg-slate-900"
         aria-busy="true"
       >
         {chip}
         <span className="min-w-0 flex-1">
-          <span className="block h-6 w-10 animate-pulse rounded bg-slate-200" aria-hidden="true" />
-          <span className="mt-1 block text-xs font-medium text-slate-500 sm:text-sm">{label}</span>
+          <span className="block h-6 w-10 animate-pulse rounded bg-slate-200 dark:bg-slate-700" aria-hidden="true" />
+          <span className="mt-1 block text-xs font-medium text-slate-500 dark:text-slate-400 sm:text-sm">{label}</span>
         </span>
       </div>
     );
@@ -68,17 +68,17 @@ function MiniStat({ label, value, icon: Icon, tone = 'warning', to, loading }) {
   return (
     <Link
       to={to}
-      className="group flex h-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card transition duration-150 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+      className="group flex h-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card transition duration-150 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
     >
       {chip}
       <span className="min-w-0 flex-1">
-        <span className="block text-xl font-semibold tracking-tight text-slate-900">
+        <span className="block text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
           {formatNumber(amount)}
         </span>
-        <span className="block text-xs font-medium text-slate-500 sm:text-sm">{label}</span>
+        <span className="block text-xs font-medium text-slate-500 dark:text-slate-400 sm:text-sm">{label}</span>
       </span>
       <ArrowUpRight
-        className="hidden h-4 w-4 shrink-0 text-slate-300 transition-colors duration-150 group-hover:text-slate-500 group-focus-visible:text-slate-500 sm:block"
+        className="hidden h-4 w-4 shrink-0 text-slate-300 transition-colors duration-150 group-hover:text-slate-500 group-focus-visible:text-slate-500 dark:text-slate-600 dark:group-hover:text-slate-400 sm:block"
         aria-hidden="true"
       />
     </Link>

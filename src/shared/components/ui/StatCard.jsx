@@ -4,11 +4,11 @@ import { cn } from '@/shared/utils/cn';
 
 // Tone only tints the icon chip; the value and label always use text colours.
 const TONES = {
-  default: 'bg-slate-100 text-slate-600',
-  brand: 'bg-brand-50 text-brand-600',
-  success: 'bg-emerald-50 text-emerald-600',
-  warning: 'bg-amber-50 text-amber-600',
-  danger: 'bg-rose-50 text-rose-600',
+  default: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  brand: 'bg-brand-50 text-brand-600 dark:bg-brand-950/60 dark:text-brand-400',
+  success: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
+  warning: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+  danger: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
 };
 
 const DIRECTION_TEXT = { up: 'Up', down: 'Down', flat: 'No change' };
@@ -76,20 +76,20 @@ export function StatCard({
     <Root
       {...linkProps}
       className={cn(
-        'group relative block min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-card',
+        'group relative block min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900',
         isLink &&
-          'transition duration-150 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
+          'transition duration-150 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:hover:border-slate-700',
         className,
       )}
       aria-busy={loading || undefined}
       {...rest}
     >
       <div className="flex items-start justify-between gap-3">
-        <p className="min-w-0 text-sm font-medium text-slate-500">
+        <p className="min-w-0 text-sm font-medium text-slate-500 dark:text-slate-400">
           {label}
           {isLink ? (
             <ArrowUpRight
-              className="ml-1 inline-block h-3.5 w-3.5 align-[-2px] text-slate-400 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+              className="ml-1 inline-block h-3.5 w-3.5 align-[-2px] text-slate-400 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-slate-500"
               aria-hidden="true"
             />
           ) : null}
@@ -99,13 +99,13 @@ export function StatCard({
 
       {loading ? (
         <>
-          <div className="mt-2 h-8 w-24 animate-pulse rounded-md bg-slate-200 sm:h-9" aria-hidden="true" />
-          <div className="mt-3 h-4 w-32 animate-pulse rounded bg-slate-100" aria-hidden="true" />
+          <div className="mt-2 h-8 w-24 animate-pulse rounded-md bg-slate-200 sm:h-9 dark:bg-slate-700" aria-hidden="true" />
+          <div className="mt-3 h-4 w-32 animate-pulse rounded bg-slate-100 dark:bg-slate-800" aria-hidden="true" />
           <span className="sr-only">Loading</span>
         </>
       ) : (
         <>
-          <div className="mt-2 break-words text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+          <div className="mt-2 break-words text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
             {value ?? '—'}
           </div>
           {hint ? <div className="mt-1 text-sm text-slate-500">{hint}</div> : null}

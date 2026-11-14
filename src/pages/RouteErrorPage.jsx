@@ -18,7 +18,7 @@ const BUTTON_BASE =
 const BUTTON_PRIMARY = cn(BUTTON_BASE, 'bg-brand-600 text-white shadow-sm hover:bg-brand-700');
 const BUTTON_OUTLINE = cn(
   BUTTON_BASE,
-  'border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900',
+  'border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white',
 );
 
 function getErrorKind(error) {
@@ -82,13 +82,13 @@ export function RouteErrorPage() {
   useDocumentTitle(content.title);
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
       <main
         id="main-content"
         className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6"
       >
-        <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-card sm:p-10">
-          <p className="text-sm font-semibold text-slate-900">{APP_NAME}</p>
+        <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-card sm:p-10 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{APP_NAME}</p>
           <span
             className={cn(
               'mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-full',
@@ -98,10 +98,10 @@ export function RouteErrorPage() {
             <Icon className="h-6 w-6" aria-hidden="true" />
           </span>
           <p className="eyebrow mt-6">{content.eyebrow}</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             {content.title}
           </h1>
-          <p className="mt-3 text-sm text-slate-600">{content.message}</p>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">{content.message}</p>
 
           <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
             {kind === 'not-found' ? (

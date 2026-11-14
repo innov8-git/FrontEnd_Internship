@@ -53,7 +53,7 @@ function DiffValue({ value, present, fieldKey }) {
         {value.map((item, index) => (
           <code
             key={index}
-            className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800"
+            className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-200"
           >
             {String(item)}
           </code>
@@ -62,7 +62,7 @@ function DiffValue({ value, present, fieldKey }) {
     );
   }
   return (
-    <pre className="scrollbar-thin max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-md bg-slate-50 p-2 font-mono text-xs text-slate-700">
+    <pre className="scrollbar-thin max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-md bg-slate-50 p-2 font-mono text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300">
       {JSON.stringify(value, null, 2)}
     </pre>
   );
@@ -73,8 +73,8 @@ function ValueCell({ label, value, present, fieldKey, tone }) {
     <div
       className={cn(
         'min-w-0 rounded-md',
-        tone === 'before' && 'bg-rose-50/70 px-2 py-1.5 ring-1 ring-inset ring-rose-200/70',
-        tone === 'after' && 'bg-emerald-50/70 px-2 py-1.5 ring-1 ring-inset ring-emerald-200/70',
+        tone === 'before' && 'bg-rose-50/70 px-2 py-1.5 ring-1 ring-inset ring-rose-200/70 dark:bg-rose-950/40 dark:ring-rose-900/60',
+        tone === 'after' && 'bg-emerald-50/70 px-2 py-1.5 ring-1 ring-inset ring-emerald-200/70 dark:bg-emerald-950/40 dark:ring-emerald-900/60',
       )}
     >
       <span className="mb-1 block text-xs font-medium text-slate-500 md:sr-only">{label}</span>
@@ -118,16 +118,16 @@ export function AuditDiff({ before, after, className }) {
         ) : null}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200">
+      <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
         <div
-          className="hidden grid-cols-[minmax(7rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid"
+          className="hidden grid-cols-[minmax(7rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-400 md:grid"
           aria-hidden="true"
         >
           <span>Field</span>
           <span>Before</span>
           <span>After</span>
         </div>
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {visibleRows.map((row) => {
             const badge = CHANGE_BADGE[row.change];
             const isChanged = row.change === 'changed';
@@ -136,7 +136,7 @@ export function AuditDiff({ before, after, className }) {
                 key={row.key}
                 className={cn(
                   'grid gap-2 px-4 py-3 md:grid-cols-[minmax(7rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] md:gap-4',
-                  badge && 'bg-amber-50/40',
+                  badge && 'bg-amber-50/40 dark:bg-amber-950/20',
                 )}
               >
                 <div className="flex min-w-0 flex-wrap items-start gap-2">
