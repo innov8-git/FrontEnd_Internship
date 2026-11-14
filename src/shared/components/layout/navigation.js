@@ -4,7 +4,6 @@ import {
   Briefcase,
   Building2,
   CalendarDays,
-  ClipboardCheck,
   ClipboardList,
   CreditCard,
   FolderGit2,
@@ -129,7 +128,6 @@ export function getAdminNavigation() {
         { label: 'Project assignments', to: ROUTES.ADMIN_PROJECT_ASSIGNMENTS, icon: UserCheck },
         { label: 'Designations', to: ROUTES.ADMIN_DESIGNATIONS, icon: Briefcase },
         { label: 'Plans & pricing', to: ROUTES.ADMIN_PLANS, icon: IndianRupee },
-        { label: 'Assessments', to: ROUTES.ADMIN_ASSESSMENTS, icon: ClipboardCheck },
       ],
     },
     {

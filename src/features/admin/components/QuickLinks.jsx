@@ -4,7 +4,6 @@ import {
   Briefcase,
   Building2,
   CalendarDays,
-  ClipboardCheck,
   IndianRupee,
   UserCog,
 } from '@/shared/icons';
@@ -29,12 +28,6 @@ const LINKS = [
     description: 'Durations and base prices',
     to: ROUTES.ADMIN_PLANS,
     icon: IndianRupee,
-  },
-  {
-    label: 'Assessments',
-    description: 'Questions and discount slabs',
-    to: ROUTES.ADMIN_ASSESSMENTS,
-    icon: ClipboardCheck,
   },
   {
     label: 'Schedules',
