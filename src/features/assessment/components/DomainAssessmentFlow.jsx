@@ -39,7 +39,7 @@ const BASE_PLATFORM_FEE = 1999;
  * - 8–9/15: 5% concession
  * - <8/15: 0% concession (Standard charge)
  */
-export function calculatePlatformConcession(score) {
+function calculatePlatformConcession(score) {
   if (score === 15) {
     return {
       percent: 20,
