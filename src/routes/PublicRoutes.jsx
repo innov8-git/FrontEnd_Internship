@@ -3,6 +3,7 @@ import CatalogWorkspaceLayout from './CatalogWorkspaceLayout';
 import {
   CatalogPage,
   DesignationDetailPage,
+  DomainAssessmentPage,
   ForbiddenPage,
   HomePage,
   NotFoundPage,
@@ -26,6 +27,7 @@ export const publicRoutes = {
       element: <Layout />,
       children: [
         { index: true, element: <HomePage /> },
+        { path: 'domain-assessment', element: <DomainAssessmentPage /> },
         { path: 'terms', element: <TermsPage /> },
         { path: 'verify', element: <VerifyCertificatePage /> },
         { path: 'verify/:number', element: <VerifyCertificatePage /> },

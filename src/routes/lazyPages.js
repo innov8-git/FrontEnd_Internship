@@ -30,6 +30,9 @@ export const AssessmentPage = lazy(() => import('@/features/assessment/pages/Ass
 export const AssessmentResultPage = lazy(
   () => import('@/features/assessment/pages/AssessmentResultPage'),
 );
+export const DomainAssessmentPage = lazy(
+  () => import('@/features/assessment/pages/DomainAssessmentPage'),
+);
 
 // Enrollment, terms and payment (SN8, SN9, SN13)
 export const EnrollPage = lazy(() => import('@/features/enrollment/pages/EnrollPage'));
