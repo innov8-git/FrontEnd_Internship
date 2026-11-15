@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useContext, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/shared/components/ui';
-import { ROUTES } from '@/shared/constants';
+import { AuthContext } from '@/shared/context/AuthContext';
+import { ROUTES, paths } from '@/shared/constants';
 import {
   ArrowRight,
   Building2,
@@ -33,6 +34,11 @@ export function FeaturedInternships({
   const [activePartnerModal, setActivePartnerModal] = useState(null);
   const [activeRoleModal, setActiveRoleModal] = useState(null);
   const [modalInitialTab, setModalInitialTab] = useState('details');
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const auth = useContext(AuthContext);
+  const isAuthenticated = auth?.isAuthenticated ?? false;
 
   // Flatten partner companies into independent position cards (Web Development & App Development)
   // Ordered with Web Development roles across all companies, followed by App Development roles
@@ -94,6 +100,10 @@ export function FeaturedInternships({
   };
 
   const handleApply = (partner, role = null) => {
+    if (auth && !isAuthenticated) {
+      navigate(paths.login(location.pathname === '/' ? ROUTES.CATALOG : location.pathname + location.search));
+      return;
+    }
     setActivePartnerModal(partner);
     setActiveRoleModal(role || partner.roles?.[0] || partner.internship);
     setModalInitialTab('apply');
@@ -344,6 +354,7 @@ export function FeaturedInternships({
 
   return (
     <section
+      id="explore-internships"
       aria-labelledby="featured-heading"
       className={cn('bg-slate-50/70 py-16 sm:py-24 dark:bg-slate-950/60', className)}
     >

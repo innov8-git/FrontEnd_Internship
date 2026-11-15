@@ -33,7 +33,9 @@ export function setAccessToken(token) {
     try {
       if (token) localStorage.setItem(ACCESS_TOKEN_KEY, token);
       else localStorage.removeItem(ACCESS_TOKEN_KEY);
-    } catch {}
+    } catch {
+      // Storage unavailable or disabled
+    }
   }
 }
 
@@ -42,7 +44,9 @@ export function clearAccessToken() {
   if (typeof window !== 'undefined') {
     try {
       localStorage.removeItem(ACCESS_TOKEN_KEY);
-    } catch {}
+    } catch {
+      // Storage unavailable or disabled
+    }
   }
 }
 

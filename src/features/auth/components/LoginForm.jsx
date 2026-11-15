@@ -26,6 +26,7 @@ export function LoginForm({
   isPending = false,
   error = null,
   defaultEmail = '',
+  defaultPassword = '',
   forgotPasswordTo = ROUTES.FORGOT_PASSWORD,
   className,
 }) {
@@ -42,7 +43,7 @@ export function LoginForm({
   } = useForm({
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
-    defaultValues: { ...LOGIN_DEFAULTS, email: defaultEmail },
+    defaultValues: { ...LOGIN_DEFAULTS, email: defaultEmail, password: defaultPassword },
   });
 
   const showBanner = Boolean(error) && !hasKnownFieldErrors(error, LOGIN_FIELDS);

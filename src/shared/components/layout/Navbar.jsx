@@ -65,6 +65,15 @@ export function Navbar() {
   const isSignedIn = status === 'authenticated' && Boolean(user);
   const homeRoute = getHomeRoute(user);
 
+  // For unauthenticated users, direct "Internships" link to the internship cards on the home page
+  const navLinks = isSignedIn
+    ? PUBLIC_NAV_LINKS
+    : PUBLIC_NAV_LINKS.map((link) =>
+        link.to === ROUTES.CATALOG
+          ? { ...link, to: '/#explore-internships', anchor: true }
+          : link,
+      );
+
   return (
     <header className="sticky top-0 z-40 border-b border-gray-300/80 bg-gray-100/95 backdrop-blur transition-colors duration-200 dark:border-gray-800 dark:bg-gray-900/95">
       <div className="container-page flex h-16 items-center justify-between gap-4">
@@ -72,7 +81,7 @@ export function Navbar() {
           <Logo to={ROUTES.HOME} />
           <nav aria-label="Primary" className="hidden md:block">
             <ul role="list" className="flex items-center gap-7">
-              {PUBLIC_NAV_LINKS.map((link) => (
+              {navLinks.map((link) => (
                 <li key={link.label}>
                   <PublicNavLink link={link} />
                 </li>
@@ -143,7 +152,7 @@ export function Navbar() {
       <Drawer open={menuOpen} onClose={closeMenu} side="right" size="sm" title="Menu">
         <nav aria-label="Primary">
           <ul role="list" className="space-y-1">
-            {PUBLIC_NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <li key={link.label}>
                 <PublicNavLink link={link} mobile onNavigate={closeMenu} />
               </li>

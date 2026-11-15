@@ -68,7 +68,12 @@ export function getStudentNavigation({ teamId } = {}) {
       title: 'Account',
       items: [
         { label: 'Profile', to: ROUTES.PROFILE, icon: User },
-        { label: 'Browse internships', to: ROUTES.CATALOG, icon: Briefcase },
+        {
+          label: 'Browse internships',
+          to: ROUTES.CATALOG,
+          icon: Briefcase,
+          activePaths: [ROUTES.DESIGNATION],
+        },
       ],
     },
   ];
@@ -97,7 +102,12 @@ export function getTrainerNavigation({ pendingCount = 0 } = {}) {
       title: 'Account',
       items: [
         { label: 'Profile', to: ROUTES.PROFILE, icon: User },
-        { label: 'Browse internships', to: ROUTES.CATALOG, icon: Briefcase },
+        {
+          label: 'Browse internships',
+          to: ROUTES.CATALOG,
+          icon: Briefcase,
+          activePaths: [ROUTES.DESIGNATION],
+        },
       ],
     },
   ];

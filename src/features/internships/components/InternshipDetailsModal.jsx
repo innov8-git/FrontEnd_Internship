@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge, Button, Input, Modal } from '@/shared/components/ui';
+import { AuthContext } from '@/shared/context/AuthContext';
+import { ROUTES, paths } from '@/shared/constants';
 import {
   BadgeCheck,
   Check,
@@ -169,12 +172,16 @@ export function InternshipDetailsModal({
   onClose,
   initialTab = 'details',
 }) {
+  const auth = useContext(AuthContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [activeTab, setActiveTab] = useState(initialTab);
   const [selectedRole, setSelectedRole] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
+    fullName: auth?.user?.name || '',
+    email: auth?.user?.email || '',
     phone: '',
     college: '',
     selectedDomain: '',
@@ -183,6 +190,24 @@ export function InternshipDetailsModal({
     githubUrl: '',
     preferredTrack: 'web',
   });
+
+  const handleApplyTabClick = () => {
+    if (auth && !auth.isAuthenticated) {
+      navigate(paths.login(location.pathname === '/' ? ROUTES.CATALOG : location.pathname + location.search));
+      return;
+    }
+    setActiveTab('apply');
+  };
+
+  useEffect(() => {
+    if (auth?.user) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: prev.fullName || auth.user.name || '',
+        email: prev.email || auth.user.email || '',
+      }));
+    }
+  }, [auth]);
 
   // Sync state when modal opens or partner/initialRole changes
   useEffect(() => {
@@ -273,7 +298,7 @@ export function InternshipDetailsModal({
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('apply')}
+          onClick={handleApplyTabClick}
           className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
             activeTab === 'apply'
               ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
@@ -416,7 +441,7 @@ export function InternshipDetailsModal({
               <Button
                 variant="primary"
                 rightIcon={Send}
-                onClick={() => setActiveTab('apply')}
+                onClick={handleApplyTabClick}
               >
                 Apply for {currentRole.designation}
               </Button>
