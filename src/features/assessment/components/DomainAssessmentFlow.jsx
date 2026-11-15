@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Badge,
   Button,
@@ -11,20 +12,69 @@ import {
   ArrowRight,
   Award,
   BadgeCheck,
+  Building2,
   Check,
   CheckCircle2,
   Clock,
+  CreditCard,
   ListChecks,
   Percent,
   RefreshCw,
   Send,
   Sparkles,
+  Wallet,
   XCircle,
 } from '@/shared/icons';
+import { ROUTES } from '@/shared/constants';
 import { cn } from '@/shared/utils/cn';
 import { fetchAssessmentQuestionsByDomain } from '@/services/assessmentService';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+const BASE_PLATFORM_FEE = 1999;
+
+/**
+ * Calculates platform charge concession based on assessment score:
+ * - 15/15: 20% concession
+ * - 10–14/15: 10% concession
+ * - 8–9/15: 5% concession
+ * - <8/15: 0% concession (Standard charge)
+ */
+export function calculatePlatformConcession(score) {
+  if (score === 15) {
+    return {
+      percent: 20,
+      label: '20% Platform Fee Concession (Top Score 15/15)',
+      badge: '20% Concession',
+      tier: 'Top Tier Merit Concession',
+      variant: 'success',
+    };
+  }
+  if (score >= 10 && score <= 14) {
+    return {
+      percent: 10,
+      label: '10% Platform Fee Concession (Score 10–14/15)',
+      badge: '10% Concession',
+      tier: 'High Merit Concession',
+      variant: 'brand',
+    };
+  }
+  if (score >= 8 && score <= 9) {
+    return {
+      percent: 5,
+      label: '5% Platform Fee Concession (Score 8–9/15)',
+      badge: '5% Concession',
+      tier: 'Merit Concession',
+      variant: 'info',
+    };
+  }
+  return {
+    percent: 0,
+    label: 'Standard Platform Charges (Score below 8)',
+    badge: 'Standard Fee',
+    tier: 'General Qualifier',
+    variant: 'outline',
+  };
+}
 
 export function DomainAssessmentFlow({
   candidate = {},
@@ -34,15 +84,21 @@ export function DomainAssessmentFlow({
   onComplete,
   onClose,
 }) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [assessmentData, setAssessmentData] = useState(null);
   const [loadError, setLoadError] = useState(null);
 
-  // Phases: 'intro' | 'questions' | 'review' | 'result'
+  // Phases: 'intro' | 'questions' | 'review' | 'result' | 'demo_payment'
   const [phase, setPhase] = useState('intro');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [submittedScore, setSubmittedScore] = useState(null);
+
+  // Demo payment state
+  const [paymentMethod, setPaymentMethod] = useState('upi');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // Fetch domain questions dynamically from database / service
   useEffect(() => {
@@ -137,21 +193,64 @@ export function DomainAssessmentFlow({
     }
   };
 
-  // Calculate scholarship discount percentage based on score
-  const scholarshipTier = useMemo(() => {
-    if (submittedScore === null) return { percent: 0, label: 'Standard' };
-    const ratio = total > 0 ? submittedScore / total : 0;
-    if (ratio >= 0.8) {
-      return { percent: 30, label: '30% Merit Scholarship Unlocked', variant: 'success' };
+  // Calculate platform charge concession based on marks:
+  // 15/15: 20% | 10–14/15: 10% | 8–9/15: 5% | <8/15: 0%
+  const concession = useMemo(() => {
+    return calculatePlatformConcession(submittedScore ?? 0);
+  }, [submittedScore]);
+
+  const discountAmount = Math.round((BASE_PLATFORM_FEE * concession.percent) / 100);
+  const finalPayable = BASE_PLATFORM_FEE - discountAmount;
+
+  // Handles demo payment confirmation and sets up the student session & storage
+  const handleConfirmDemoSeat = () => {
+    setIsProcessingPayment(true);
+
+    const selectionRecord = {
+      id: `selection-${Date.now()}`,
+      partner,
+      role,
+      domain,
+      score: submittedScore,
+      total,
+      concessionPercent: concession.percent,
+      basePrice: BASE_PLATFORM_FEE,
+      discountAmount,
+      finalAmount: finalPayable,
+      candidate,
+      paymentMethod,
+      status: 'SELECTED_CONFIRMED',
+      adminTaskAssignmentStatus: 'PENDING_ADMIN_ASSIGNMENT',
+      confirmedAt: new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem('alfre_selected_internship', JSON.stringify(selectionRecord));
+
+      // Ensure a student profile exists in localStorage so /dashboard route is accessible
+      const existingUser = localStorage.getItem('alfre.auth.user');
+      if (!existingUser) {
+        const studentUser = {
+          _id: `user-${Date.now()}`,
+          name: candidate.fullName || 'Student Candidate',
+          email: candidate.email || 'student@alfre.com',
+          role: 'STUDENT',
+          roles: ['STUDENT'],
+        };
+        localStorage.setItem('alfre.auth.user', JSON.stringify(studentUser));
+        localStorage.setItem('alfre.auth.token', 'demo-student-token-jwt');
+      }
+    } catch {
+      // ignore storage errors
     }
-    if (ratio >= 0.6) {
-      return { percent: 20, label: '20% Merit Scholarship Unlocked', variant: 'brand' };
-    }
-    if (ratio >= 0.4) {
-      return { percent: 10, label: '10% Merit Scholarship Unlocked', variant: 'info' };
-    }
-    return { percent: 5, label: 'Qualifier Pass Granted', variant: 'outline' };
-  }, [submittedScore, total]);
+
+    setPaymentSuccess(true);
+    setTimeout(() => {
+      setIsProcessingPayment(false);
+      if (onClose) onClose();
+      navigate(ROUTES.DASHBOARD);
+    }, 1200);
+  };
 
   // ==================== LOADING STATE ====================
   if (loading) {
@@ -216,7 +315,7 @@ export function DomainAssessmentFlow({
     return (
       <div className="space-y-6 py-2">
         {/* Applicant Header */}
-        <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-blue-50/70 p-4 sm:p-5 dark:border-blue-900/50 dark:bg-slate-900/80">
+        <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-blue-50/70 p-4 sm:p-5 dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:bg-slate-900">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-md bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-800 dark:bg-brand-900/60 dark:text-brand-300">
@@ -606,8 +705,37 @@ export function DomainAssessmentFlow({
             {submittedScore} / {total} Correct ({percentage}%)
           </h2>
           <p className="mt-1 text-sm font-semibold text-brand-600 dark:text-brand-400">
-            {scholarshipTier.label}
+            {concession.label}
           </p>
+        </div>
+
+        {/* Platform Charges & Concession Callout */}
+        <div className="rounded-2xl border border-brand-200/80 bg-gradient-to-r from-brand-50/70 via-indigo-50/50 to-blue-50/70 p-4 sm:p-5 text-left text-xs dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:bg-slate-900">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <span className="inline-flex items-center gap-1 rounded-md bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-800 dark:bg-brand-900/60 dark:text-brand-300">
+                <Percent className="h-3 w-3" />
+                Marks-Based Concession Applied
+              </span>
+              <h4 className="mt-1.5 text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                Platform Access Charges: ₹{finalPayable} <span className="line-through text-slate-400 text-xs font-normal">₹{BASE_PLATFORM_FEE}</span>
+              </h4>
+              <p className="mt-0.5 text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
+                Though the internship training is <strong>100% free / unpaid</strong>, a standard nominal platform charge covers cloud infra, mentor grading, and LMS tracking. Your score of <strong>{submittedScore}/15</strong> unlocked a <strong>{concession.percent}% concession</strong> (-₹{discountAmount}).
+              </p>
+            </div>
+            <div className="shrink-0">
+              <Button
+                variant="primary"
+                size="md"
+                rightIcon={ArrowRight}
+                onClick={() => setPhase('demo_payment')}
+                className="w-full sm:w-auto shadow-sm"
+              >
+                Proceed to Seat Confirmation
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Application & Assessment Record Details */}
@@ -700,16 +828,240 @@ export function DomainAssessmentFlow({
         </div>
 
         {/* Final CTA */}
-        <div className="flex items-center justify-end gap-3 pt-3">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+          <Button
+            variant="outline"
+            size="md"
+            onClick={onClose}
+          >
+            Close & Exit
+          </Button>
+
           <Button
             variant="primary"
             size="lg"
-            onClick={onClose}
-            className="w-full sm:w-auto"
+            rightIcon={ArrowRight}
+            onClick={() => setPhase('demo_payment')}
+            className="shadow-md bg-brand-600 hover:bg-brand-700 text-white"
           >
-            Done & Return to Internships
+            Proceed to Fee Concession & Seat Confirmation
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  // ==================== PHASE 5: DEMO PAYMENT & PLATFORM CHARGES ====================
+  if (phase === 'demo_payment') {
+    return (
+      <div className="space-y-6 py-2">
+        {/* Navigation & Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={ArrowLeft}
+            onClick={() => setPhase('result')}
+            className="text-xs"
+          >
+            Back to Assessment Score
+          </Button>
+          <Badge variant="brand" className="text-xs px-2.5 py-1">
+            Step 3 of 3: Seat Confirmation
+          </Badge>
+        </div>
+
+        {paymentSuccess ? (
+          <div className="py-10 text-center space-y-4">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-inner dark:bg-emerald-950/60 dark:text-emerald-400 animate-bounce">
+              <CheckCircle2 className="h-9 w-9" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Seat Successfully Confirmed!
+              </h2>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                You are officially enrolled for <strong>{partner.name}</strong> ({domain} Domain Track).
+              </p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Opening your Student Portal where your selected internship is logged…
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {/* Header info */}
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                Platform Access Fee & Concession Checkout (Demo)
+              </h3>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                Internship tuition is <strong>100% free / unpaid</strong>. A standard platform access charge applies for cloud infrastructure, verified certificate generation, and mentor evaluation.
+              </p>
+            </div>
+
+            {/* Concession Announcement Banner */}
+            <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/70 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/30">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-emerald-900 dark:text-emerald-200 text-xs">
+                      {concession.percent}% Marks-Based Concession Applied!
+                    </span>
+                    <p className="text-[11px] text-emerald-800 dark:text-emerald-300">
+                      Earned on your score of <strong>{submittedScore} / {total}</strong> in the {domain} technical assessment.
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="success" className="text-xs px-2.5 py-0.5">
+                  Save ₹{discountAmount}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Split layout: Order details & Payment Simulator */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              {/* Order breakdown */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4 text-xs dark:border-slate-800 dark:bg-slate-900 shadow-sm space-y-3">
+                <h4 className="font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-2">
+                  Internship & Charge Breakdown
+                </h4>
+
+                <div className="space-y-2 text-slate-600 dark:text-slate-300">
+                  <div className="flex justify-between">
+                    <span>Partner Company:</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{partner.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Role & Track:</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{role.designation}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Evaluated Domain:</span>
+                    <span className="font-semibold text-brand-600 dark:text-brand-400">{domain} Track</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Internship Tuition:</span>
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">₹0 (Free / Unpaid)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Standard Platform Fee:</span>
+                    <span className="text-slate-900 dark:text-white font-medium">₹{BASE_PLATFORM_FEE}</span>
+                  </div>
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
+                    <span>Assessment Concession ({concession.percent}%):</span>
+                    <span>-₹{discountAmount}</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex justify-between items-center text-sm font-bold text-slate-900 dark:text-white">
+                  <span>Net Platform Fee Payable:</span>
+                  <span className="text-base text-brand-600 dark:text-brand-400">₹{finalPayable}</span>
+                </div>
+              </div>
+
+              {/* Payment simulation options */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4 text-xs dark:border-slate-800 dark:bg-slate-900 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <h4 className="font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                    Select Demo Payment Method
+                  </h4>
+                  <span className="text-[10px] text-brand-600 dark:text-brand-400 font-semibold bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded">
+                    Demo Mode Simulator
+                  </span>
+                </div>
+
+                {/* Method selector tabs */}
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('upi')}
+                    className={cn(
+                      'flex flex-col items-center justify-center p-2.5 rounded-lg border text-center transition-all',
+                      paymentMethod === 'upi'
+                        ? 'border-brand-600 bg-brand-50/70 text-brand-900 dark:border-brand-500 dark:bg-brand-950/60 dark:text-brand-200 font-semibold shadow-xs'
+                        : 'border-slate-200 bg-slate-50/50 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400',
+                    )}
+                  >
+                    <Wallet className="h-4 w-4 mb-1 text-brand-600 dark:text-brand-400" />
+                    <span>Demo UPI</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('card')}
+                    className={cn(
+                      'flex flex-col items-center justify-center p-2.5 rounded-lg border text-center transition-all',
+                      paymentMethod === 'card'
+                        ? 'border-brand-600 bg-brand-50/70 text-brand-900 dark:border-brand-500 dark:bg-brand-950/60 dark:text-brand-200 font-semibold shadow-xs'
+                        : 'border-slate-200 bg-slate-50/50 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400',
+                    )}
+                  >
+                    <CreditCard className="h-4 w-4 mb-1 text-brand-600 dark:text-brand-400" />
+                    <span>Demo Card</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('netbanking')}
+                    className={cn(
+                      'flex flex-col items-center justify-center p-2.5 rounded-lg border text-center transition-all',
+                      paymentMethod === 'netbanking'
+                        ? 'border-brand-600 bg-brand-50/70 text-brand-900 dark:border-brand-500 dark:bg-brand-950/60 dark:text-brand-200 font-semibold shadow-xs'
+                        : 'border-slate-200 bg-slate-50/50 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400',
+                    )}
+                  >
+                    <Building2 className="h-4 w-4 mb-1 text-brand-600 dark:text-brand-400" />
+                    <span>NetBanking</span>
+                  </button>
+                </div>
+
+                {/* Simulated payment detail field */}
+                <div className="rounded-lg bg-slate-50 dark:bg-slate-950 p-3 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span>Target VPA / Account:</span>
+                    <span className="font-mono text-slate-900 dark:text-white">platform@alfre.internal</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Simulation Mode:</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Pre-Approved Demo</span>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-2.5 text-[11px] text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300">
+                  <p>
+                    <strong>Demo Notice:</strong> No real bank account or card will be debited. Clicking below will instantly record your seat confirmation and redirect you to the student portal.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+              <Button
+                variant="outline"
+                size="md"
+                onClick={() => setPhase('result')}
+              >
+                Back to Results
+              </Button>
+
+              <Button
+                variant="primary"
+                size="lg"
+                loading={isProcessingPayment}
+                rightIcon={CheckCircle2}
+                onClick={handleConfirmDemoSeat}
+                className="shadow-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+              >
+                Confirm Seat & Open Student Portal (Demo ₹{finalPayable})
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

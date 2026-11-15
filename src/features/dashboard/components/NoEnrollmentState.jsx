@@ -32,15 +32,15 @@ export function NoEnrollmentState({ latestAttempt, isLoading = false, className 
 
   return (
     <Card padding="none" className={cn('overflow-hidden', className)}>
-      <div className="bg-gradient-to-br from-brand-50 via-white to-white p-6 sm:p-8">
+      <div className="bg-gradient-to-br from-brand-50 via-white to-white p-6 sm:p-8 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:bg-slate-900">
         <span
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-700"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-brand-950/70 dark:text-brand-300 dark:border dark:border-brand-800/60"
           aria-hidden="true"
         >
           <Icon className="h-6 w-6" />
         </span>
-        <h2 className="mt-4 text-lg font-semibold tracking-tight text-slate-900">{title}</h2>
-        <p className="mt-1 max-w-2xl text-sm text-slate-600">{description}</p>
+        <h2 className="mt-4 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">{title}</h2>
+        <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-300">{description}</p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           {hasAttempt ? (
             <>
@@ -62,8 +62,8 @@ export function NoEnrollmentState({ latestAttempt, isLoading = false, className 
           )}
         </div>
       </div>
-      <div className="border-t border-slate-100 px-6 py-6 sm:px-8">
-        <h3 className="eyebrow mb-5">How it works</h3>
+      <div className="border-t border-slate-100 px-6 py-6 sm:px-8 dark:border-slate-800">
+        <h3 className="eyebrow mb-5 text-slate-500 dark:text-slate-400">How it works</h3>
         <Stepper
           steps={JOURNEY_STEPS}
           current={hasAttempt ? 1 : 0}

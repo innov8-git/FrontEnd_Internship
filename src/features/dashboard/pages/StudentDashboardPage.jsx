@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, ErrorState, StatusBanner } from '@/shared/components/ui';
 import { Award } from '@/shared/icons';
@@ -16,6 +17,7 @@ import { PaymentPendingBanner } from '../components/PaymentPendingBanner';
 import { PaymentUnlocksCard } from '../components/PaymentUnlocksCard';
 import { PendingReviewsCard } from '../components/PendingReviewsCard';
 import { ProgressCard } from '../components/ProgressCard';
+import { SelectedInternshipCard } from '../components/SelectedInternshipCard';
 import { UpcomingDaysCard } from '../components/UpcomingDaysCard';
 import { WelcomeHeader } from '../components/WelcomeHeader';
 import { useStudentDashboard } from '../hooks/useStudentDashboard';
@@ -186,6 +188,14 @@ export function StudentDashboardPage() {
   useDocumentTitle('Dashboard');
   const { user } = useAuth();
   const dashboard = useStudentDashboard();
+  const [selectedInternship] = useState(() => {
+    try {
+      const stored = localStorage.getItem('alfre_selected_internship');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const {
     enrollment,
     enrollments,
@@ -231,6 +241,9 @@ export function StudentDashboardPage() {
           ) : null
         }
       />
+      {selectedInternship && (
+        <SelectedInternshipCard selection={selectedInternship} />
+      )}
       {body}
       {!isLoading && !isError && enrollments.length > 0 ? (
         <ApplicationsSection enrollments={enrollments} currentId={enrollment?._id} />
