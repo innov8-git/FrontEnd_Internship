@@ -35,7 +35,9 @@ function setStoredUser(user) {
   try {
     if (user) localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
     else localStorage.removeItem(USER_STORAGE_KEY);
-  } catch {}
+  } catch {
+    // Storage unavailable or disabled
+  }
 }
 
 export function AuthProvider({ children }) {

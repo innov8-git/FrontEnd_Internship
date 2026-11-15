@@ -6,6 +6,7 @@ export const ROUTES = Object.freeze({
   HOME: '/',
   CATALOG: '/internships',
   DESIGNATION: '/internships/:slug',
+  DOMAIN_ASSESSMENT: '/domain-assessment',
   TERMS: '/terms',
   VERIFY_CERTIFICATE: '/verify',
   VERIFY_CERTIFICATE_NUMBER: '/verify/:number',
@@ -93,6 +94,7 @@ export function buildPath(pattern, params = {}, query) {
 /** Typed helpers for every parameterised route. Prefer these over string concatenation. */
 export const paths = Object.freeze({
   designation: (slug) => buildPath(ROUTES.DESIGNATION, { slug }),
+  domainAssessment: (query) => buildPath(ROUTES.DOMAIN_ASSESSMENT, {}, query),
   verifyCertificate: (number) => buildPath(ROUTES.VERIFY_CERTIFICATE_NUMBER, { number }),
   teamInvite: (token) => buildPath(ROUTES.TEAM_INVITE, { token }),
   assessment: (designationId) => buildPath(ROUTES.ASSESSMENT, { designationId }),

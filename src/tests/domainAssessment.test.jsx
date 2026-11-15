@@ -87,6 +87,21 @@ describe('Domain Question Bank Schema & Logic', () => {
 
     const ecommerceQuestions = getQuestionsForDomain('e-commerce');
     expect(ecommerceQuestions.length).toBeGreaterThanOrEqual(15);
+
+    const financeQuestions = getQuestionsForDomain('finance');
+    expect(financeQuestions.length).toBeGreaterThanOrEqual(15);
+
+    const telecomQuestions = getQuestionsForDomain('telecom');
+    expect(telecomQuestions.length).toBeGreaterThanOrEqual(15);
+
+    const insuranceQuestions = getQuestionsForDomain('insurance');
+    expect(insuranceQuestions.length).toBeGreaterThanOrEqual(15);
+
+    const erpQuestions = getQuestionsForDomain('erp-crm');
+    expect(erpQuestions.length).toBeGreaterThanOrEqual(15);
+
+    const loanQuestions = getQuestionsForDomain('loan');
+    expect(loanQuestions.length).toBeGreaterThanOrEqual(15);
   });
 
   it('ensures all seeded domain questions have valid 4 options and correctIndex 0..3', () => {

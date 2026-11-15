@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Badge, Button, Input, Modal } from '@/shared/components/ui';
+import { DomainAssessmentFlow } from '@/features/assessment/components/DomainAssessmentFlow';
 import {
   BadgeCheck,
   Check,
@@ -230,7 +231,7 @@ export function InternshipDetailsModal({
     <Modal
       open={open}
       onClose={handleResetAndClose}
-      size="xl"
+      size={submitted ? '2xl' : 'xl'}
       title={
         <div className="flex items-center gap-3">
           <div
@@ -280,8 +281,17 @@ export function InternshipDetailsModal({
               : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
           }`}
         >
-          <Send className="h-4 w-4" />
-          Apply for this Role
+          {submitted ? (
+            <>
+              <Sparkles className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+              <span>{formData.selectedDomain || partner.domain} Assessment</span>
+            </>
+          ) : (
+            <>
+              <Send className="h-4 w-4" />
+              <span>Apply for this Role</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -426,30 +436,13 @@ export function InternshipDetailsModal({
           /* Apply Tab */
           <div>
             {submitted ? (
-              <div className="space-y-4 py-8 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-                  <CheckCircle2 className="h-8 w-8" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                    Application Submitted to {partner.name}!
-                  </h3>
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                    Thank you, <span className="font-semibold text-slate-900 dark:text-white">{formData.fullName}</span>!
-                    Your application for the{' '}
-                    <span className="font-semibold text-brand-600">{currentRole.designation}</span> ({formData.selectedDomain} Domain · {formData.duration}) at{' '}
-                    <span className="font-semibold">{partner.name}</span> has been logged.
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Our technical recruitment team will reach out at {formData.email} within 24 hours.
-                  </p>
-                </div>
-                <div className="pt-4">
-                  <Button variant="primary" onClick={handleResetAndClose}>
-                    Done
-                  </Button>
-                </div>
-              </div>
+              <DomainAssessmentFlow
+                candidate={formData}
+                domain={formData.selectedDomain || partner.domain || 'Banking'}
+                partner={partner}
+                role={currentRole}
+                onClose={handleResetAndClose}
+              />
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="rounded-xl border border-blue-200/80 bg-blue-50/60 p-3 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">

@@ -2,6 +2,7 @@ import Layout from '@/shared/components/layout/Layout';
 import {
   CatalogPage,
   DesignationDetailPage,
+  DomainAssessmentPage,
   ForbiddenPage,
   HomePage,
   NotFoundPage,
@@ -18,6 +19,7 @@ export const publicRoutes = {
     { index: true, element: <HomePage /> },
     { path: 'internships', element: <CatalogPage /> },
     { path: 'internships/:slug', element: <DesignationDetailPage /> },
+    { path: 'domain-assessment', element: <DomainAssessmentPage /> },
     { path: 'terms', element: <TermsPage /> },
     { path: 'verify', element: <VerifyCertificatePage /> },
     { path: 'verify/:number', element: <VerifyCertificatePage /> },
