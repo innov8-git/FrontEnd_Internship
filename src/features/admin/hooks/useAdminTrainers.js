@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getTrainers,
+  createTrainer,
   updateTrainerStatus,
   assignToTrainer,
   removeTrainerAssignment,
@@ -27,6 +28,15 @@ export function useToggleTrainerPrivilege() {
   return useMutation({
     mutationFn: ({ id, isTrainer }) => updateTrainerStatus(id, { isTrainer }),
     onSuccess: (_, { id }) => invalidate(id),
+  });
+}
+
+/** Create a new trainer account and trigger welcome credentials email */
+export function useCreateTrainer() {
+  const invalidate = useInvalidateTrainerData();
+  return useMutation({
+    mutationFn: (payload) => createTrainer(payload),
+    onSuccess: () => invalidate(),
   });
 }
 

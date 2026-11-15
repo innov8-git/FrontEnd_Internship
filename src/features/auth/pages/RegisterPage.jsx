@@ -11,7 +11,6 @@ export function RegisterPage() {
   useDocumentTitle('Create your account');
   const { registerStudent, isPending, redirectTo } = useStudentRegister();
   const loginTo = paths.login(redirectTo);
-  const trainerRegisterTo = paths.registerTrainer(redirectTo);
 
   return (
     <AuthCard
@@ -20,19 +19,11 @@ export function RegisterPage() {
       showSocialAuth
       socialAuthMode="register"
       footer={
-        <div className="space-y-2 text-center">
-          <div>
-            Already have an account?{' '}
-            <Link to={loginTo} className={AUTH_LINK_CLASS}>
-              Log in
-            </Link>
-          </div>
-          <div className="text-xs text-slate-500">
-            Want to mentor students?{' '}
-            <Link to={trainerRegisterTo} className={AUTH_LINK_CLASS}>
-              Apply as a Trainer
-            </Link>
-          </div>
+        <div className="text-center text-sm text-slate-600">
+          Already have an account?{' '}
+          <Link to={loginTo} className={AUTH_LINK_CLASS}>
+            Log in
+          </Link>
         </div>
       }
     >
