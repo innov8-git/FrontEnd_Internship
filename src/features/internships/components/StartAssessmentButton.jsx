@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button, Tooltip } from '@/shared/components/ui';
 import { useAuth } from '@/shared/hooks';
 import { ROLES, paths } from '@/shared/constants';
-import { ArrowRight, ClipboardCheck, ListChecks, LogIn, Users } from '@/shared/icons';
+import { ArrowRight, ClipboardCheck, ListChecks, Users } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 import { useMyAttempt } from '@/features/assessment/hooks/useMyAttempt';
 
@@ -62,7 +62,7 @@ export function StartAssessmentButton({
       <div className={wrapperClass}>
         <Button
           as={Link}
-          to={paths.register(assessmentPath)}
+          to={paths.login(assessmentPath)}
           size={size}
           rightIcon={ArrowRight}
         >
@@ -71,12 +71,11 @@ export function StartAssessmentButton({
         {showSecondary ? (
           <Button
             as={Link}
-            to={paths.login(assessmentPath)}
+            to={paths.register(assessmentPath)}
             size={size}
             variant="outline"
-            leftIcon={LogIn}
           >
-            I already have an account
+            Create an account
           </Button>
         ) : null}
       </div>
@@ -170,7 +169,7 @@ export function JoinTeamButton({
     return (
       <Button
         as={Link}
-        to={paths.register(teamPath)}
+        to={paths.login(teamPath)}
         size={size}
         variant={variant}
         leftIcon={Users}

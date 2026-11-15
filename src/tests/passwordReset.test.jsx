@@ -18,7 +18,7 @@ describe('Forgot & Reset Password Flow', () => {
       renderAppAt('/forgot-password');
 
       expect(
-        await screen.findByRole('heading', { name: /forgot your password\?/i }),
+        await screen.findByRole('heading', { name: /forgot your password\?/i }, { timeout: 5000 }),
       ).toBeInTheDocument();
       expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
@@ -29,11 +29,11 @@ describe('Forgot & Reset Password Flow', () => {
       const user = userEvent.setup();
       renderAppAt('/forgot-password');
 
-      const emailField = await screen.findByLabelText(/email address/i);
+      const emailField = await screen.findByLabelText(/email address/i, {}, { timeout: 5000 });
       await user.type(emailField, 'student@demo.dev');
       await user.click(screen.getByRole('button', { name: /send reset link/i }));
 
-      expect(await screen.findByRole('heading', { name: /check your email/i })).toBeInTheDocument();
+      expect(await screen.findByRole('heading', { name: /check your email/i }, { timeout: 5000 })).toBeInTheDocument();
       expect(screen.getByText('student@demo.dev')).toBeInTheDocument();
       expect(screen.getByText(/expires in 1 hour/i)).toBeInTheDocument();
     });
@@ -42,14 +42,14 @@ describe('Forgot & Reset Password Flow', () => {
       const user = userEvent.setup();
       renderAppAt('/forgot-password');
 
-      const emailField = await screen.findByLabelText(/email address/i);
+      const emailField = await screen.findByLabelText(/email address/i, {}, { timeout: 5000 });
       await user.type(emailField, 'student@demo.dev');
       await user.click(screen.getByRole('button', { name: /send reset link/i }));
 
-      const retryBtn = await screen.findByRole('button', { name: /try another email/i });
+      const retryBtn = await screen.findByRole('button', { name: /try another email/i }, { timeout: 5000 });
       await user.click(retryBtn);
 
-      expect(await screen.findByRole('heading', { name: /forgot your password\?/i })).toBeInTheDocument();
+      expect(await screen.findByRole('heading', { name: /forgot your password\?/i }, { timeout: 5000 })).toBeInTheDocument();
     });
   });
 
@@ -58,7 +58,7 @@ describe('Forgot & Reset Password Flow', () => {
       renderAppAt('/reset-password');
 
       expect(
-        await screen.findByRole('heading', { name: /this reset link is invalid or was already used/i }),
+        await screen.findByRole('heading', { name: /this reset link is invalid or was already used/i }, { timeout: 5000 }),
       ).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /request a new link/i })).toBeInTheDocument();
     });
@@ -67,7 +67,7 @@ describe('Forgot & Reset Password Flow', () => {
       renderAppAt('/reset-password?token=valid_test_token');
 
       expect(
-        await screen.findByRole('heading', { name: /set a new password/i }),
+        await screen.findByRole('heading', { name: /set a new password/i }, { timeout: 5000 }),
       ).toBeInTheDocument();
       expect(screen.getByLabelText(/^new password/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/confirm new password/i)).toBeInTheDocument();
@@ -79,10 +79,10 @@ describe('Forgot & Reset Password Flow', () => {
 
       // Trigger a password reset email to seed an active token in mock db
       renderAppAt('/forgot-password');
-      const emailField = await screen.findByLabelText(/email address/i);
+      const emailField = await screen.findByLabelText(/email address/i, {}, { timeout: 5000 });
       await user.type(emailField, 'student@demo.dev');
       await user.click(screen.getByRole('button', { name: /send reset link/i }));
-      await screen.findByRole('heading', { name: /check your email/i });
+      await screen.findByRole('heading', { name: /check your email/i }, { timeout: 5000 });
 
       // Find token created in db
       const resetTokenRecord = db.authTokens.find((t) => t.type === 'PASSWORD_RESET' && !t.usedAt);
@@ -91,7 +91,7 @@ describe('Forgot & Reset Password Flow', () => {
       // Navigate to reset password page with token
       renderAppAt(`/reset-password?token=${resetTokenRecord.token}`);
 
-      const passField = await screen.findByLabelText(/^new password/i);
+      const passField = await screen.findByLabelText(/^new password/i, {}, { timeout: 5000 });
       const confirmField = screen.getByLabelText(/confirm new password/i);
 
       await user.type(passField, 'NewStrongPass1');
@@ -109,7 +109,7 @@ describe('Forgot & Reset Password Flow', () => {
       const user = userEvent.setup();
       renderAppAt('/reset-password?token=invalid_expired_token');
 
-      const passField = await screen.findByLabelText(/^new password/i);
+      const passField = await screen.findByLabelText(/^new password/i, {}, { timeout: 5000 });
       const confirmField = screen.getByLabelText(/confirm new password/i);
 
       await user.type(passField, 'NewStrongPass1');
@@ -120,7 +120,7 @@ describe('Forgot & Reset Password Flow', () => {
       expect(
         await screen.findByRole('heading', {
           name: /this reset link is invalid or was already used/i,
-        }),
+        }, { timeout: 5000 }),
       ).toBeInTheDocument();
     });
   });

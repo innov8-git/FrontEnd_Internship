@@ -97,7 +97,16 @@ export function CtaBanner({ className }) {
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <Button
                 as={Link}
-                to={ROUTES.CATALOG}
+                to={isAuthenticated ? ROUTES.CATALOG : '/#explore-internships'}
+                onClick={(e) => {
+                  if (!isAuthenticated) {
+                    const el = document.getElementById('explore-internships');
+                    if (el) {
+                      e.preventDefault();
+                      el.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }
+                }}
                 size="md"
                 variant="primary"
                 rightIcon={ArrowRight}

@@ -66,7 +66,6 @@ export function RegisterForm({ onSubmit, isPending = false, loginTo = ROUTES.LOG
 
   const password = watch('password');
   const selectedRole = watch('role') || 'STUDENT';
-  const resume = watch('resume');
 
   const submit = handleSubmit(async (values) => {
     setFormError(null);

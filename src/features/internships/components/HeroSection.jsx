@@ -1,5 +1,7 @@
+import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/shared/components/ui';
+import { AuthContext } from '@/shared/context/AuthContext';
 import { ROUTES } from '@/shared/constants';
 import {
   ArrowRight,
@@ -36,6 +38,19 @@ const POPULAR_TRACKS = [
  * showcasing the whole photograph across the entire landing page viewport.
  */
 export function HeroSection({ className }) {
+  const auth = useContext(AuthContext);
+  const isAuthenticated = auth?.isAuthenticated ?? false;
+
+  const scrollToExplore = (e) => {
+    if (!isAuthenticated) {
+      const el = document.getElementById('explore-internships');
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <section
       aria-labelledby="hero-heading"
@@ -93,7 +108,8 @@ export function HeroSection({ className }) {
           <div className="mt-5 flex items-center justify-center">
             <Button
               as={Link}
-              to={ROUTES.CATALOG}
+              to={isAuthenticated ? ROUTES.CATALOG : '/#explore-internships'}
+              onClick={scrollToExplore}
               size="lg"
               rightIcon={ArrowRight}
               className="shadow-xl px-7"
@@ -108,7 +124,8 @@ export function HeroSection({ className }) {
             {POPULAR_TRACKS.map(({ label, query }) => (
               <Link
                 key={label}
-                to={`${ROUTES.CATALOG}?q=${query}`}
+                to={isAuthenticated ? `${ROUTES.CATALOG}?q=${query}` : '/#explore-internships'}
+                onClick={scrollToExplore}
                 className="rounded-full border border-white/15 bg-slate-900/70 px-3 py-1 font-medium text-slate-200 backdrop-blur transition hover:border-amber-400 hover:text-amber-300"
               >
                 {label}

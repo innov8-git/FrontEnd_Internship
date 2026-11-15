@@ -1,17 +1,33 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useDocumentTitle } from '@/shared/hooks';
-import { paths } from '@/shared/constants';
+import { ROUTES, paths } from '@/shared/constants';
 import { AuthCard } from '../components/AuthCard';
 import { LoginForm } from '../components/LoginForm';
 import { AUTH_LINK_CLASS } from '../components/authStyles';
 import { useLogin } from '../hooks/useLogin';
 
+/** Demo credentials auto-filled for the frontend mock environment. */
+const DEMO_EMAIL = 'student@demo.dev';
+const DEMO_PASSWORD = 'Password@123';
+
 /** /login (SN3) — guest only; honours ?redirect= through useLogin. */
 export function LoginPage() {
   useDocumentTitle('Log in');
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { login, isPending, error, redirectTo } = useLogin();
   const defaultEmail = typeof location.state?.email === 'string' ? location.state.email : '';
+
+  // Auto-fill demo credentials when redirected from browse/apply internship flow
+  const redirectTarget = searchParams.get('redirect');
+  const isInternshipRedirect = Boolean(
+    redirectTarget &&
+      (redirectTarget === ROUTES.CATALOG ||
+        redirectTarget.includes('internship') ||
+        redirectTarget.includes('assessment')),
+  );
+  const autoFillEmail = isInternshipRedirect && !defaultEmail ? DEMO_EMAIL : defaultEmail;
+  const autoFillPassword = isInternshipRedirect && !defaultEmail ? DEMO_PASSWORD : '';
 
   return (
     <AuthCard
@@ -36,7 +52,8 @@ export function LoginPage() {
         onSubmit={login}
         isPending={isPending}
         error={error}
-        defaultEmail={defaultEmail}
+        defaultEmail={autoFillEmail}
+        defaultPassword={autoFillPassword}
       />
     </AuthCard>
   );
