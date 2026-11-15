@@ -16,7 +16,6 @@ export const ROUTES = Object.freeze({
   // Auth
   LOGIN: '/login',
   REGISTER: '/register',
-  REGISTER_TRAINER: '/register/trainer',
   CHECK_EMAIL: '/check-email',
   VERIFY_EMAIL: '/verify-email',
   FORGOT_PASSWORD: '/forgot-password',
@@ -115,8 +114,6 @@ export const paths = Object.freeze({
   login: (redirectTo) => buildPath(ROUTES.LOGIN, {}, redirectTo ? { redirect: redirectTo } : undefined),
   register: (redirectTo) =>
     buildPath(ROUTES.REGISTER, {}, redirectTo ? { redirect: redirectTo } : undefined),
-  registerTrainer: (redirectTo) =>
-    buildPath(ROUTES.REGISTER_TRAINER, {}, redirectTo ? { redirect: redirectTo } : undefined),
 });
 
 export const ROLE_HOME = Object.freeze({

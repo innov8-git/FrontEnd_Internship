@@ -31,6 +31,7 @@ import { PersonCell } from '../components/PersonCell';
 import { TrainerResumeModal } from '../components/TrainerResumeModal';
 import { TrainerAssignmentsDrawer } from '../components/TrainerAssignmentsDrawer';
 import { AssignStudentGroupModal } from '../components/AssignStudentGroupModal';
+import { CreateTrainerModal } from '../components/CreateTrainerModal';
 import {
   fetchAdminTrainers,
   useToggleTrainerPrivilege,
@@ -57,6 +58,7 @@ export function TrainersPage() {
   const { values, setValue, clear, activeCount } = useUrlFilters(FILTER_KEYS);
 
   // Modal / Drawer states
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [resumeTarget, setResumeTarget] = useState(null);
   const [assignmentsTarget, setAssignmentsTarget] = useState(null);
   const [assignTarget, setAssignTarget] = useState(null);
@@ -251,6 +253,14 @@ export function TrainersPage() {
       <PageHeader
         title="Trainers"
         description="View all trainers, inspect uploaded resumes, manage trainer privileges, and monitor assigned students and student groups."
+        actions={
+          <Button
+            leftIcon={UserPlus}
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            Create Trainer
+          </Button>
+        }
       />
 
       <DataTable
@@ -287,6 +297,12 @@ export function TrainersPage() {
           title: 'No trainers found',
           description: 'Try adjusting your search terms or filters.',
         }}
+      />
+
+      {/* Create Trainer Modal */}
+      <CreateTrainerModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
       />
 
       {/* Resume Modal */}

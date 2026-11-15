@@ -28,6 +28,7 @@ export const getAuditLogs = (params = {}) => api.get('/admin/audit-logs', params
 
 // Trainers management
 export const getTrainers = (params = {}) => api.get('/admin/trainers', params);
+export const createTrainer = (payload) => api.post('/admin/trainers', payload);
 export const updateTrainerStatus = (id, payload) =>
   api.patch(`/admin/trainers/${encodeURIComponent(id)}`, payload);
 export const getTrainerAssignments = (trainerId) =>

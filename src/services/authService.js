@@ -6,9 +6,6 @@ export const register = (payload) =>
 export const registerStudent = (payload) =>
   api.post('/auth/register/student', payload);
 
-export const registerTrainer = (payload) =>
-  api.post('/auth/register/trainer', payload);
-
 export const sendOtp = ({ email, purpose }) =>
   api.post('/auth/otp/send', { email, purpose });
 
