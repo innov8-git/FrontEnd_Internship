@@ -224,10 +224,12 @@ export function DomainAssessmentFlow({
                 Step 2: Technical Qualification Assessment
               </span>
               <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-                {domain} Domain Skill Assessment
+                Application Submitted to {partner.name || 'Partner Company'}!
               </h2>
               <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                Application received for <span className="font-semibold text-slate-900 dark:text-white">{candidate.fullName || 'Candidate'}</span> · {partner.name || 'Partner Company'}
+                Thank you, <span className="font-semibold text-slate-900 dark:text-white">{candidate.fullName || 'Candidate'}</span>!
+                Your application for the{' '}
+                <span className="font-semibold text-brand-600 dark:text-brand-400">{role.designation || 'Role'}</span> ({domain} Domain · {candidate.duration || '3 Months'}) has been logged.
               </p>
             </div>
             <div className="flex flex-col items-end">
