@@ -313,6 +313,15 @@ export function AccountDetails({ user, className }) {
                 </span>
               ),
             },
+            (user.department || user.organization) && {
+              label: 'Department / Organization',
+              value: (
+                <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                  <Building2 className="h-3.5 w-3.5 text-slate-400" />
+                  {[user.department, user.organization].filter(Boolean).join(' · ')}
+                </span>
+              ),
+            },
             user.status && {
               label: 'Account status',
               value: <StatusBadge status={user.status} />,

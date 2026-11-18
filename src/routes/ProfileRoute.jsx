@@ -5,7 +5,7 @@ import { ProfilePage } from './lazyPages';
 
 export const profileRoute = {
   path: 'profile',
-  element: <ProtectedRoute roles={[ROLES.STUDENT, ROLES.TRAINER]} />,
+  element: <ProtectedRoute roles={[ROLES.STUDENT, ROLES.TRAINER, ROLES.ADMIN]} />,
   children: [
     {
       element: <ProfileWorkspaceLayout />,

@@ -145,5 +145,11 @@ export function getAdminNavigation() {
         { label: 'Audit log', to: ROUTES.ADMIN_AUDIT, icon: History },
       ],
     },
+    {
+      title: 'Account',
+      items: [
+        { label: 'Profile', to: ROUTES.ADMIN_PROFILE, icon: User, activePaths: [ROUTES.PROFILE] },
+      ],
+    },
   ];
 }

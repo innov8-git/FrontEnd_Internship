@@ -412,6 +412,12 @@ export const authHandlers = [
     if (body.location !== undefined) {
       auth.user.location = typeof body.location === 'string' ? body.location.trim() : '';
     }
+    if (body.department !== undefined) {
+      auth.user.department = typeof body.department === 'string' ? body.department.trim() : '';
+    }
+    if (body.organization !== undefined) {
+      auth.user.organization = typeof body.organization === 'string' ? body.organization.trim() : '';
+    }
     if (body.linkedinUrl !== undefined) {
       auth.user.linkedinUrl = typeof body.linkedinUrl === 'string' ? body.linkedinUrl.trim() : '';
     }
