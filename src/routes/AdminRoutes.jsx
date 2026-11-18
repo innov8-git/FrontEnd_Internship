@@ -15,6 +15,7 @@ import {
   PlansPage,
   TrainersPage,
   UsersPage,
+  ProfilePage,
 } from './lazyPages';
 
 export const adminRoutes = {
@@ -25,6 +26,7 @@ export const adminRoutes = {
       element: <AdminLayout />,
       children: [
         { index: true, element: <AdminDashboardPage /> },
+        { path: 'profile', element: <ProfilePage /> },
         { path: 'users', element: <UsersPage /> },
         { path: 'designations', element: <DesignationsPage /> },
         { path: 'domains', element: <DomainsPage /> },
