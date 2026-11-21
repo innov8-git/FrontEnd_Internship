@@ -265,6 +265,7 @@ export default function ProjectAssignmentsPage() {
         columns={columns}
         data={assignments}
         isLoading={isLoading}
+        searchable={false}
         emptyState={{
           title: 'No student enrollments found',
           description: 'Try adjusting your domain, track, or assignment status filters.',
