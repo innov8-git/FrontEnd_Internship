@@ -309,7 +309,7 @@ export function InternshipDetailsModal({
           {submitted ? (
             <>
               <Sparkles className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-              <span>{formData.selectedDomain || partner.domain} Assessment</span>
+              <span>{formData.selectedDomain || partner.domain} Enrollment</span>
             </>
           ) : (
             <>

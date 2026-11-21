@@ -1,25 +1,18 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/shared/components/ui';
-import { ASSESSMENT_MAX_SCORE, ROUTES } from '@/shared/constants';
+import { ROUTES } from '@/shared/constants';
 import { ArrowRight, CheckCircle2, Sparkles, Zap } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 
 const BASE_EXAMPLE_PRICE = 4999;
 
-function getDiscountPercent(score) {
-  if (score >= 11) return 20;
-  if (score >= 6) return 10;
-  return 0;
-}
-
 /**
- * Interactive merit discount simulator.
+ * Interactive platform discount simulator.
  */
 export function DiscountCalculator({ className }) {
-  const [score, setScore] = useState(13);
+  const [discountPercent, setDiscountPercent] = useState(15);
 
-  const discountPercent = getDiscountPercent(score);
   const savings = Math.round((BASE_EXAMPLE_PRICE * discountPercent) / 100);
   const finalPrice = BASE_EXAMPLE_PRICE - savings;
 
@@ -41,27 +34,26 @@ export function DiscountCalculator({ className }) {
             id="calculator-heading"
             className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl"
           >
-            Calculate Your Merit Tuition Discount
+            Calculate Your Platform Charges &amp; Discount
           </h2>
           <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-300">
-            Your score in our 15-question foundational challenge determines your tuition fee. No
-            stress, no pass mark — just fair merit rewards.
+            Direct platform fee discounts and concessions are applied automatically to your enrollment.
           </p>
         </div>
 
         <div className="mx-auto mt-12 max-w-3xl rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:p-10">
           <div className="grid gap-8 sm:grid-cols-2 sm:items-center">
-            {/* Left: Interactive Score Slider */}
+            {/* Left: Interactive Discount Slider */}
             <div>
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="score-slider"
                   className="text-sm font-bold text-slate-900 dark:text-white"
                 >
-                  Simulate Assessment Score
+                  Direct Platform Discount
                 </label>
                 <span className="rounded-lg bg-amber-500/10 px-2.5 py-1 text-sm font-black text-brand-700 dark:text-amber-300">
-                  {score} / {ASSESSMENT_MAX_SCORE} pts
+                  {discountPercent}%
                 </span>
               </div>
 
@@ -69,30 +61,32 @@ export function DiscountCalculator({ className }) {
                 id="score-slider"
                 type="range"
                 min="0"
-                max={ASSESSMENT_MAX_SCORE}
-                value={score}
-                onChange={(e) => setScore(Number(e.target.value))}
+                max="25"
+                step="5"
+                value={discountPercent}
+                onChange={(e) => setDiscountPercent(Number(e.target.value))}
                 className="mt-4 h-2.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-brand-600 dark:bg-slate-700"
               />
 
               <div className="mt-2 flex justify-between text-[11px] font-semibold text-slate-400">
-                <span>0 pts (0% off)</span>
-                <span>6 pts (10% off)</span>
-                <span>11–15 pts (20% off)</span>
+                <span>0%</span>
+                <span>10%</span>
+                <span>20%</span>
+                <span>25%</span>
               </div>
 
               <div className="mt-6 space-y-2 rounded-xl bg-slate-50 p-4 text-xs text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  <span>15 multiple-choice questions</span>
+                  <span>Direct enrollment — no entrance test</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  <span>No timer — solve at your own pace</span>
+                  <span>100% remote online internship</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  <span>No pass/fail — everyone can enroll</span>
+                  <span>Transparent platform charges &amp; fees</span>
                 </div>
               </div>
             </div>
@@ -123,8 +117,8 @@ export function DiscountCalculator({ className }) {
 
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   {discountPercent > 0
-                    ? `You save ₹${savings.toLocaleString('en-IN')} based on your score!`
-                    : 'Standard enrollment price for foundational learners.'}
+                    ? `You save ₹${savings.toLocaleString('en-IN')} with direct platform discount!`
+                    : 'Standard platform charges apply.'}
                 </p>
               </div>
 
@@ -136,7 +130,7 @@ export function DiscountCalculator({ className }) {
                   rightIcon={ArrowRight}
                   className="w-full justify-center shadow-md"
                 >
-                  Browse Tracks &amp; Start
+                  Browse Tracks &amp; Enroll
                 </Button>
               </div>
             </div>

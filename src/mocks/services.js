@@ -926,6 +926,7 @@ export function planDto(plan) {
     domainId: plan.domainId,
     durationMonths: plan.durationMonths,
     basePrice: plan.basePrice,
+    discountPercent: plan.discountPercent ?? 0,
     currency: plan.currency || CURRENCY,
     status: plan.status,
     designation: designationRef(plan.designationId),
@@ -943,6 +944,7 @@ export function planRef(planOrId) {
     _id: plan._id,
     durationMonths: plan.durationMonths,
     basePrice: plan.basePrice,
+    discountPercent: plan.discountPercent ?? 0,
     currency: plan.currency || CURRENCY,
     designation: designationRef(plan.designationId),
     domain: domainRef(plan.domainId),
@@ -1354,9 +1356,6 @@ export function createQuote({ user, planId, teamId }) {
   const plan = findPlan(planId);
   if (!plan || plan.status !== PUBLISH_STATUS.PUBLISHED) throw notFoundError('Plan');
   const attempt = findAttempt(user._id, plan.designationId);
-  if (!attempt) {
-    throw httpError(422, 'ASSESSMENT_REQUIRED', 'Take the assessment before getting a quote.');
-  }
 
   let team = null;
   if (teamId) {
@@ -1371,8 +1370,8 @@ export function createQuote({ user, planId, teamId }) {
     }
   }
 
-  // MM8: team quotes are always 0%, whatever the member's score.
-  const discountPercent = team ? 0 : Number(attempt.discountPercent) || 0;
+  // Direct platform discount on plan or assessment attempt discount (team quotes always 0%)
+  const discountPercent = team ? 0 : Number(plan.discountPercent ?? attempt?.discountPercent ?? 0);
   const now = nowIso();
   const quote = {
     _id: oid(),
@@ -1380,7 +1379,7 @@ export function createQuote({ user, planId, teamId }) {
     planId: plan._id,
     enrollmentType: team ? ENROLLMENT_TYPE.TEAM : ENROLLMENT_TYPE.INDIVIDUAL,
     teamId: team?._id ?? null,
-    attemptId: attempt._id,
+    attemptId: attempt?._id ?? null,
     basePrice: plan.basePrice,
     discountPercent,
     payableAmount: computePayable(plan.basePrice, discountPercent),
@@ -3961,7 +3960,7 @@ function assertUniquePlan({ designationId, domainId, durationMonths }, excludeId
 }
 
 /** MM5: creates a plan (DRAFT unless status PUBLISHED is given). basePrice is integer paise. */
-export function createPlan({ admin, designationId, domainId, durationMonths, basePrice, status }) {
+export function createPlan({ admin, designationId, domainId, durationMonths, basePrice, discountPercent, status }) {
   const details = validatePlanFields({ designationId, domainId, durationMonths, basePrice });
   const nextStatus = status ? String(status).toUpperCase() : PUBLISH_STATUS.DRAFT;
   if (!Object.values(PUBLISH_STATUS).includes(nextStatus)) {
@@ -3981,6 +3980,7 @@ export function createPlan({ admin, designationId, domainId, durationMonths, bas
     domainId: domain._id,
     durationMonths: months,
     basePrice: Number(basePrice),
+    discountPercent: Number(discountPercent) || 0,
     currency: CURRENCY,
     status: nextStatus,
     createdBy: admin?._id ?? null,
@@ -4004,7 +4004,7 @@ export function createPlan({ admin, designationId, domainId, durationMonths, bas
  * (existing quotes and enrollments keep their snapshots). Audited as PRICE_UPDATED when the
  * price changes.
  */
-export function updatePlan({ admin, plan, basePrice, durationMonths, domainId }) {
+export function updatePlan({ admin, plan, basePrice, discountPercent, durationMonths, domainId }) {
   if (!plan) throw notFoundError('Plan');
   const details = validatePlanFields({ basePrice, durationMonths, domainId }, { partial: true });
   if (details.length > 0) throw validationFailure(details);
@@ -4013,6 +4013,7 @@ export function updatePlan({ admin, plan, basePrice, durationMonths, domainId })
     domainId: domainId !== undefined ? findDomain(domainId)._id : plan.domainId,
     durationMonths: durationMonths !== undefined ? Number(durationMonths) : Number(plan.durationMonths),
     basePrice: basePrice !== undefined ? Number(basePrice) : plan.basePrice,
+    discountPercent: discountPercent !== undefined ? Number(discountPercent) : (plan.discountPercent || 0),
   };
   assertUniquePlan(
     { designationId: plan.designationId, domainId: next.domainId, durationMonths: next.durationMonths },

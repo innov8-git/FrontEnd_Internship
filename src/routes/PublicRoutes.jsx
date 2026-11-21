@@ -1,9 +1,9 @@
+import { Navigate } from 'react-router-dom';
 import Layout from '@/shared/components/layout/Layout';
 import CatalogWorkspaceLayout from './CatalogWorkspaceLayout';
 import {
   CatalogPage,
   DesignationDetailPage,
-  DomainAssessmentPage,
   ForbiddenPage,
   HomePage,
   NotFoundPage,
@@ -27,7 +27,7 @@ export const publicRoutes = {
       element: <Layout />,
       children: [
         { index: true, element: <HomePage /> },
-        { path: 'domain-assessment', element: <DomainAssessmentPage /> },
+        { path: 'domain-assessment', element: <Navigate to="/internships" replace /> },
         { path: 'terms', element: <TermsPage /> },
         { path: 'verify', element: <VerifyCertificatePage /> },
         { path: 'verify/:number', element: <VerifyCertificatePage /> },
