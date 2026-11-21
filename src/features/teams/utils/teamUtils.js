@@ -41,15 +41,14 @@ export function memberDisplayName(member) {
   return name || member?.email || 'Invited member';
 }
 
-/** Ready = joined, assessed and paid (readiness member shape). */
+/** Ready = joined and paid (readiness member shape). */
 export function isMemberReady(member) {
-  return Boolean(member?.joined && member?.assessed && member?.paid);
+  return Boolean(member?.joined && member?.paid);
 }
 
 /** The step a readiness member still has to finish, in plain words (null when ready). */
 export function nextMissingStep(member) {
   if (!member?.joined) return 'accept the invite';
-  if (!member?.assessed) return 'take the assessment';
   if (!member?.paid) return 'pay for their seat';
   return null;
 }

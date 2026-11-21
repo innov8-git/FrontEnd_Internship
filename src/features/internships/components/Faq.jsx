@@ -136,18 +136,17 @@ const FAQS = [
     id: 'discount-slabs',
     category: 'discounts',
     categoryLabel: 'Discounts',
-    question: 'How do the assessment percentage discounts work?',
+    question: 'How do the platform fee and percentage discounts work?',
     icon: Sparkles,
     answer: (
       <>
-        We award direct merit fee discounts based on your assessment percentage score:
+        We award direct platform fee discounts and concessions configured on internship plans:
         <ul className="mt-2 space-y-1 pl-1">
-          <li>• <strong>100% Score:</strong> Unlocks <strong>20% Maximum Discount</strong>.</li>
-          <li>• <strong>90% – 99% Score:</strong> Unlocks <strong>10% Discount</strong>.</li>
-          <li>• <strong>80% – 89% Score:</strong> Unlocks <strong>5% Discount</strong>.</li>
+          <li>• <strong>Direct Concession:</strong> Up to <strong>20% Direct Discount</strong>.</li>
+          <li>• <strong>Transparent Pricing:</strong> Clear breakdown of base charges and net payable amount.</li>
         </ul>
         <span className="mt-2 block text-xs text-slate-500">
-          Your unlocked discount percentage is automatically applied to your invoice during checkout.
+          Your discount percentage is automatically applied to your quote during plan selection.
         </span>
       </>
     ),

@@ -82,18 +82,28 @@ const basePriceField = z.string().superRefine((raw, ctx) => {
   if (amount > PLAN_PRICE_MAX_RUPEES) issue('The price can be at most ₹10,00,000.');
 });
 
-/** Create a plan: designation + domain + duration + base price (rupees, sent to the API as paise). */
+const discountPercentField = z
+  .union([z.string(), z.number()])
+  .optional()
+  .transform((val) => (val === '' || val === undefined || val === null ? 0 : Number(val)))
+  .refine((val) => !Number.isNaN(val) && val >= 0 && val <= 100, {
+    message: 'Discount must be between 0% and 100%.',
+  });
+
+/** Create a plan: designation + domain + duration + base price + discount. */
 export const planCreateSchema = z.object({
   designationId: z.string().min(1, 'Choose a designation.'),
   domainId: z.string().min(1, 'Choose a domain.'),
   durationMonths: durationField,
   basePrice: basePriceField,
+  discountPercent: discountPercentField,
   publishNow: z.boolean().optional().default(false),
 });
 
-/** Edit a plan: the designation is fixed; domain, duration and price can change. */
+/** Edit a plan: domain, duration, price, and discount can change. */
 export const planUpdateSchema = z.object({
   domainId: z.string().min(1, 'Choose a domain.'),
   durationMonths: durationField,
   basePrice: basePriceField,
+  discountPercent: discountPercentField,
 });

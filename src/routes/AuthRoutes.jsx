@@ -35,6 +35,7 @@ export const authRoutes = [
       { path: 'verify-email', element: <VerifyEmailPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'set-password', element: <ResetPasswordPage /> },
       { path: 'auth/google/callback', element: <GoogleCallbackPage /> },
       { path: 'google/callback', element: <GoogleCallbackPage /> },
     ],

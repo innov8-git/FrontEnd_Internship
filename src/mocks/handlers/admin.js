@@ -21,6 +21,7 @@ import {
 import {
   applySort,
   conflict,
+  created,
   getQuery,
   inDateRange,
   json,
@@ -706,6 +707,59 @@ export const adminHandlers = [
     };
 
     return json(pageOf(filtered, request, 'createdAt:desc', toDto));
+  }),
+
+  mock.post('/admin/trainers', async ({ request }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+
+    const body = await readJson(request);
+    const { name, email, phone, domain, experience, bio } = body;
+
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!name || !name.trim()) {
+      return validationError([{ field: 'name', message: 'Full name is required' }]);
+    }
+    if (!normalizedEmail) {
+      return validationError([{ field: 'email', message: 'Email is required' }]);
+    }
+
+    const existing = db.users.find((u) => String(u.email || '').toLowerCase() === normalizedEmail);
+    if (existing) {
+      return conflict('A user with this email address already exists.');
+    }
+
+    const timestamp = nowIso();
+    const newTrainer = {
+      _id: `user_trainer_${Date.now()}`,
+      name: name.trim(),
+      email: normalizedEmail,
+      phone: phone ? phone.trim() : null,
+      roles: [ROLES.TRAINER],
+      status: USER_STATUS.ACTIVE,
+      emailVerified: true,
+      trainerProfile: {
+        domain: domain || 'Full Stack Web Development',
+        experience: experience || '3-5 years',
+        bio: bio || null,
+        organization: '',
+        linkedinUrl: '',
+        resumeName: null,
+        resumeSize: 0,
+        isApproved: true,
+      },
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    db.users.push(newTrainer);
+    persist();
+
+    return created({
+      success: true,
+      trainer: newTrainer,
+      message: 'Trainer account created and invite dispatched.',
+    });
   }),
 
   mock.get('/admin/trainers/:id/assignments', ({ request, params }) => {

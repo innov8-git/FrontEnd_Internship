@@ -31,8 +31,8 @@ import { FormActions } from './FormActions';
 
 export const DUPLICATE_PLAN_MESSAGE = 'A plan for this designation, domain and duration already exists.';
 
-const CREATE_FIELDS = ['designationId', 'domainId', 'durationMonths', 'basePrice'];
-const UPDATE_FIELDS = ['domainId', 'durationMonths', 'basePrice'];
+const CREATE_FIELDS = ['designationId', 'domainId', 'durationMonths', 'basePrice', 'discountPercent'];
+const UPDATE_FIELDS = ['domainId', 'durationMonths', 'basePrice', 'discountPercent'];
 
 const DURATION_SELECT_OPTIONS = DURATION_OPTIONS.map((months) => ({
   value: String(months),
@@ -87,15 +87,24 @@ function PlanForm({ plan, designations, domains, onCancel, onSaved, inDialog }) 
           domainId: plan.domainId ?? plan.domain?._id ?? '',
           durationMonths: plan.durationMonths ? String(plan.durationMonths) : '',
           basePrice: paiseToRupeeInput(plan.basePrice),
+          discountPercent: plan.discountPercent !== undefined && plan.discountPercent !== null ? String(plan.discountPercent) : '0',
         }
-      : { designationId: '', domainId: '', durationMonths: '', basePrice: '', publishNow: false },
+      : { designationId: '', domainId: '', durationMonths: '', basePrice: '', discountPercent: '0', publishNow: false },
   });
 
   const priceInput = watch('basePrice');
+  const discountInput = watch('discountPercent');
   const parsedPrice = parseRupeeInput(priceInput);
+  const discountNum = Number(discountInput) || 0;
+  const clampedDiscount = Math.min(100, Math.max(0, discountNum));
+  const studentPayablePaise =
+    parsedPrice !== null && parsedPrice > 0
+      ? Math.round(rupeesToPaise(parsedPrice) * (1 - clampedDiscount / 100))
+      : 0;
+
   const priceHint =
     parsedPrice !== null && parsedPrice > 0
-      ? `Students see ${formatMoney(rupeesToPaise(parsedPrice))} before any assessment discount.`
+      ? `Student payable price: ${formatMoney(studentPayablePaise)}${clampedDiscount > 0 ? ` (after ${clampedDiscount}% direct discount)` : ''}.`
       : PRICE_HINT;
   const isBusy = isSubmitting || createMutation.isPending || updateMutation.isPending;
 
@@ -111,11 +120,17 @@ function PlanForm({ plan, designations, domains, onCancel, onSaved, inDialog }) 
   const onSubmit = async (values) => {
     setFormError(null);
     const basePrice = rupeesToPaise(parseRupeeInput(values.basePrice));
+    const discountPercent = Number(values.discountPercent) || 0;
     try {
       if (isEdit) {
         const saved = await updateMutation.mutateAsync({
           id: plan._id,
-          values: { basePrice, durationMonths: values.durationMonths, domainId: values.domainId },
+          values: {
+            basePrice,
+            discountPercent,
+            durationMonths: values.durationMonths,
+            domainId: values.domainId,
+          },
         });
         toast.success('Plan updated', {
           description: 'The new price applies to quotes created from now on.',
@@ -127,6 +142,7 @@ function PlanForm({ plan, designations, domains, onCancel, onSaved, inDialog }) 
           domainId: values.domainId,
           durationMonths: values.durationMonths,
           basePrice,
+          discountPercent,
           status: values.publishNow ? PUBLISH_STATUS.PUBLISHED : PUBLISH_STATUS.DRAFT,
         });
         toast.success('Plan created', {
@@ -165,7 +181,8 @@ function PlanForm({ plan, designations, domains, onCancel, onSaved, inDialog }) 
                 label: 'Status',
                 value: <StatusBadge status={plan.status} />,
               },
-              { label: 'Current base price', value: formatMoney(plan.basePrice, plan.currency) },
+              { label: 'Current platform charges', value: formatMoney(plan.basePrice, plan.currency) },
+              { label: 'Current direct discount', value: `${plan.discountPercent || 0}%` },
               { label: 'Last updated', value: formatDate(plan.updatedAt) },
             ]}
           />
@@ -203,17 +220,30 @@ function PlanForm({ plan, designations, domains, onCancel, onSaved, inDialog }) 
         />
       </div>
 
-      <Input
-        label="Base price (₹)"
-        required
-        inputMode="decimal"
-        autoComplete="off"
-        placeholder="12999"
-        leftIcon={IndianRupee}
-        hint={priceHint}
-        error={errors.basePrice?.message}
-        {...register('basePrice')}
-      />
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Input
+          label="Platform charges (₹)"
+          required
+          inputMode="decimal"
+          autoComplete="off"
+          placeholder="12999"
+          leftIcon={IndianRupee}
+          hint={priceHint}
+          error={errors.basePrice?.message}
+          {...register('basePrice')}
+        />
+
+        <Input
+          label="Direct discount (%)"
+          type="number"
+          min="0"
+          max="100"
+          placeholder="0"
+          hint="Direct discount for students enrolling in this plan."
+          error={errors.discountPercent?.message}
+          {...register('discountPercent')}
+        />
+      </div>
 
       {!isEdit ? (
         <Checkbox

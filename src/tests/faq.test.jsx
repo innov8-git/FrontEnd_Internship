@@ -74,7 +74,7 @@ describe('Faq Component', () => {
 
     // Questions in other categories should not be in the filtered list
     expect(
-      screen.queryByText(/how do the assessment percentage discounts work/i),
+      screen.queryByText(/how do the platform fee and percentage discounts work/i),
     ).not.toBeInTheDocument();
   });
 });

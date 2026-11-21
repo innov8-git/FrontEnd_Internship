@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ASSESSMENT_QUESTION_COUNT } from '@/shared/constants';
 import {
   Award,
   CheckCircle2,
@@ -35,13 +34,13 @@ const STEPS = [
   },
   {
     stepNumber: '02',
-    title: `${ASSESSMENT_QUESTION_COUNT}-Question Assessment`,
-    shortTitle: 'Skill Diagnostic',
-    badge: 'No Timer',
-    meta: 'Untimed test',
-    perk: 'No pass/fail stress',
+    title: 'Track & Domain Selection',
+    shortTitle: 'Direct Admission',
+    badge: 'Direct Entry',
+    meta: '8 industry tracks',
+    perk: 'No exam stress',
     description:
-      'Demonstrate your practical knowledge in an adaptive diagnostic with zero countdown pressure — just show what you know.',
+      'Choose your industry domain and developer track for real enterprise project building — no screening exam required.',
     icon: ListChecks,
     accent: '#ea580c', // orange-600
     glow: 'rgba(234, 88, 12, 0.45)',
@@ -50,15 +49,13 @@ const STEPS = [
   },
   {
     stepNumber: '03',
-    title: 'Merit Scholarship',
-    shortTitle: 'Merit Discount',
-    badge: MAX_EXAMPLE_DISCOUNT_PERCENT > 0 ? `Up to ${MAX_EXAMPLE_DISCOUNT_PERCENT}% Off` : 'Score Reward',
-    meta: 'Instant reward',
+    title: 'Direct Platform Discount',
+    shortTitle: 'Direct Concession',
+    badge: MAX_EXAMPLE_DISCOUNT_PERCENT > 0 ? `Up to ${MAX_EXAMPLE_DISCOUNT_PERCENT}% Off` : 'Direct Discount',
+    meta: 'Instant reduction',
     perk: 'Applied automatically',
     description:
-      MAX_EXAMPLE_DISCOUNT_PERCENT > 0
-        ? `Your assessment score unlocks a direct merit discount of up to ${MAX_EXAMPLE_DISCOUNT_PERCENT}% off your internship enrollment fee.`
-        : 'Your assessment score unlocks a merit scholarship discount applied automatically to your enrollment.',
+      'Direct platform fee discounts and scholarship concessions are applied automatically to reduce your platform charges.',
     icon: Percent,
     accent: '#10b981', // emerald-500
     glow: 'rgba(16, 185, 129, 0.45)',

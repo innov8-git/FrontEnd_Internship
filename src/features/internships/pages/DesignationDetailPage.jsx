@@ -10,14 +10,14 @@ import {
   SkeletonText,
 } from '@/shared/components/ui';
 import { useDocumentTitle } from '@/shared/hooks';
-import { ASSESSMENT_QUESTION_COUNT, ROUTES } from '@/shared/constants';
+import { ROUTES } from '@/shared/constants';
 import {
   ArrowLeft,
   Building2,
   CalendarClock,
   CalendarDays,
+  CheckCircle2,
   IndianRupee,
-  ListChecks,
   Search,
   Users,
 } from '@/shared/icons';
@@ -25,7 +25,6 @@ import { cn } from '@/shared/utils/cn';
 import { getErrorStatus } from '@/shared/utils/errors';
 import { formatMoney } from '@/shared/utils/helpers';
 import { EnrollmentSteps } from '../components/EnrollmentSteps';
-import { DomainSelectionModal } from '../components/DomainSelectionModal';
 import { PlanList } from '../components/PlanList';
 import { SchedulePreviewModal } from '../components/SchedulePreviewModal';
 import { JoinTeamButton, StartAssessmentButton } from '../components/StartAssessmentButton';
@@ -120,7 +119,6 @@ export function DesignationDetailPage() {
   const plansQuery = usePlans({ designationId }, { enabled: Boolean(designationId) });
   const domainsQuery = useDomains({ enabled: Boolean(designationId) });
   const [preview, setPreview] = useState({ open: false, plan: null });
-  const [domainModalOpen, setDomainModalOpen] = useState(false);
 
   const isNotFound = designationQuery.isError && getErrorStatus(designationQuery.error) === 404;
   let documentTitle = 'Internship';
@@ -134,16 +132,6 @@ export function DesignationDetailPage() {
     () => new Map((domainsQuery.data ?? []).map((domain) => [domain._id, domain])),
     [domainsQuery.data],
   );
-
-  const availableDomains = useMemo(() => {
-    const all = domainsQuery.data ?? [];
-    const planDomainIds = new Set(plans.map((p) => p.domainId).filter(Boolean));
-    if (planDomainIds.size > 0) {
-      const filtered = all.filter((d) => planDomainIds.has(d._id));
-      if (filtered.length > 0) return filtered;
-    }
-    return all.filter((d) => d.status === 'PUBLISHED');
-  }, [domainsQuery.data, plans]);
 
   const openPreview = useCallback((plan) => setPreview({ open: true, plan }), []);
   const closePreview = useCallback(() => setPreview((current) => ({ ...current, open: false })), []);
@@ -205,9 +193,9 @@ export function DesignationDetailPage() {
       value: formatList(summary.domainNames, 'and') || placeholder,
     },
     {
-      icon: ListChecks,
-      label: 'Assessment',
-      value: `${ASSESSMENT_QUESTION_COUNT} questions · one attempt`,
+      icon: CheckCircle2,
+      label: 'Admission',
+      value: 'Direct enrollment · Online',
     },
   ];
 
@@ -233,7 +221,7 @@ export function DesignationDetailPage() {
       <EmptyState
         icon={CalendarClock}
         title="Plans are coming soon"
-        description="Pricing for this internship hasn't been published yet. You can still take the assessment now and choose a plan later."
+        description="Pricing for this internship hasn't been published yet. Please check back soon or browse other internships."
         action={
           <Button as={Link} to={ROUTES.CATALOG} variant="outline">
             Browse other internships
@@ -270,7 +258,6 @@ export function DesignationDetailPage() {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <StartAssessmentButton
                   designationId={designation._id}
-                  onStartAssessment={() => setDomainModalOpen(true)}
                 />
                 <JoinTeamButton
                   designationId={designation._id}
@@ -312,8 +299,7 @@ export function DesignationDetailPage() {
               Plans and pricing
             </h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              These are base prices. Individuals can lower theirs with a merit discount from the
-              assessment; teams pay the base price. You choose your plan after the assessment.
+              These are base platform prices. Any applicable platform discounts are calculated when you choose a plan. Teams pay the base price.
             </p>
           </div>
           {plansContent}
@@ -325,13 +311,6 @@ export function DesignationDetailPage() {
       </div>
 
       <SchedulePreviewModal open={preview.open} plan={preview.plan} onClose={closePreview} />
-
-      <DomainSelectionModal
-        open={domainModalOpen}
-        onClose={() => setDomainModalOpen(false)}
-        designation={designation}
-        availableDomains={availableDomains}
-      />
     </div>
   );
 }

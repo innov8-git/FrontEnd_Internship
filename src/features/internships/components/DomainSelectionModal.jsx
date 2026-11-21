@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Sparkles,
 } from '@/shared/icons';
+import { paths } from '@/shared/constants';
 
 export function DomainSelectionModal({
   open,
@@ -22,7 +23,7 @@ export function DomainSelectionModal({
   const handleStart = () => {
     if (!designation?._id || !activeDomainId) return;
     onClose();
-    navigate(`/assessment/${designation._id}?domainId=${activeDomainId}`);
+    navigate(paths.enroll({ designationId: designation._id }));
   };
 
   return (
@@ -30,16 +31,12 @@ export function DomainSelectionModal({
       open={open}
       onClose={onClose}
       title="Select Your Domain Specialization"
-      subtitle={designation?.name ? `Applying for ${designation.name}` : 'Internship Screening'}
+      description={designation?.name ? `Applying for ${designation.name}` : 'Internship Enrollment'}
       size="lg"
     >
       <div className="space-y-6 pt-2">
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Choose the industry domain you wish to build your project in. Your{' '}
-          <strong className="text-slate-900 dark:text-white font-semibold">
-            15-question technical screening assessment
-          </strong>{' '}
-          will be randomly sampled from the question pool of your selected domain.
+          Choose the industry domain you wish to build your project in. Your direct admission and platform discount will be configured for your chosen domain track.
         </p>
 
         {/* Domain Cards Selector */}
@@ -92,15 +89,15 @@ export function DomainSelectionModal({
           })}
         </div>
 
-        {/* Assessment Format Guarantee Banner */}
+        {/* Direct Admission Banner */}
         <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
               <Sparkles className="h-4 w-4 text-amber-500" />
-              15 Questions · 20 Minutes · 1 Attempt
+              Direct Admission · Instant Enrollment · Direct Concession
             </span>
             <span className="text-slate-500">
-              Score determines your scholarship discount slab
+              Direct platform charges & discount applied
             </span>
           </div>
         </div>
@@ -116,7 +113,7 @@ export function DomainSelectionModal({
             disabled={!activeDomainId}
             rightIcon={ArrowRight}
           >
-            Start Assessment ({activeDomain?.name || 'Selected Domain'})
+            Enroll in Track ({activeDomain?.name || 'Selected Domain'})
           </Button>
         </div>
       </div>

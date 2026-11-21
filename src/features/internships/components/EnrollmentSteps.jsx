@@ -1,18 +1,17 @@
-import { ASSESSMENT_QUESTION_COUNT } from '@/shared/constants';
 import { cn } from '@/shared/utils/cn';
 
 const STEPS = [
   {
-    title: 'Take the assessment',
-    description: `${ASSESSMENT_QUESTION_COUNT} questions, one attempt, no timer and no pass or fail.`,
+    title: 'Choose your plan',
+    description: 'Pick your industry domain and internship duration.',
   },
   {
-    title: 'See your discount',
-    description: 'Your score decides your individual discount on any plan of this internship.',
+    title: 'Review charges & discount',
+    description: 'See the platform charges, direct discount, and final student price.',
   },
   {
-    title: 'Choose a plan and pay',
-    description: 'Pick a domain and duration, accept the terms and pay securely.',
+    title: 'Accept terms and pay',
+    description: 'Review the enrollment terms and complete checkout securely.',
   },
   {
     title: 'Start day 1',

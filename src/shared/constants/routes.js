@@ -21,6 +21,7 @@ export const ROUTES = Object.freeze({
   VERIFY_EMAIL: '/verify-email',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
+  SET_PASSWORD: '/set-password',
   GOOGLE_CALLBACK: '/auth/google/callback',
 
   // Student

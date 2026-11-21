@@ -1,3 +1,4 @@
+import { Navigate } from 'react-router-dom';
 import AdminLayout from '@/shared/components/layout/AdminLayout';
 import { ROLES } from '@/shared/constants';
 import ProtectedRoute from './ProtectedRoute';
@@ -11,7 +12,6 @@ import {
   DomainsPage,
   ProjectsPage,
   ProjectAssignmentsPage,
-  DomainQuestionsPage,
   PlansPage,
   TrainersPage,
   UsersPage,
@@ -32,7 +32,7 @@ export const adminRoutes = {
         { path: 'domains', element: <DomainsPage /> },
         { path: 'projects', element: <ProjectsPage /> },
         { path: 'project-assignments', element: <ProjectAssignmentsPage /> },
-        { path: 'domains/:domainId/questions', element: <DomainQuestionsPage /> },
+        { path: 'domains/:domainId/questions', element: <Navigate to="/admin/domains" replace /> },
         { path: 'plans', element: <PlansPage /> },
         { path: 'payments', element: <AdminPaymentsPage /> },
         { path: 'assignments', element: <AssignmentsPage /> },

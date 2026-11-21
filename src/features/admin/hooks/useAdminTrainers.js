@@ -31,7 +31,7 @@ export function useToggleTrainerPrivilege() {
   });
 }
 
-/** Create a new trainer account and trigger welcome credentials email */
+/** Create a new trainer account and trigger welcome invitation email with password setup link */
 export function useCreateTrainer() {
   const invalidate = useInvalidateTrainerData();
   return useMutation({
