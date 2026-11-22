@@ -213,6 +213,7 @@ export function ProjectsTable({
       columns={columns}
       data={projects}
       isLoading={isLoading}
+      searchable={false}
       rowKey="_id"
       emptyState={{
         title: 'No projects found',
