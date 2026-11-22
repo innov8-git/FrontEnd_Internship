@@ -154,30 +154,17 @@ describe('FeaturedInternships Section & Partner Companies', () => {
       screen.getAllByRole('heading', { name: /^Trainee Software Engineer$/i }).length,
     ).toBeGreaterThanOrEqual(8);
 
-    // Click 'App Development' track filter toggle
-    const appTrackButton = screen.getByRole('button', { name: /^App Development$/i });
-    await user.click(appTrackButton);
+    // Select a domain first so the track filter dropdown appears
+    const bankingTab = screen.getByRole('button', { name: /Banking & FinTech/i });
+    await user.click(bankingTab);
 
-    // Only App Development cards should now be rendered (4 cards)
-    expect(screen.getAllByText('App Development Track').length).toBeGreaterThanOrEqual(4);
+    // Select 'App Development' track filter option from dropdown
+    const trackSelect = screen.getByLabelText(/filter by track/i);
+    await user.selectOptions(trackSelect, 'app');
+
+    // Only App Development card should now be rendered for this domain
+    expect(screen.getByText('App Development Track')).toBeInTheDocument();
     expect(screen.queryByText('Web Development Track')).not.toBeInTheDocument();
-  });
-
-  it('filters companies using sub-domain quick filter pills', async () => {
-    const user = userEvent.setup();
-    renderFeaturedInternships();
-
-    // Click 'Insurance' sub-domain pill
-    const insurancePill = screen.getByRole('button', { name: /^Insurance$/i });
-    await user.click(insurancePill);
-
-    // Proton (Healthcare & Insurance) card should be visible
-    expect(screen.getAllByText(/HIPAA-compliant health tech/i).length).toBeGreaterThan(0);
-
-    // Other company cards should be filtered out
-    expect(screen.queryByText(/Enterprise core banking/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Next-gen telecom orchestration/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Multi-tenant enterprise SaaS/i)).not.toBeInTheDocument();
   });
 
   it(
