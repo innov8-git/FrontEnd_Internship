@@ -32,6 +32,7 @@ function ThemedSelect({
   onChange,
   options = [],
   placeholder = 'Select an option',
+  error,
   className,
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -107,9 +108,11 @@ function ThemedSelect({
         className={cn(
           'flex w-full items-center justify-between rounded-xl border bg-white px-3.5 py-2.5 text-sm text-left shadow-xs transition-all',
           'dark:bg-slate-900',
-          isOpen
-            ? 'border-brand-500 ring-2 ring-brand-500/20 text-slate-900 dark:text-white dark:border-brand-400 dark:ring-brand-400/20'
-            : 'border-slate-300 text-slate-800 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-600',
+          error
+            ? 'border-rose-500 ring-1 ring-rose-500/50 text-slate-900 dark:text-white dark:border-rose-500'
+            : isOpen
+              ? 'border-brand-500 ring-2 ring-brand-500/20 text-slate-900 dark:text-white dark:border-brand-400 dark:ring-brand-400/20'
+              : 'border-slate-300 text-slate-800 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-600',
         )}
       >
         <span className="truncate font-medium">{selectedLabel}</span>
@@ -120,6 +123,12 @@ function ThemedSelect({
           )}
         />
       </button>
+
+      {error && (
+        <p className="mt-1 text-xs text-rose-600 dark:text-rose-400" role="alert">
+          {error}
+        </p>
+      )}
 
       {/* Custom Themed Floating Dropdown Menu */}
       {isOpen && (
@@ -180,6 +189,7 @@ export function InternshipDetailsModal({
   const [activeTab, setActiveTab] = useState(initialTab);
   const [selectedRole, setSelectedRole] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     fullName: auth?.user?.name || '',
     email: auth?.user?.email || '',
@@ -197,6 +207,7 @@ export function InternshipDetailsModal({
       navigate(paths.login(location.pathname === '/' ? ROUTES.CATALOG : location.pathname + location.search));
       return;
     }
+    setErrors({});
     setActiveTab('apply');
   };
 
@@ -231,6 +242,7 @@ export function InternshipDetailsModal({
       }));
       setActiveTab(initialTab);
       setSubmitted(false);
+      setErrors({});
     }
   }, [partner, initialRole, initialTab, open]);
 
@@ -238,17 +250,116 @@ export function InternshipDetailsModal({
 
   const currentRole = selectedRole || initialRole || partner.role || partner.roles?.[0] || partner.internship;
 
+  const validate = () => {
+    const errs = {};
+    const fullName = String(formData.fullName ?? '').trim();
+    const email = String(formData.email ?? '').trim();
+    const phone = String(formData.phone ?? '').trim();
+    const college = String(formData.college ?? '').trim();
+    const selectedDomain = String(formData.selectedDomain ?? '').trim();
+    const duration = String(formData.duration ?? '').trim();
+    const githubUrl = String(formData.githubUrl ?? '').trim();
+
+    if (!fullName) {
+      errs.fullName = 'Please enter your full name.';
+    } else if (fullName.length < 2) {
+      errs.fullName = 'Full name must be at least 2 characters.';
+    } else if (!/[a-zA-Z]/.test(fullName)) {
+      errs.fullName = 'Full name must contain letters and cannot be only numbers.';
+    }
+
+    if (!email) {
+      errs.email = 'Please enter your email address.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errs.email = 'Please enter a valid email address.';
+    }
+
+    if (!phone) {
+      errs.phone = 'Please enter your contact phone number.';
+    } else if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/.test(phone)) {
+      errs.phone = 'Please enter a valid phone number (e.g. +91 98765 43210).';
+    }
+
+    if (!college) {
+      errs.college = 'Please enter your college or university name.';
+    } else if (/^\d+$/.test(college.replace(/[\s\-_,.]/g, '')) || !/[a-zA-Z]/.test(college)) {
+      errs.college = 'College or university name cannot be only numbers. Please enter a valid institution name.';
+    } else if (college.replace(/[^a-zA-Z]/g, '').length < 2) {
+      errs.college = 'College or university name must contain at least 2 letters.';
+    } else if (college.length < 2) {
+      errs.college = 'Please enter a valid institution name.';
+    }
+
+    if (!selectedDomain) {
+      errs.selectedDomain = 'Please select a domain.';
+    }
+
+    if (!duration) {
+      errs.duration = 'Please select an internship duration.';
+    }
+
+    if (githubUrl && !/^(https?:\/\/)?([\w.-]+)+([/\w\-._~:?#[\]@!$&'()*+,;=.]*)*$/i.test(githubUrl)) {
+      errs.githubUrl = 'Please enter a valid URL (e.g. https://github.com/username).';
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const handleBlur = (field) => {
+    const val = String(formData[field] ?? '').trim();
+    if (!val) return;
+    if (field === 'college') {
+      if (/^\d+$/.test(val.replace(/[\s\-_,.]/g, '')) || !/[a-zA-Z]/.test(val)) {
+        setErrors((prev) => ({
+          ...prev,
+          college: 'College or university name cannot be only numbers. Please enter a valid institution name.',
+        }));
+      } else if (val.replace(/[^a-zA-Z]/g, '').length < 2) {
+        setErrors((prev) => ({
+          ...prev,
+          college: 'College or university name must contain at least 2 letters.',
+        }));
+      }
+    } else if (field === 'fullName') {
+      if (val.length < 2) {
+        setErrors((prev) => ({ ...prev, fullName: 'Full name must be at least 2 characters.' }));
+      } else if (!/[a-zA-Z]/.test(val)) {
+        setErrors((prev) => ({ ...prev, fullName: 'Full name must contain letters and cannot be only numbers.' }));
+      }
+    } else if (field === 'email') {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+        setErrors((prev) => ({ ...prev, email: 'Please enter a valid email address.' }));
+      }
+    } else if (field === 'phone') {
+      if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/.test(val)) {
+        setErrors((prev) => ({ ...prev, phone: 'Please enter a valid phone number (e.g. +91 98765 43210).' }));
+      }
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validate()) {
+      return;
+    }
     setSubmitted(true);
   };
 
   const handleResetAndClose = () => {
     setSubmitted(false);
+    setErrors({});
     onClose();
   };
 
@@ -485,7 +596,9 @@ export function InternshipDetailsModal({
                     required
                     placeholder="e.g. Rahul Sharma"
                     value={formData.fullName}
+                    error={errors.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
+                    onBlur={() => handleBlur('fullName')}
                   />
                   <Input
                     label="Email Address"
@@ -493,7 +606,9 @@ export function InternshipDetailsModal({
                     required
                     placeholder="name@example.com"
                     value={formData.email}
+                    error={errors.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
+                    onBlur={() => handleBlur('email')}
                   />
                 </div>
 
@@ -504,14 +619,18 @@ export function InternshipDetailsModal({
                     required
                     placeholder="+91 98765 43210"
                     value={formData.phone}
+                    error={errors.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
+                    onBlur={() => handleBlur('phone')}
                   />
                   <Input
                     label="College / University"
                     required
                     placeholder="e.g. IIT Bombay / NIT Trichy"
                     value={formData.college}
+                    error={errors.college}
                     onChange={(e) => handleInputChange('college', e.target.value)}
+                    onBlur={() => handleBlur('college')}
                   />
                 </div>
 
@@ -520,6 +639,7 @@ export function InternshipDetailsModal({
                     id="apply-domain-select"
                     label={`Select Domain Offered by ${partner.name} *`}
                     value={formData.selectedDomain}
+                    error={errors.selectedDomain}
                     onChange={(val) => handleInputChange('selectedDomain', val)}
                     options={
                       partner.assignedDomains && partner.assignedDomains.length > 0
@@ -531,6 +651,7 @@ export function InternshipDetailsModal({
                     id="apply-duration-select"
                     label="Select Duration *"
                     value={formData.duration}
+                    error={errors.duration}
                     onChange={(val) => handleInputChange('duration', val)}
                     options={['1 Month', '2 Months', '3 Months', '6 Months']}
                   />
@@ -555,6 +676,7 @@ export function InternshipDetailsModal({
                     type="url"
                     placeholder="https://github.com/username"
                     value={formData.githubUrl}
+                    error={errors.githubUrl}
                     onChange={(e) => handleInputChange('githubUrl', e.target.value)}
                   />
                 </div>

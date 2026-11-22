@@ -209,4 +209,47 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     expect(viewMoreLink).toBeInTheDocument();
     expect(viewMoreLink.getAttribute('href')).toBe('/internships');
   });
+
+  it('validates that entering numbers in College / University field displays a validation error and blocks submission', async () => {
+    const user = userEvent.setup();
+    renderFeaturedInternships();
+
+    const viewDetailsButtons = screen.getAllByRole('button', { name: /view details/i });
+    await user.click(viewDetailsButtons[0]);
+
+    const applyTabBtn = screen.getByRole('button', { name: /Apply for this Role/i });
+    await user.click(applyTabBtn);
+
+    const nameInput = screen.getByPlaceholderText(/rahul sharma/i);
+    const emailInput = screen.getByPlaceholderText(/name@example.com/i);
+    const phoneInput = screen.getByPlaceholderText(/\+91 98765 43210/i);
+    const collegeInput = screen.getByPlaceholderText(/IIT Bombay/i);
+
+    await user.type(nameInput, 'Sanika Waske');
+    await user.type(emailInput, 'sanika@example.com');
+    await user.type(phoneInput, '9876543210');
+    // Type purely numbers in college field
+    await user.type(collegeInput, '8888');
+
+    const submitBtn = screen.getByRole('button', { name: /Submit Application/i });
+    await user.click(submitBtn);
+
+    // Validation error must be visible
+    expect(
+      screen.getByText(/College or university name cannot be only numbers/i),
+    ).toBeInTheDocument();
+    // Submission must be blocked (modal confirmation must not be shown)
+    expect(
+      screen.queryByText(/Application Submitted to Inlarge Software!/i),
+    ).not.toBeInTheDocument();
+
+    // Now clear and type a valid college name with string letters
+    await user.clear(collegeInput);
+    await user.type(collegeInput, 'MIT Pune');
+    await user.click(submitBtn);
+
+    expect(
+      await screen.findByText(/Application Submitted to Inlarge Software!/i),
+    ).toBeInTheDocument();
+  });
 });
