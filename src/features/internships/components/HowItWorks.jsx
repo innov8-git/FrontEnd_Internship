@@ -250,7 +250,7 @@ function RoadSvg() {
 }
 
 /** Individual Desktop Interactive Milestone */
-function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
+function DesktopMilestone({ step, index, active, onSelect, onLeave, isVisible }) {
   const coord = PIN_COORDINATES[index];
   const { icon: Icon, title, shortTitle, badge, perk, description, accent, glow, gradient, badgeClass, stepNumber } = step;
   const isActive = active === index;
@@ -292,6 +292,7 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
         transition: `opacity 0.5s ease-out ${index * 0.06}s`,
       }}
       onMouseEnter={() => onSelect(index)}
+      onMouseLeave={() => onLeave && onLeave()}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(isActive ? null : index);
@@ -367,7 +368,7 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
         {isActive ? (
           /* ── Full Expanded Card (Displays DIRECTLY & IMMEDIATELY on click or hover) ── */
           <div
-            className={cn(cardBaseClass, 'animate-in fade-in zoom-in-95 duration-200 hover:shadow-2xl')}
+            className={cn(cardBaseClass, 'milestone-expanded-card animate-in fade-in zoom-in-95 duration-200 hover:shadow-2xl')}
             onClick={(e) => e.stopPropagation()}
             style={{
               boxShadow: `0 16px 36px -8px ${glow}, 0 6px 16px -4px rgba(15,23,42,0.14)`,
@@ -487,9 +488,12 @@ function DesktopMilestone({ step, index, active, onSelect, isVisible }) {
 }
 
 /** Interactive Step Selector Pills (Quick controls below roadmap) */
-function StepSelectorBar({ active, onSelect }) {
+function StepSelectorBar({ active, onSelect, onLeave }) {
   return (
-    <div className="mt-6 flex flex-wrap sm:flex-nowrap items-center justify-center gap-1.5 sm:gap-2 max-w-6xl mx-auto px-2">
+    <div
+      className="mt-6 flex flex-wrap sm:flex-nowrap items-center justify-center gap-1.5 sm:gap-2 max-w-6xl mx-auto px-2"
+      onMouseLeave={() => onLeave && onLeave()}
+    >
       {STEPS.map((s, idx) => {
         const isCurrent = active === idx;
         const { icon: StepIcon, glow } = s;
@@ -499,6 +503,7 @@ function StepSelectorBar({ active, onSelect }) {
             key={s.stepNumber}
             type="button"
             onMouseEnter={() => onSelect(idx)}
+            onMouseLeave={() => onLeave && onLeave()}
             onClick={(e) => {
               e.stopPropagation();
               onSelect(isCurrent ? null : idx);
@@ -545,6 +550,30 @@ function HorizontalRoadmap() {
   const [active, setActive] = useState(null);
   const wrapRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+  const leaveTimerRef = useRef(null);
+
+  const clearLeaveTimer = () => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+  };
+
+  const handleSelect = useCallback((idx) => {
+    clearLeaveTimer();
+    setActive(idx);
+  }, []);
+
+  const handleLeave = useCallback(() => {
+    clearLeaveTimer();
+    leaveTimerRef.current = setTimeout(() => {
+      setActive(null);
+    }, 150);
+  }, []);
+
+  useEffect(() => {
+    return () => clearLeaveTimer();
+  }, []);
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -562,16 +591,21 @@ function HorizontalRoadmap() {
     return () => io.disconnect();
   }, []);
 
-  // Click outside to close active milestone card
+  // Click outside / anywhere other side to close active milestone card
   useEffect(() => {
     const handleClickOutside = (e) => {
-      // If clicking outside the active card/roadmap, close the card
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-        setActive(null);
+      // Keep open only if clicking inside the active expanded milestone card
+      if (e.target.closest && e.target.closest('.milestone-expanded-card')) {
+        return;
       }
+      clearLeaveTimer();
+      setActive(null);
     };
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') setActive(null);
+      if (e.key === 'Escape') {
+        clearLeaveTimer();
+        setActive(null);
+      }
     };
 
     document.addEventListener('click', handleClickOutside);
@@ -585,14 +619,11 @@ function HorizontalRoadmap() {
     };
   }, []);
 
-  const handleSelect = useCallback((idx) => {
-    setActive(idx);
-  }, []);
-
   return (
     <div
       ref={wrapRef}
       className="relative hidden lg:block w-full max-w-6xl mx-auto px-4"
+      onMouseLeave={handleLeave}
     >
       {/* ── Start & Finish Milestone Badges ── */}
       <div className="absolute top-[50%] -translate-y-1/2 left-0 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm shadow-xs">
@@ -609,7 +640,10 @@ function HorizontalRoadmap() {
       <div
         className="relative w-full cursor-pointer"
         style={{ paddingBottom: '30%' }}
-        onClick={() => setActive(null)}
+        onClick={() => {
+          clearLeaveTimer();
+          setActive(null);
+        }}
       >
         <RoadSvg />
 
@@ -620,13 +654,14 @@ function HorizontalRoadmap() {
             index={i}
             active={active}
             onSelect={handleSelect}
+            onLeave={handleLeave}
             isVisible={isVisible}
           />
         ))}
       </div>
 
       {/* ── Quick Step Navigation Bar ── */}
-      <StepSelectorBar active={active} onSelect={handleSelect} />
+      <StepSelectorBar active={active} onSelect={handleSelect} onLeave={handleLeave} />
     </div>
   );
 }
