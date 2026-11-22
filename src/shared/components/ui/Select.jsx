@@ -340,7 +340,6 @@ export const Select = forwardRef(function Select(
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-controls={open ? `${id}-listbox` : undefined}
-          aria-label={rest['aria-label']}
           disabled={disabled}
           onClick={() => {
             if (!disabled) setOpen((prev) => !prev);

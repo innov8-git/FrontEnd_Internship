@@ -5,18 +5,20 @@ import { AuthContext } from '@/shared/context/AuthContext';
 import { ROUTES } from '@/shared/constants';
 import {
   ArrowRight,
+  Building2,
   CheckCircle2,
   Coffee,
   Container,
   Database,
+  FileText,
   GithubIcon,
   Hexagon,
   Layers,
-  Star,
+  Phone,
+  Users,
   Workflow,
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
-import { MAX_EXAMPLE_DISCOUNT_PERCENT } from '../utils/catalogFormat';
 
 const HIGHLIGHTS = [
   'Guaranteed Sprints — No Resume Filter',
@@ -25,12 +27,39 @@ const HIGHLIGHTS = [
   'Verifiable Digital Certificate',
 ];
 
-const POPULAR_TRACKS = [
-  { label: '☕ Java Banking', query: 'java' },
-  { label: '⚛️ Full Stack', query: 'full-stack' },
-  { label: '☁️ DevOps & Cloud', query: 'devops' },
-  { label: '🔷 .NET Core', query: 'net' },
-  { label: '🗄️ SQL & Backend', query: 'sql' },
+const FEATURE_PILLS = [
+  {
+    icon: Building2,
+    title: '4 Tech Partners',
+    subtitle: '8 Fixed Domain Tracks',
+    iconBg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400',
+    hoverGlow: 'hover:shadow-emerald-500/10 hover:border-emerald-500/40',
+    topHighlight: 'via-emerald-400/60',
+  },
+  {
+    icon: FileText,
+    title: 'Internship Completion Letter',
+    subtitle: 'Official corporate credentials',
+    iconBg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400',
+    hoverGlow: 'hover:shadow-emerald-500/10 hover:border-emerald-500/40',
+    topHighlight: 'via-emerald-400/60',
+  },
+  {
+    icon: Users,
+    title: '1-on-1 Mentor',
+    subtitle: 'Weekly senior reviews',
+    iconBg: 'bg-sky-500/15 border-sky-500/30 text-sky-400',
+    hoverGlow: 'hover:shadow-sky-500/10 hover:border-sky-500/40',
+    topHighlight: 'via-sky-400/60',
+  },
+  {
+    icon: Phone,
+    title: 'Placement Support',
+    subtitle: 'Interview opportunities',
+    iconBg: 'bg-purple-500/15 border-purple-500/30 text-purple-400',
+    hoverGlow: 'hover:shadow-purple-500/10 hover:border-purple-500/40',
+    topHighlight: 'via-purple-400/60',
+  },
 ];
 
 /**
@@ -77,20 +106,10 @@ export function HeroSection({ className }) {
 
       <div className="container-page flex flex-col items-center justify-center py-16 sm:py-24 text-center">
         <div className="mx-auto max-w-3xl">
-          {/* Announcement Pill */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-slate-900/80 px-3.5 py-1 text-xs font-semibold text-amber-300 shadow-lg backdrop-blur">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>2026 Cohorts Open</span>
-            <span className="text-amber-400/70">·</span>
-            <span className="text-amber-200">
-              Up to {MAX_EXAMPLE_DISCOUNT_PERCENT}% Merit Scholarship
-            </span>
-          </div>
-
           {/* Main Headline */}
           <h1
             id="hero-heading"
-            className="mt-5 text-4xl font-extrabold leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-6xl drop-shadow-lg"
+            className="text-4xl font-extrabold leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-6xl drop-shadow-lg"
           >
             Real Industry Internships.{' '}
             <br className="hidden sm:inline" />
@@ -118,21 +137,6 @@ export function HeroSection({ className }) {
             </Button>
           </div>
 
-          {/* Popular Tracks Quick Links */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span className="font-semibold text-slate-300">Popular:</span>
-            {POPULAR_TRACKS.map(({ label, query }) => (
-              <Link
-                key={label}
-                to={isAuthenticated ? `${ROUTES.CATALOG}?q=${query}` : '/#explore-internships'}
-                onClick={scrollToExplore}
-                className="rounded-full border border-white/15 bg-slate-900/70 px-3 py-1 font-medium text-slate-200 backdrop-blur transition hover:border-amber-400 hover:text-amber-300"
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-
           {/* Feature Highlights Checklist */}
           <ul className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-slate-200">
             {HIGHLIGHTS.map((item) => (
@@ -142,27 +146,53 @@ export function HeroSection({ className }) {
               </li>
             ))}
           </ul>
+        </div>
 
-          {/* Live Trust Metrics Bar */}
-          <div className="mx-auto mt-8 grid max-w-md grid-cols-3 gap-4 border-t border-white/15 pt-5 text-center">
-            <div>
-              <p className="text-xl font-black text-white sm:text-2xl">2,500+</p>
-              <p className="text-xs text-slate-300">Active Interns</p>
-            </div>
-            <div>
-              <div className="flex items-center justify-center gap-1">
-                <p className="text-xl font-black text-white sm:text-2xl">4.9</p>
-                <div className="flex text-amber-400">
-                  <Star className="h-4 w-4 fill-amber-400" />
+        {/* 4 Tech Partner & Outcome Cards (Glassmorphic Glow Cards) */}
+        <div className="mt-12 grid w-full max-w-5xl grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4 text-left">
+          {FEATURE_PILLS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.title}
+                className={cn(
+                  'group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/65 p-4 shadow-xl backdrop-blur-xl',
+                  'transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-slate-900/85 hover:shadow-2xl',
+                  item.hoverGlow,
+                )}
+              >
+                {/* Top ambient highlight gradient line */}
+                <div
+                  className={cn(
+                    'pointer-events-none absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent to-transparent opacity-50 transition-opacity duration-300 group-hover:opacity-100',
+                    item.topHighlight,
+                  )}
+                />
+
+                {/* Subtle soft ambient background glow */}
+                <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-white/5 blur-xl transition-all duration-300 group-hover:scale-150 group-hover:bg-white/10" />
+
+                <div className="relative flex items-center gap-3.5">
+                  <div
+                    className={cn(
+                      'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border shadow-inner transition-transform duration-300 group-hover:scale-105',
+                      item.iconBg,
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm font-bold tracking-tight text-white transition-colors group-hover:text-amber-300">
+                      {item.title}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-slate-300 font-medium">
+                      {item.subtitle}
+                    </p>
+                  </div>
                 </div>
               </div>
-              <p className="text-xs text-slate-300">500+ Reviews</p>
-            </div>
-            <div>
-              <p className="text-xl font-black text-white sm:text-2xl">100%</p>
-              <p className="text-xs text-slate-300">Verifiable</p>
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
     </section>
