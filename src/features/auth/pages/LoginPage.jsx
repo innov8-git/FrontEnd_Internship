@@ -1,12 +1,12 @@
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useDocumentTitle } from '@/shared/hooks';
-import { ROUTES, paths } from '@/shared/constants';
+import { ROUTES, USE_MOCKS, paths } from '@/shared/constants';
 import { AuthCard } from '../components/AuthCard';
 import { LoginForm } from '../components/LoginForm';
 import { AUTH_LINK_CLASS } from '../components/authStyles';
 import { useLogin } from '../hooks/useLogin';
 
-/** Demo credentials auto-filled for the frontend mock environment. */
+/** Demo credentials auto-filled in mock mode only. */
 const DEMO_EMAIL = 'student@demo.dev';
 const DEMO_PASSWORD = 'Password@123';
 
@@ -18,10 +18,11 @@ export function LoginPage() {
   const { login, isPending, error, redirectTo } = useLogin();
   const defaultEmail = typeof location.state?.email === 'string' ? location.state.email : '';
 
-  // Auto-fill demo credentials when redirected from browse/apply internship flow
+  // Auto-fill demo credentials only when running against the MSW mock API
   const redirectTarget = searchParams.get('redirect');
   const isInternshipRedirect = Boolean(
-    redirectTarget &&
+    USE_MOCKS &&
+      redirectTarget &&
       (redirectTarget === ROUTES.CATALOG ||
         redirectTarget.includes('internship') ||
         redirectTarget.includes('assessment')),

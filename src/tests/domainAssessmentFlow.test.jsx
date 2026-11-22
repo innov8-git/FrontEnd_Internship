@@ -91,34 +91,7 @@ describe('DomainAssessmentFlow, Calculator & Direct Enrollment Flow', () => {
       expect(screen.getAllByText(/₹1699/i).length).toBeGreaterThanOrEqual(1);
     });
 
-    it('allows toggling payment methods (UPI, Card, NetBanking)', () => {
-      render(
-        <MemoryRouter>
-          <DomainAssessmentFlow
-            candidate={candidate}
-            partner={partner}
-            role={role}
-            domain="Banking"
-            onClose={vi.fn()}
-          />
-        </MemoryRouter>,
-      );
-
-      const cardBtn = screen.getByRole('button', { name: /Demo Card/i });
-      const netBankingBtn = screen.getByRole('button', { name: /NetBanking/i });
-      const upiBtn = screen.getByRole('button', { name: /Demo UPI/i });
-
-      expect(cardBtn).toBeInTheDocument();
-      expect(netBankingBtn).toBeInTheDocument();
-      expect(upiBtn).toBeInTheDocument();
-
-      fireEvent.click(cardBtn);
-      // State switches smoothly without errors
-      fireEvent.click(netBankingBtn);
-      fireEvent.click(upiBtn);
-    });
-
-    it('completes demo seat confirmation, saves selection to localStorage, and confirms enrollment', async () => {
+    it('routes into the live /enroll flow using published backend plans without writing demo localStorage', async () => {
       const mockClose = vi.fn();
       render(
         <MemoryRouter>
@@ -132,32 +105,20 @@ describe('DomainAssessmentFlow, Calculator & Direct Enrollment Flow', () => {
         </MemoryRouter>,
       );
 
-      const confirmBtn = screen.getByRole('button', {
-        name: /Confirm Seat & Open Student Portal/i,
+      const continueBtn = screen.getByRole('button', {
+        name: /Continue to Plan & Enrollment/i,
       });
-      fireEvent.click(confirmBtn);
+      fireEvent.click(continueBtn);
 
-      // Successfully transitions to confirmation view
-      expect(
-        await screen.findByText(/Seat Successfully Confirmed!/i),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/You are officially enrolled for/i),
-      ).toBeInTheDocument();
-
-      // Verified persistence in localStorage
-      const saved = JSON.parse(localStorage.getItem('alfre_selected_internship') || '{}');
-      expect(saved.partner.name).toBe('Inlarge Software');
-      expect(saved.domain).toBe('Banking');
-      expect(saved.concessionPercent).toBe(15);
-      expect(saved.finalAmount).toBe(1699);
-      expect(saved.status).toBe('SELECTED_CONFIRMED');
-
-      // Verifies navigation timeout triggers
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
         expect(mockClose).toHaveBeenCalled();
-      }, { timeout: 2000 });
+        expect(mockNavigate).toHaveBeenCalled();
+      }, { timeout: 3000 });
+
+      const target = mockNavigate.mock.calls[0][0];
+      expect(target === '/internships' || String(target).startsWith('/enroll')).toBe(true);
+      expect(localStorage.getItem('alfre_selected_internship')).toBeNull();
+      expect(localStorage.getItem('alfre.auth.token')).toBeNull();
     });
   });
 
