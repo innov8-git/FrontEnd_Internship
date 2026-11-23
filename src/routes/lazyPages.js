@@ -78,6 +78,7 @@ export const DesignationsPage = lazy(() => import('@/features/catalog/pages/Desi
 export const DomainsPage = lazy(() => import('@/features/catalog/pages/DomainsPage'));
 export const ProjectsPage = lazy(() => import('@/features/catalog/pages/ProjectsPage'));
 export const ProjectAssignmentsPage = lazy(() => import('@/features/catalog/pages/ProjectAssignmentsPage'));
+export const AdminInternshipsPage = lazy(() => import('@/features/catalog/pages/AdminInternshipsPage'));
 export const DomainQuestionsPage = lazy(
   () => import('@/features/catalog/pages/DomainQuestionsPage'),
 );

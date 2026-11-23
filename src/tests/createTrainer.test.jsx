@@ -4,11 +4,15 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CreateTrainerModal } from '@/features/admin/components/CreateTrainerModal';
+import { AssignStudentGroupModal } from '@/features/admin/components/AssignStudentGroupModal';
 import { TrainerProfileCompletionBanner } from '@/features/trainer/components/TrainerProfileCompletionBanner';
 import { isTrainerProfileComplete } from '@/features/trainer/utils/profileCompletion';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { AuthContext } from '@/shared/context/AuthContext';
 import * as adminService from '@/services/adminService';
+import { findUserByEmail } from '@/mocks/services';
+import { issueAccessToken } from '@/mocks/utils';
+import { setAccessToken } from '@/services/api';
 
 function renderWithProviders(ui, { user = null, route = '/' } = {}) {
   const queryClient = new QueryClient({
@@ -223,6 +227,52 @@ describe('Manual Trainer Creation & Onboarding Flow', () => {
 
       expect(screen.getByText(/This setup link is invalid or was already used/i)).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /Go to log in/i })).toBeInTheDocument();
+    });
+  });
+
+  describe('AssignStudentGroupModal', () => {
+    it('fetches enrollments safely without crashing and allows assigning student to trainer', async () => {
+      const admin = findUserByEmail('admin@demo.dev');
+      setAccessToken(issueAccessToken(admin._id));
+
+      const assignSpy = vi.spyOn(adminService, 'assignToTrainer').mockResolvedValue({ success: true });
+      const onClose = vi.fn();
+
+      renderWithProviders(
+        <AssignStudentGroupModal
+          trainer={{ _id: 'trainer-99', name: 'Kedar' }}
+          open={true}
+          onClose={onClose}
+        />,
+        { user: admin }
+      );
+
+      expect(screen.getByText('Assign to Kedar')).toBeInTheDocument();
+      expect(screen.getByText(/Choose a student enrollment or group\/team to assign to this trainer/i)).toBeInTheDocument();
+
+      // Wait for seeded student option to appear
+      const studentLabel = await screen.findByText('Aarav Sharma');
+      expect(studentLabel).toBeInTheDocument();
+
+      // Click the radio button to select Aarav
+      const radio = screen.getByRole('radio', { name: /Aarav Sharma/i });
+      fireEvent.click(radio);
+
+      // Selected summary banner appears
+      expect(screen.getByText(/Selected:/i)).toBeInTheDocument();
+
+      // Click Assign Target
+      const assignButton = screen.getByRole('button', { name: /Assign Target/i });
+      expect(assignButton).not.toBeDisabled();
+      fireEvent.click(assignButton);
+
+      await waitFor(() => {
+        expect(assignSpy).toHaveBeenCalledWith('trainer-99', expect.objectContaining({
+          enrollmentId: expect.any(String),
+          teamId: undefined,
+        }));
+        expect(onClose).toHaveBeenCalled();
+      });
     });
   });
 });
