@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Briefcase, Building2, FolderGit2, UserCheck } from '@/shared/icons';
+import { Briefcase, Building2, FolderGit2, Sparkles, UserCheck } from '@/shared/icons';
 import { ROUTES } from '@/shared/constants';
 import { cn } from '@/shared/utils/cn';
 
@@ -8,6 +8,7 @@ const CATALOG_TABS = [
   { label: 'Projects', to: ROUTES.ADMIN_PROJECTS, icon: FolderGit2 },
   { label: 'Project Assignments', to: ROUTES.ADMIN_PROJECT_ASSIGNMENTS, icon: UserCheck },
   { label: 'Designations', to: ROUTES.ADMIN_DESIGNATIONS, icon: Briefcase },
+  { label: 'Internships', to: ROUTES.ADMIN_INTERNSHIPS, icon: Sparkles },
 ];
 
 /**

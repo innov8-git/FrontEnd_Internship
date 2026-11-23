@@ -10,9 +10,9 @@ import {
 import { cn } from '@/shared/utils/cn';
 import {
   ALL_DOMAINS,
-  PARTNER_COMPANIES,
   TRACK_OPTIONS,
 } from '../data/companyInternshipsData';
+import { useCompanyInternships } from '../hooks/useCompanyInternships';
 import { CompanyInternshipCard } from './CompanyInternshipCard';
 import { InternshipDetailsModal } from './InternshipDetailsModal';
 
@@ -28,6 +28,8 @@ export function FeaturedInternships({
   const [activeRoleModal, setActiveRoleModal] = useState(null);
   const [modalInitialTab, setModalInitialTab] = useState('details');
 
+  const { companies, allPositionCards } = useCompanyInternships();
+
   const handleDomainSelect = (domainId) => {
     setSelectedDomain(domainId);
     if (domainId === 'all') {
@@ -40,45 +42,43 @@ export function FeaturedInternships({
   const auth = useContext(AuthContext);
   const isAuthenticated = auth?.isAuthenticated ?? false;
 
-  // Flatten partner companies into independent position cards (Web Development & App Development)
-  // Ordered with Web Development roles across all companies, followed by App Development roles
-  const allPositionCards = useMemo(() => {
-    const list = [];
+  // Build dynamic domain category tabs including any new partner companies added by admin
+  const domainTabs = useMemo(() => {
+    const tabs = [{ id: 'all', label: 'All Companies & Tracks', count: allPositionCards.length }];
+    const seen = new Set();
 
-    // First: Web Development positions (1 per company)
-    PARTNER_COMPANIES.forEach((partner) => {
-      const webRole = partner.roles?.find((r) => r.track === 'web') || partner.internship;
-      if (webRole) {
-        list.push({
-          id: `${partner.id}-web`,
-          partner,
-          role: webRole,
-        });
+    companies.forEach((company) => {
+      const match = ALL_DOMAINS.find(
+        (d) => d.id === company.domainSlug || d.id === company.domainCategory || d.company === company.name,
+      );
+      const tabItem = match || {
+        id: company.domainCategory || company.id,
+        label: company.domain || company.name,
+        company: company.name,
+        domains: company.assignedDomains || [company.domain],
+      };
+
+      if (!seen.has(tabItem.id)) {
+        seen.add(tabItem.id);
+        tabs.push(tabItem);
       }
     });
 
-    // Second: App Development positions (1 per company)
-    PARTNER_COMPANIES.forEach((partner) => {
-      const appRole = partner.roles?.find((r) => r.track === 'app');
-      if (appRole) {
-        list.push({
-          id: `${partner.id}-app`,
-          partner,
-          role: appRole,
-        });
-      }
-    });
-
-    return list;
-  }, []);
+    return tabs;
+  }, [companies, allPositionCards.length]);
 
   // Filter positions by domain and track
   const filteredPositions = useMemo(() => {
     return allPositionCards.filter(({ partner, role }) => {
       // 1. Domain filter
       if (selectedDomain !== 'all') {
-        const matchesCategory = partner.domainCategory === selectedDomain;
-        const matchesSubDomain = partner.assignedDomainSlugs?.includes(selectedDomain);
+        const matchesCategory =
+          partner.domainCategory === selectedDomain ||
+          partner.domainSlug === selectedDomain ||
+          partner.id === selectedDomain;
+        const matchesSubDomain =
+          partner.assignedDomainSlugs?.includes(selectedDomain) ||
+          partner.assignedDomains?.some((d) => d.toLowerCase() === selectedDomain.toLowerCase());
         if (!matchesCategory && !matchesSubDomain) return false;
       }
       // 2. Track filter (all / web / app)
@@ -146,7 +146,7 @@ export function FeaturedInternships({
           <span className="mr-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             Filter by Domain:
           </span>
-          {ALL_DOMAINS.map((tab) => {
+          {domainTabs.map((tab) => {
             const isActive = selectedDomain === tab.id;
             return (
               <button

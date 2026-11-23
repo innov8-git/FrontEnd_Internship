@@ -71,13 +71,10 @@ function selectTeams(data) {
  */
 export function useAssignmentTargets({ type, search }) {
   const isTeam = type === TARGET_TYPE.TEAM;
-  const params = isTeam
-    ? { search: search || undefined, limit: PICKER_LIMIT }
-    : {
-        search: search || undefined,
-        status: ASSIGNABLE_ENROLLMENT_STATUSES.join(','),
-        limit: PICKER_LIMIT,
-      };
+  const params = {
+    search: search || undefined,
+    limit: PICKER_LIMIT,
+  };
   return useQuery({
     queryKey: isTeam
       ? [...queryKeys.admin.teams, 'assign-picker', params]
