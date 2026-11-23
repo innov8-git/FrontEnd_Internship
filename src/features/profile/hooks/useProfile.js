@@ -34,11 +34,11 @@ export function useProfile() {
   const fresh = query.data;
 
   useEffect(() => {
-    if (fresh && typeof fresh === 'object' && fresh._id) updateUser(fresh);
+    if (fresh && typeof fresh === 'object' && (fresh._id || fresh.id)) updateUser(fresh);
   }, [fresh, updateUser]);
 
   return {
-    user: fresh && fresh._id ? fresh : user,
+    user: fresh && (fresh._id || fresh.id) ? fresh : user,
     isLoading: !user && query.isLoading,
     isRefreshing: query.isFetching,
     error: query.error,
@@ -53,7 +53,7 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (payload) => updateMe(payload),
     onSuccess: (updated, variables) => {
-      if (updated && typeof updated === 'object' && updated._id) {
+      if (updated && typeof updated === 'object' && (updated._id || updated.id)) {
         updateUser(updated);
         queryClient.setQueryData(queryKeys.auth.me, updated);
       } else {

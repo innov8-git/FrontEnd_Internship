@@ -1,5 +1,5 @@
 import { api, orNullOn404 } from './api';
-import { getQuestionsForDomain, normalizeDomainSlug } from '@/mocks/seed/content/domainQuestions';
+import { USE_MOCKS } from '@/shared/constants';
 
 /** Assessment (MM7). Questions never include answer keys; scoring happens on the server. */
 export const getAssessment = (designationId, params = {}) =>
@@ -18,14 +18,12 @@ export const getMyAttempt = (designationId) =>
 export const getMyAttempts = () => api.get('/assessments/attempts/mine');
 
 /**
- * Fetches domain-specific assessment questions from the API / database.
- * If the user is unauthenticated or the backend has no configured assessment for this domain/role,
- * seamlessly falls back to the curated 15-question domain bank so the candidate can complete the assessment.
+ * Fetches domain-specific assessment questions from the backend API.
+ * In mock mode (VITE_USE_MOCKS=true) only, lazily falls back to the mock seed bank.
  */
 export const fetchAssessmentQuestionsByDomain = async (domain, designationId = 'general') => {
-  const normalizedDomain = normalizeDomainSlug(domain);
+  const normalizedDomain = String(domain || 'general').trim().toLowerCase().replace(/\s+/g, '-');
 
-  // 1. Attempt API fetch from database (if server/backend has assessments)
   try {
     const res = await api.get(`/assessments/${encodeURIComponent(designationId)}`, {
       domainId: normalizedDomain,
@@ -36,14 +34,19 @@ export const fetchAssessmentQuestionsByDomain = async (domain, designationId = '
         domain: res.domain || { name: domain, slug: normalizedDomain },
       };
     }
-  } catch {
-    // Graceful fallback to domain questions bank
+    if (!USE_MOCKS) return res;
+  } catch (err) {
+    if (!USE_MOCKS) throw err;
   }
 
-  // 2. Curated domain questions bank
-  const pool = getQuestionsForDomain(normalizedDomain);
+  // Mock-mode-only lazy fallback so seed data never runs in live backend mode
+  const { getQuestionsForDomain, normalizeDomainSlug } = await import(
+    '@/mocks/seed/content/domainQuestions'
+  );
+  const slug = normalizeDomainSlug(domain);
+  const pool = getQuestionsForDomain(slug);
   const formattedQuestions = pool.slice(0, 15).map((q, idx) => ({
-    _id: `${normalizedDomain}-${idx + 1}`,
+    _id: `${slug}-${idx + 1}`,
     text: q.text,
     options: [...q.options],
     correctIndex: q.correctIndex,
@@ -57,9 +60,9 @@ export const fetchAssessmentQuestionsByDomain = async (domain, designationId = '
       slug: designationId,
     },
     domain: {
-      _id: normalizedDomain,
+      _id: slug,
       name: domain,
-      slug: normalizedDomain,
+      slug,
     },
     configVersion: 1,
     totalQuestions: formattedQuestions.length,

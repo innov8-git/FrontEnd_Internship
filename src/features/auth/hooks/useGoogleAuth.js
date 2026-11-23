@@ -169,12 +169,36 @@ export function useGoogleAuth(options = {}) {
         cancel_on_tap_outside: true,
       });
 
-      // Prompt the user with Google One-Tap / Popup
+      // Prompt the user with Google One-Tap; if One-Tap is unavailable/suppressed,
+      // open the explicit GIS OAuth2 code popup which posts { code } to POST /auth/google.
       google.accounts.id.prompt((notification) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fall back to server redirect or explicit OAuth window
-          const backendAuthUrl = `${import.meta.env.VITE_API_URL || '/api/v1'}/auth/google`;
-          window.location.href = backendAuthUrl;
+          if (google.accounts.oauth2?.initCodeClient) {
+            const codeClient = google.accounts.oauth2.initCodeClient({
+              client_id: clientId,
+              scope: 'openid email profile',
+              ux_mode: 'popup',
+              callback: (response) => {
+                if (response?.code) {
+                  handleCredentialResponse({ code: response.code });
+                } else {
+                  if (mountedRef.current) setIsPending(false);
+                  inFlightRef.current = false;
+                }
+              },
+              error_callback: () => {
+                if (mountedRef.current) setIsPending(false);
+                inFlightRef.current = false;
+              },
+            });
+            codeClient.requestCode();
+          } else {
+            if (mountedRef.current) setIsPending(false);
+            inFlightRef.current = false;
+            toast.error('Google sign-in popup was blocked', {
+              description: 'Please allow popups for this site and try again.',
+            });
+          }
         }
       });
     } catch (err) {
