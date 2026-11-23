@@ -165,8 +165,11 @@ export function PaymentSuccess({ enrollment, orderId }) {
   );
 }
 
-/** The gateway reported the payment as failed (SN9). */
-export function PaymentFailed({ enrollmentId, orderId }) {
+/** The gateway reported the payment as failed (SN9, PAY-18). */
+export function PaymentFailed({ enrollmentId, orderId, reason }) {
+  const retryTarget = enrollmentId ? paths.payment(enrollmentId) : ROUTES.DASHBOARD;
+  const retryLabel = enrollmentId ? 'Retry payment' : 'Go to dashboard';
+
   return (
     <OutcomePanel
       tone="danger"
@@ -177,8 +180,8 @@ export function PaymentFailed({ enrollmentId, orderId }) {
           <Button as="a" href={supportHref(orderId)} variant="outline" leftIcon={LifeBuoy}>
             Contact support
           </Button>
-          <Button as={Link} to={paths.payment(enrollmentId)} leftIcon={RefreshCw}>
-            Retry payment
+          <Button as={Link} to={retryTarget} leftIcon={enrollmentId ? RefreshCw : LayoutDashboard}>
+            {retryLabel}
           </Button>
         </>
       }
@@ -187,6 +190,12 @@ export function PaymentFailed({ enrollmentId, orderId }) {
         The payment didn&apos;t go through, so your internship hasn&apos;t started. Your price is
         still locked — you can try again with another card, UPI app or bank.
       </p>
+      {reason ? (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-left text-xs font-medium text-rose-800">
+          <span className="font-semibold">Bank response: </span>
+          {reason}
+        </div>
+      ) : null}
       <p className="text-xs text-slate-500">
         If money left your account, email{' '}
         <a className="link" href={supportHref(orderId)}>

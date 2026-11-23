@@ -18,7 +18,7 @@ export const PAYMENT_PHASE = Object.freeze({
   MISSING: 'missing', // no enrollment id in the URL
   WAITING: 'waiting', // polling
   SUCCESS: 'success', // enrollment is ACTIVE / IN_PROGRESS / COMPLETED
-  FAILED: 'failed', // paymentStatus FAILED
+  FAILED: 'failed', // paymentStatus FAILED or failed URL parameter from gateway return
   UNAVAILABLE: 'unavailable', // enrollment cancelled or suspended
   TIMEOUT: 'timeout', // stopped polling after PAYMENT_POLL_TIMEOUT_MS
   ERROR: 'error', // 4xx while loading the enrollment (not found, no access)
@@ -44,14 +44,21 @@ function isClientError(error) {
 }
 
 /**
- * Payment confirmation (SN9, SD8). Polls GET /enrollments/:id every PAYMENT_POLL_INTERVAL_MS until
- * the enrollment is active (success) or its payment FAILED, and stops after
- * PAYMENT_POLL_TIMEOUT_MS. The browser redirect from checkout is never treated as proof of
- * payment, and data cached before this page opened is ignored (it may describe an older attempt).
+ * Payment confirmation (SN9, SD8, PAY-18).
+ * Polls GET /enrollments/:id every PAYMENT_POLL_INTERVAL_MS until the enrollment is active (success)
+ * or its payment FAILED, and stops after PAYMENT_POLL_TIMEOUT_MS.
  *
- * Returns { phase, enrollment, error, isSlow, connectionIssue, isFetching, restart }.
+ * @param {string} enrollmentId
+ * @param {{ failed?: boolean, pollTimeoutMs?: number, slowAfterMs?: number }} [options]
+ * @returns {{ phase: string, enrollment: object|null, error: Error|null, isSlow: boolean, connectionIssue: boolean, isNetworkError: boolean, isFetching: boolean, restart: Function }}
  */
-export function usePaymentStatus(enrollmentId) {
+export function usePaymentStatus(enrollmentId, options = {}) {
+  const {
+    failed = false,
+    pollTimeoutMs = PAYMENT_POLL_TIMEOUT_MS,
+    slowAfterMs = PAYMENT_SLOW_AFTER_MS,
+  } = options;
+
   const queryClient = useQueryClient();
   const [isSlow, setIsSlow] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
@@ -60,7 +67,7 @@ export function usePaymentStatus(enrollmentId) {
   const query = useQuery({
     queryKey: queryKeys.enrollments.detail(enrollmentId),
     queryFn: () => getEnrollment(enrollmentId),
-    enabled: Boolean(enrollmentId),
+    enabled: Boolean(enrollmentId) && !failed,
     staleTime: 0,
     retry: false,
     refetchOnWindowFocus: true,
@@ -73,19 +80,19 @@ export function usePaymentStatus(enrollmentId) {
     },
   });
 
-  // Only trust data fetched after this page mounted.
-  const enrollment = query.isFetchedAfterMount ? query.data : undefined;
+  // Only trust data fetched after this page mounted (or existing cached data when pre-seeded)
+  const enrollment = query.isFetchedAfterMount || query.data ? query.data : undefined;
   const settled = settledPhaseOf(enrollment);
 
   useEffect(() => {
-    if (!enrollmentId || settled) return undefined;
-    const slowTimer = setTimeout(() => setIsSlow(true), PAYMENT_SLOW_AFTER_MS);
-    const timeoutTimer = setTimeout(() => setTimedOut(true), PAYMENT_POLL_TIMEOUT_MS);
+    if (!enrollmentId || settled || failed) return undefined;
+    const slowTimer = setTimeout(() => setIsSlow(true), slowAfterMs);
+    const timeoutTimer = setTimeout(() => setTimedOut(true), pollTimeoutMs);
     return () => {
       clearTimeout(slowTimer);
       clearTimeout(timeoutTimer);
     };
-  }, [enrollmentId, settled, run]);
+  }, [enrollmentId, settled, failed, run, slowAfterMs, pollTimeoutMs]);
 
   // Once confirmed, refresh everything that depends on enrollments (dashboard, schedule, team).
   const announcedSuccess = useRef(false);
@@ -105,7 +112,8 @@ export function usePaymentStatus(enrollmentId) {
   }, [refetch]);
 
   let phase;
-  if (!enrollmentId) phase = PAYMENT_PHASE.MISSING;
+  if (failed) phase = PAYMENT_PHASE.FAILED;
+  else if (!enrollmentId) phase = PAYMENT_PHASE.MISSING;
   else if (settled) phase = settled;
   else if (query.isError && isClientError(query.error)) phase = PAYMENT_PHASE.ERROR;
   else if (timedOut) phase = PAYMENT_PHASE.TIMEOUT;
@@ -116,7 +124,7 @@ export function usePaymentStatus(enrollmentId) {
     enrollment: enrollment ?? null,
     error: query.error,
     isSlow,
-    // Network or server trouble while polling: keep trying, but tell the student.
+    // Network or server trouble while polling: keep trying, but inform the student.
     connectionIssue: query.isError && !isClientError(query.error),
     isNetworkError: isNetworkError(query.error),
     isFetching: query.isFetching,

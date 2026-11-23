@@ -29,22 +29,29 @@ function DashboardButton({ variant = 'primary' }) {
 }
 
 /**
- * Payment status (SN9, SD8): /payment/status?enrollmentId=&orderId=
+ * Payment status (SN9, SD8, PAY-18): /payment/status?enrollmentId=&orderId=&failed=&reason=&status=
  * Polls the enrollment until the server confirms the payment (or reports it failed), with a
- * timeout. Arriving here from the checkout is never treated as proof of payment.
+ * timeout. Handles bank return redirection seamlessly and triggers instant dashboard invalidation.
  */
 export function PaymentStatusPage() {
   const [searchParams] = useSearchParams();
   const enrollmentId = searchParams.get('enrollmentId') ?? '';
   const orderId = searchParams.get('orderId') ?? '';
-  const status = usePaymentStatus(enrollmentId);
+  const failedParam = searchParams.get('failed') === 'true';
+  const reasonParam = searchParams.get('reason') ?? '';
+
+  const status = usePaymentStatus(enrollmentId, {
+    failed: failedParam,
+  });
   const { phase, enrollment } = status;
   useDocumentTitle(PAGE_TITLES[phase] ?? 'Payment status');
 
   let panel;
   switch (phase) {
     case PAYMENT_PHASE.MISSING:
-      panel = (
+      panel = failedParam ? (
+        <PaymentFailed enrollmentId={enrollmentId} orderId={orderId} reason={reasonParam} />
+      ) : (
         <EmptyState
           icon={Receipt}
           title="There's no payment to check"
@@ -74,7 +81,7 @@ export function PaymentStatusPage() {
       panel = <PaymentSuccess enrollment={enrollment} orderId={orderId} />;
       break;
     case PAYMENT_PHASE.FAILED:
-      panel = <PaymentFailed enrollmentId={enrollmentId} orderId={orderId} />;
+      panel = <PaymentFailed enrollmentId={enrollmentId} orderId={orderId} reason={reasonParam} />;
       break;
     case PAYMENT_PHASE.UNAVAILABLE:
       panel = <PaymentUnavailable orderId={orderId} />;
