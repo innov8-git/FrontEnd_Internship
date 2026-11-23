@@ -1,14 +1,25 @@
 import { api } from './api';
 
 /**
- * Payments (SD7, SD8). The amount is always taken from the enrollment's price snapshot on
- * the server; the browser only asks for an order and opens the gateway checkout.
+ * Payments Service (SD7, SD8, PAY-17).
+ * The amount is always taken from the enrollment's price snapshot on the server;
+ * the browser requests an order with provider 'hdfc' and opens the gateway checkout.
+ *
+ * @param {string|{enrollmentId: string, provider?: string}} enrollmentIdOrParams
+ * @returns {Promise<{paymentId: string, orderId: string, provider: string, amount: number, currency: string, status: string, payment_url?: string, checkoutData?: object}>}
  */
-export const createOrder = (enrollmentId) => api.post('/payments/orders', { enrollmentId });
+export const createOrder = (enrollmentIdOrParams) => {
+  const payload =
+    typeof enrollmentIdOrParams === 'string'
+      ? { enrollmentId: enrollmentIdOrParams, provider: 'hdfc' }
+      : { provider: 'hdfc', ...enrollmentIdOrParams };
+
+  return api.post('/payments/orders', payload);
+};
 
 /**
- * Mock gateway only: simulates the provider's signed webhook.
- * outcome: 'success' | 'failure' | 'pending'
+ * @deprecated Legacy mock gateway only: simulates webhook outcome in local mock mode.
+ * @param {{ orderId: string, outcome: 'success'|'failure'|'pending' }} param0
  */
 export const completeMockPayment = ({ orderId, outcome }) =>
   api.post('/payments/mock/complete', { orderId, outcome });

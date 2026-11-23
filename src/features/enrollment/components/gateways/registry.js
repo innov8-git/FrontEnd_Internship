@@ -14,7 +14,7 @@ export const GATEWAY_ADAPTERS = Object.freeze({
   hdfc: HdfcCheckout,
 });
 
-export const DEFAULT_GATEWAY = 'mock';
+export const DEFAULT_GATEWAY = 'hdfc';
 
 export function getGatewayAdapter(provider) {
   const key = String(provider ?? '').trim().toLowerCase();

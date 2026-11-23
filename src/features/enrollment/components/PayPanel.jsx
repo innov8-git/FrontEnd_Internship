@@ -1,11 +1,12 @@
 import { useId } from 'react';
 import { Badge, Button, Card } from '@/shared/components/ui';
-import { BadgeCheck, Lock, ShieldCheck, Zap } from '@/shared/icons';
+import { BadgeCheck, Landmark, Lock, ShieldCheck, Zap } from '@/shared/icons';
 import { formatMoney } from '@/shared/utils/helpers';
 
 /**
- * The pay call-to-action on /payment/:enrollmentId (SN9). Shows the server's payable amount and a
- * "Pay ₹X" (or "Retry payment") button; `blockedReason` explains why paying is disabled.
+ * The pay call-to-action on /payment/:enrollmentId (SN9, PAY-17).
+ * Shows the server's payable amount, a "Pay ₹X" (or "Retry payment") button,
+ * and bank security badges ("256-bit Bank Encryption", "Powered by HDFC SmartGateway").
  */
 export function PayPanel({
   amount,
@@ -52,15 +53,26 @@ export function PayPanel({
         </p>
       ) : null}
 
-      <ul className="mt-5 space-y-3 border-t border-slate-100 pt-5 text-xs leading-5 text-slate-500">
+      {/* Security & Bank Partner Badges (PAY-17) */}
+      <div className="mt-4 rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-2">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-800">
+          <Landmark className="h-4 w-4 text-brand-600 shrink-0" aria-hidden="true" />
+          <span>Powered by HDFC SmartGateway</span>
+        </div>
+        <div className="flex items-center gap-2 text-[11px] text-slate-600">
+          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" aria-hidden="true" />
+          <span>256-bit Bank Grade SSL Encryption</span>
+        </div>
+      </div>
+
+      <ul className="mt-4 space-y-2.5 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
         <li className="flex gap-2">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
-          Payments are handled by our payment partner. We never see or store your card or UPI
-          details.
+          <span>Payments are handled securely via HDFC. We never see or store your card or UPI credentials.</span>
         </li>
         <li className="flex gap-2">
           <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
-          Your internship starts only after the bank confirms the payment — usually within seconds.
+          <span>Your internship starts immediately after the bank confirms the payment.</span>
         </li>
       </ul>
     </Card>

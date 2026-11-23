@@ -141,26 +141,29 @@ export function PaymentPage() {
       setCheckoutOpen(true);
       return;
     }
-    createOrder.mutate(enrollment._id, {
-      onSuccess: (createdOrder) => {
-        setOrder(createdOrder);
-        setCheckoutOpen(true);
-      },
-      onError: (error) => {
-        if (isErrorCode(error, 'EMAIL_NOT_VERIFIED')) {
-          // The server is the source of truth: show the verification notice.
-          updateUser({ emailVerified: false });
-          return;
-        }
-        if (isErrorCode(error, 'TERMS_NOT_ACCEPTED')) {
-          enrollmentQuery.refetch();
-          return;
-        }
-        // 409: already paid, or a payment is still being confirmed — show the current state.
-        if (getErrorStatus(error) === 409) enrollmentQuery.refetch();
-        toast.error("We couldn't start the payment", { description: getErrorMessage(error) });
-      },
-    });
+    createOrder.mutate(
+      { enrollmentId: enrollment._id, provider: 'hdfc' },
+      {
+        onSuccess: (createdOrder) => {
+          setOrder(createdOrder);
+          setCheckoutOpen(true);
+        },
+        onError: (error) => {
+          if (isErrorCode(error, 'EMAIL_NOT_VERIFIED')) {
+            // The server is the source of truth: show the verification notice.
+            updateUser({ emailVerified: false });
+            return;
+          }
+          if (isErrorCode(error, 'TERMS_NOT_ACCEPTED')) {
+            enrollmentQuery.refetch();
+            return;
+          }
+          // 409: already paid, or a payment is still being confirmed — show the current state.
+          if (getErrorStatus(error) === 409) enrollmentQuery.refetch();
+          toast.error("We couldn't start the payment", { description: getErrorMessage(error) });
+        },
+      }
+    );
   };
 
   const handleCheckoutClose = () => {

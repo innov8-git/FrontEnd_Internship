@@ -50,9 +50,9 @@ describe('HDFC SmartGateway Checkout Adapter (PAY-16)', () => {
       expect(getGatewayAdapter('  hdfc  ')).toBe(HdfcCheckout);
     });
 
-    it('should fallback to default gateway when provider is unrecognised or null', () => {
-      expect(getGatewayAdapter('unknown_gateway')).toBe(GATEWAY_ADAPTERS.mock);
-      expect(getGatewayAdapter(null)).toBe(GATEWAY_ADAPTERS.mock);
+    it('should fallback to default gateway (hdfc) when provider is unrecognised or null', () => {
+      expect(getGatewayAdapter('unknown_gateway')).toBe(GATEWAY_ADAPTERS.hdfc);
+      expect(getGatewayAdapter(null)).toBe(GATEWAY_ADAPTERS.hdfc);
     });
   });
 
