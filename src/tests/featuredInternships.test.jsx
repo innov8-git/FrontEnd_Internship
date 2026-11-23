@@ -118,6 +118,14 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     await user.type(phoneInput, '9876543210');
     await user.type(collegeInput, 'Delhi Technological University');
 
+    const nextBtn = screen.getByRole('button', { name: /Next/i });
+    await user.click(nextBtn);
+
+    // Verify Step 2 shows the assigned industry project for the selected domain
+    expect(
+      await screen.findByText(/Assigned Industry Project for Banking/i),
+    ).toBeInTheDocument();
+
     const submitBtn = screen.getByRole('button', { name: /Submit Application/i });
     await user.click(submitBtn);
 
@@ -231,21 +239,29 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     // Type purely numbers in college field
     await user.type(collegeInput, '8888');
 
-    const submitBtn = screen.getByRole('button', { name: /Submit Application/i });
-    await user.click(submitBtn);
+    const nextBtn = screen.getByRole('button', { name: /Next/i });
+    await user.click(nextBtn);
 
     // Validation error must be visible
     expect(
       screen.getByText(/College or university name cannot be only numbers/i),
     ).toBeInTheDocument();
-    // Submission must be blocked (modal confirmation must not be shown)
+    // Step 2 must not be shown
     expect(
-      screen.queryByText(/Application Submitted to Inlarge Software!/i),
+      screen.queryByText(/Assigned Industry Project/i),
     ).not.toBeInTheDocument();
 
     // Now clear and type a valid college name with string letters
     await user.clear(collegeInput);
     await user.type(collegeInput, 'MIT Pune');
+    await user.click(nextBtn);
+
+    // Step 2 opens with assigned project
+    expect(
+      await screen.findByText(/Assigned Industry Project for Banking/i),
+    ).toBeInTheDocument();
+
+    const submitBtn = screen.getByRole('button', { name: /Submit Application/i });
     await user.click(submitBtn);
 
     expect(

@@ -71,6 +71,7 @@ export function DomainAssessmentFlow({
   domain = 'Banking',
   partner = {},
   role = {},
+  project = null,
   onClose,
 }) {
   const navigate = useNavigate();
@@ -253,6 +254,12 @@ export function DomainAssessmentFlow({
               <span>Selected Domain:</span>
               <span className="font-semibold text-brand-600 dark:text-brand-400">{domain} Track</span>
             </div>
+            {project?.title && (
+              <div className="flex justify-between">
+                <span>Assigned Project:</span>
+                <span className="font-semibold text-brand-600 dark:text-brand-400">{project.title}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span>Internship Tuition:</span>
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">₹0 (100% Free / Unpaid)</span>
