@@ -18,6 +18,7 @@ export { TermsToc } from './components/TermsToc';
 export { PaymentSummary } from './components/PaymentSummary';
 export { PayPanel } from './components/PayPanel';
 export { GatewayCheckout } from './components/GatewayCheckout';
+export { HdfcCheckout } from './components/gateways/HdfcCheckout';
 export { GATEWAY_ADAPTERS, DEFAULT_GATEWAY, getGatewayAdapter } from './components/gateways/registry';
 export { StatusPoller } from './components/StatusPoller';
 export {

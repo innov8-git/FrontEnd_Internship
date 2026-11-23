@@ -1,5 +1,6 @@
 import { MockGatewayCheckout } from './MockGatewayCheckout';
 import { RazorpayCheckout } from './RazorpayCheckout';
+import { HdfcCheckout } from './HdfcCheckout';
 
 /**
  * Checkout adapters by `order.provider` (from POST /payments/orders). Each adapter takes
@@ -10,6 +11,7 @@ import { RazorpayCheckout } from './RazorpayCheckout';
 export const GATEWAY_ADAPTERS = Object.freeze({
   mock: MockGatewayCheckout,
   razorpay: RazorpayCheckout,
+  hdfc: HdfcCheckout,
 });
 
 export const DEFAULT_GATEWAY = 'mock';
