@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Button, Drawer, Logo, ThemeToggle } from '@/shared/components/ui';
 import { useAuth } from '@/shared/hooks';
 import { ROUTES, getHomeRoute } from '@/shared/constants';
-import { ArrowRight, Menu, ShieldCheck } from '@/shared/icons';
+import { ArrowRight, GraduationCap, Menu, ShieldCheck } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 import { PUBLIC_NAV_LINKS } from './navigation';
 import { UserMenu } from './UserMenu';
@@ -119,6 +119,15 @@ export function Navbar() {
               <Button as={Link} to={ROUTES.LOGIN} variant="ghost" size="sm">
                 Log in
               </Button>
+              <Button
+                as={Link}
+                to={ROUTES.REGISTER_TRAINER}
+                variant="outline"
+                size="sm"
+                leftIcon={GraduationCap}
+              >
+                Register as Trainer
+              </Button>
               <Button as={Link} to={ROUTES.REGISTER} size="sm">
                 Get started
               </Button>
@@ -182,6 +191,16 @@ export function Navbar() {
               <>
                 <Button as={Link} to={ROUTES.REGISTER} fullWidth onClick={closeMenu}>
                   Get started
+                </Button>
+                <Button
+                  as={Link}
+                  to={ROUTES.REGISTER_TRAINER}
+                  variant="outline"
+                  fullWidth
+                  leftIcon={GraduationCap}
+                  onClick={closeMenu}
+                >
+                  Register as Trainer
                 </Button>
                 <Button as={Link} to={ROUTES.LOGIN} variant="outline" fullWidth onClick={closeMenu}>
                   Log in
