@@ -4,7 +4,10 @@ import { Badge, Button, Input, Modal } from '@/shared/components/ui';
 import { DomainAssessmentFlow } from '@/features/assessment/components/DomainAssessmentFlow';
 import { AuthContext } from '@/shared/context/AuthContext';
 import { ROUTES, paths } from '@/shared/constants';
+import { getDomainProjects } from '@/services/projectService';
 import {
+  ArrowLeft,
+  ArrowRight,
   BadgeCheck,
   Check,
   CheckCircle2,
@@ -12,7 +15,9 @@ import {
   Clock,
   Code2,
   FileText,
+  FolderGit2,
   Globe,
+  Loader2,
   Phone,
   Send,
   Sparkles,
@@ -187,6 +192,10 @@ export function InternshipDetailsModal({
   const location = useLocation();
 
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [applyStep, setApplyStep] = useState(1);
+  const [domainProjects, setDomainProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
@@ -208,6 +217,7 @@ export function InternshipDetailsModal({
       return;
     }
     setErrors({});
+    setApplyStep(1);
     setActiveTab('apply');
   };
 
@@ -241,10 +251,50 @@ export function InternshipDetailsModal({
         duration: prev.duration || '3 Months',
       }));
       setActiveTab(initialTab);
+      setApplyStep(1);
+      setSelectedProject(null);
+      setDomainProjects([]);
       setSubmitted(false);
       setErrors({});
     }
   }, [partner, initialRole, initialTab, open]);
+
+  // Fetch real backend projects under the selected domain when entering Step 2
+  useEffect(() => {
+    if (activeTab !== 'apply' || applyStep !== 2 || !formData.selectedDomain) return;
+    let isCancelled = false;
+    setLoadingProjects(true);
+
+    getDomainProjects(formData.selectedDomain)
+      .then((res) => {
+        if (isCancelled) return;
+        const items = res?.items || res?.data?.items || (Array.isArray(res) ? res : []);
+        setDomainProjects(items);
+        if (items.length > 0) {
+          const defaultProj = items.find((p) => p.isDefault) || items[0];
+          setSelectedProject((prev) => {
+            if (prev) {
+              const prevId = prev.id || prev._id || prev.slug;
+              const exists = items.find((p) => (p.id || p._id || p.slug) === prevId);
+              if (exists) return exists;
+            }
+            return defaultProj;
+          });
+        }
+      })
+      .catch((err) => {
+        if (isCancelled) return;
+        console.warn('Could not fetch domain projects from backend:', err);
+        setDomainProjects([]);
+      })
+      .finally(() => {
+        if (!isCancelled) setLoadingProjects(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeTab, applyStep, formData.selectedDomain]);
 
   if (!partner) return null;
 
@@ -349,16 +399,23 @@ export function InternshipDetailsModal({
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleStep1Next = (e) => {
     e.preventDefault();
     if (!validate()) {
       return;
     }
+    setApplyStep(2);
+  };
+
+  const handleFinalSubmit = (e) => {
+    e.preventDefault();
     setSubmitted(true);
   };
 
   const handleResetAndClose = () => {
     setSubmitted(false);
+    setApplyStep(1);
+    setSelectedProject(null);
     setErrors({});
     onClose();
   };
@@ -577,119 +634,294 @@ export function InternshipDetailsModal({
                 domain={formData.selectedDomain || partner.domain || 'Banking'}
                 partner={partner}
                 role={currentRole}
+                project={selectedProject}
                 onClose={handleResetAndClose}
               />
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="rounded-xl border border-blue-200/80 bg-blue-50/60 p-3 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
-                  <p className="font-semibold">
-                    Applying to: {partner.name} · {currentRole.designation}
-                  </p>
-                  <p className="text-[11px] text-blue-700 dark:text-blue-300">
-                    Role: {currentRole.role} | Domains: {partner.assignedDomains?.join(' & ') || partner.domain} | Track: {currentRole.trackType}
-                  </p>
+              <div className="space-y-5">
+                {/* 2-Step Progress Indicator */}
+                <div className="flex items-center justify-between border-b border-slate-200 pb-3 dark:border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                        applyStep === 1
+                          ? 'bg-brand-600 text-white dark:bg-brand-500'
+                          : 'bg-emerald-600 text-white dark:bg-emerald-500',
+                      )}
+                    >
+                      {applyStep > 1 ? <Check className="h-3.5 w-3.5" /> : '1'}
+                    </span>
+                    <span
+                      className={cn(
+                        'text-xs font-semibold',
+                        applyStep === 1
+                          ? 'text-slate-900 dark:text-white'
+                          : 'text-slate-500 dark:text-slate-400',
+                      )}
+                    >
+                      Step 1: Candidate Details
+                    </span>
+                  </div>
+
+                  <span className="text-slate-300 dark:text-slate-700">───</span>
+
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                        applyStep === 2
+                          ? 'bg-brand-600 text-white dark:bg-brand-500'
+                          : 'border border-slate-300 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400',
+                      )}
+                    >
+                      2
+                    </span>
+                    <span
+                      className={cn(
+                        'text-xs font-semibold',
+                        applyStep === 2
+                          ? 'text-slate-900 dark:text-white'
+                          : 'text-slate-500 dark:text-slate-400',
+                      )}
+                    >
+                      Step 2: Assigned Project
+                    </span>
+                  </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Input
-                    label="Full Name"
-                    required
-                    placeholder="e.g. Rahul Sharma"
-                    value={formData.fullName}
-                    error={errors.fullName}
-                    onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    onBlur={() => handleBlur('fullName')}
-                  />
-                  <Input
-                    label="Email Address"
-                    type="email"
-                    required
-                    placeholder="name@example.com"
-                    value={formData.email}
-                    error={errors.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    onBlur={() => handleBlur('email')}
-                  />
-                </div>
+                {applyStep === 1 ? (
+                  /* Step 1: Candidate Form */
+                  <form onSubmit={handleStep1Next} className="space-y-4">
+                    <div className="rounded-xl border border-blue-200/80 bg-blue-50/60 p-3 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
+                      <p className="font-semibold">
+                        Applying to: {partner.name} · {currentRole.designation}
+                      </p>
+                      <p className="text-[11px] text-blue-700 dark:text-blue-300">
+                        Role: {currentRole.role} | Domains: {partner.assignedDomains?.join(' & ') || partner.domain} | Track: {currentRole.trackType}
+                      </p>
+                    </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Input
-                    label="Phone Number"
-                    type="tel"
-                    required
-                    placeholder="+91 98765 43210"
-                    value={formData.phone}
-                    error={errors.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    onBlur={() => handleBlur('phone')}
-                  />
-                  <Input
-                    label="College / University"
-                    required
-                    placeholder="e.g. IIT Bombay / NIT Trichy"
-                    value={formData.college}
-                    error={errors.college}
-                    onChange={(e) => handleInputChange('college', e.target.value)}
-                    onBlur={() => handleBlur('college')}
-                  />
-                </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Input
+                        label="Full Name"
+                        required
+                        placeholder="e.g. Rahul Sharma"
+                        value={formData.fullName}
+                        error={errors.fullName}
+                        onChange={(e) => handleInputChange('fullName', e.target.value)}
+                        onBlur={() => handleBlur('fullName')}
+                      />
+                      <Input
+                        label="Email Address"
+                        type="email"
+                        required
+                        placeholder="name@example.com"
+                        value={formData.email}
+                        error={errors.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        onBlur={() => handleBlur('email')}
+                      />
+                    </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <ThemedSelect
-                    id="apply-domain-select"
-                    label={`Select Domain Offered by ${partner.name} *`}
-                    value={formData.selectedDomain}
-                    error={errors.selectedDomain}
-                    onChange={(val) => handleInputChange('selectedDomain', val)}
-                    options={
-                      partner.assignedDomains && partner.assignedDomains.length > 0
-                        ? partner.assignedDomains
-                        : [partner.domain || 'General Engineering']
-                    }
-                  />
-                  <ThemedSelect
-                    id="apply-duration-select"
-                    label="Select Duration *"
-                    value={formData.duration}
-                    error={errors.duration}
-                    onChange={(val) => handleInputChange('duration', val)}
-                    options={['1 Month', '2 Months', '3 Months', '6 Months']}
-                  />
-                </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Input
+                        label="Phone Number"
+                        type="tel"
+                        required
+                        placeholder="+91 98765 43210"
+                        value={formData.phone}
+                        error={errors.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        onBlur={() => handleBlur('phone')}
+                      />
+                      <Input
+                        label="College / University"
+                        required
+                        placeholder="e.g. IIT Bombay / NIT Trichy"
+                        value={formData.college}
+                        error={errors.college}
+                        onChange={(e) => handleInputChange('college', e.target.value)}
+                        onBlur={() => handleBlur('college')}
+                      />
+                    </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <ThemedSelect
-                    id="apply-graduation-year"
-                    label="Graduation Year"
-                    value={formData.graduationYear}
-                    onChange={(val) => handleInputChange('graduationYear', val)}
-                    options={[
-                      { value: '2025', label: '2025' },
-                      { value: '2026', label: '2026' },
-                      { value: '2027', label: '2027' },
-                      { value: '2028', label: '2028' },
-                      { value: 'Other', label: 'Already Graduated' },
-                    ]}
-                  />
-                  <Input
-                    label="GitHub Profile URL"
-                    type="url"
-                    placeholder="https://github.com/username"
-                    value={formData.githubUrl}
-                    error={errors.githubUrl}
-                    onChange={(e) => handleInputChange('githubUrl', e.target.value)}
-                  />
-                </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <ThemedSelect
+                        id="apply-domain-select"
+                        label={`Select Domain Offered by ${partner.name} *`}
+                        value={formData.selectedDomain}
+                        error={errors.selectedDomain}
+                        onChange={(val) => handleInputChange('selectedDomain', val)}
+                        options={
+                          partner.assignedDomains && partner.assignedDomains.length > 0
+                            ? partner.assignedDomains
+                            : [partner.domain || 'General Engineering']
+                        }
+                      />
+                      <ThemedSelect
+                        id="apply-duration-select"
+                        label="Select Duration *"
+                        value={formData.duration}
+                        error={errors.duration}
+                        onChange={(val) => handleInputChange('duration', val)}
+                        options={['1 Month', '2 Months', '3 Months', '6 Months']}
+                      />
+                    </div>
 
-                <div className="flex items-center justify-end gap-3 pt-3">
-                  <Button variant="outline" type="button" onClick={() => setActiveTab('details')}>
-                    Back to Details
-                  </Button>
-                  <Button variant="primary" type="submit" rightIcon={Send}>
-                    Submit Application
-                  </Button>
-                </div>
-              </form>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <ThemedSelect
+                        id="apply-graduation-year"
+                        label="Graduation Year"
+                        value={formData.graduationYear}
+                        onChange={(val) => handleInputChange('graduationYear', val)}
+                        options={[
+                          { value: '2025', label: '2025' },
+                          { value: '2026', label: '2026' },
+                          { value: '2027', label: '2027' },
+                          { value: '2028', label: '2028' },
+                          { value: 'Other', label: 'Already Graduated' },
+                        ]}
+                      />
+                      <Input
+                        label="GitHub Profile URL"
+                        type="url"
+                        placeholder="https://github.com/username"
+                        value={formData.githubUrl}
+                        error={errors.githubUrl}
+                        onChange={(e) => handleInputChange('githubUrl', e.target.value)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-3">
+                      <Button variant="outline" type="button" onClick={() => setActiveTab('details')}>
+                        Back to Details
+                      </Button>
+                      <Button variant="primary" type="submit" rightIcon={ArrowRight}>
+                        Next
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
+                  /* Step 2: Assigned Domain Projects */
+                  <div className="space-y-4">
+                    <div className="rounded-xl border border-brand-200/80 bg-brand-50/60 p-3.5 text-xs text-brand-900 dark:border-brand-900/50 dark:bg-brand-950/40 dark:text-brand-200">
+                      <div className="flex items-center gap-2 font-bold text-sm">
+                        <FolderGit2 className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                        <span>Assigned Industry Project for {formData.selectedDomain}</span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
+                        Select <strong>one</strong> project below for your {formData.selectedDomain} ({currentRole.trackType}) internship.
+                      </p>
+                    </div>
+
+                    {loadingProjects ? (
+                      <div className="flex flex-col items-center justify-center py-10 text-slate-500">
+                        <Loader2 className="h-8 w-8 animate-spin text-brand-600 dark:text-brand-400" />
+                        <span className="mt-2 text-xs">Loading admin assigned projects...</span>
+                      </div>
+                    ) : domainProjects.length > 0 ? (
+                      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                        {domainProjects.map((proj, idx) => {
+                          const projId = proj.id || proj._id || proj.slug || `proj-${idx}`;
+                          const selectedId = selectedProject?.id || selectedProject?._id || selectedProject?.slug;
+                          const isSelected = Boolean(selectedId && selectedId === projId);
+                          return (
+                            <div
+                              key={projId}
+                              onClick={() => setSelectedProject(proj)}
+                              className={cn(
+                                'cursor-pointer rounded-xl border p-4 transition-all',
+                                isSelected
+                                  ? 'border-brand-500 bg-brand-50/50 ring-2 ring-brand-500/20 dark:border-brand-500 dark:bg-brand-950/30'
+                                  : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700',
+                              )}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <h5 className="text-sm font-bold text-slate-900 dark:text-white">
+                                      {proj.title}
+                                    </h5>
+                                    {proj.isDefault && (
+                                      <Badge variant="primary" size="sm">
+                                        Assigned Default
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="mt-1 line-clamp-2 text-xs text-slate-600 dark:text-slate-400">
+                                    {proj.description || 'Enterprise production project with hands-on daily tasks.'}
+                                  </p>
+                                </div>
+                                <div
+                                  className={cn(
+                                    'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs transition-all',
+                                    isSelected
+                                      ? 'border-brand-600 bg-brand-600 text-white dark:border-brand-500 dark:bg-brand-500'
+                                      : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-800',
+                                  )}
+                                >
+                                  {isSelected && <Check className="h-3 w-3" />}
+                                </div>
+                              </div>
+
+                              <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                  Tech Stack:
+                                </span>
+                                {(proj.webTechStack || ['React', 'Node.js', 'PostgreSQL']).slice(0, 4).map((tech, i) => (
+                                  <span
+                                    key={i}
+                                    className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                  >
+                                    {tech}
+                                  </span>
+                                ))}
+                                <span className="ml-auto text-[11px] font-semibold text-brand-600 dark:text-brand-400">
+                                  {formData.duration} Tasks Included
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-5 text-center dark:border-slate-800 dark:bg-slate-900/50">
+                        <FolderGit2 className="mx-auto h-7 w-7 text-slate-400" />
+                        <h5 className="mt-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                          {formData.selectedDomain} Core Enterprise System
+                        </h5>
+                        <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                          Your domain track includes fixed daily engineering deliverables designed by industry leads.
+                        </p>
+                        <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span>Pre-assigned Project Blueprint Verified</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                      <Button
+                        variant="outline"
+                        type="button"
+                        leftIcon={ArrowLeft}
+                        onClick={() => setApplyStep(1)}
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        variant="primary"
+                        type="button"
+                        rightIcon={Send}
+                        onClick={handleFinalSubmit}
+                      >
+                        Submit Application
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}

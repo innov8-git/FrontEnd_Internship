@@ -176,7 +176,7 @@ export function ProjectTasksModal({ open, onClose, project }) {
 
     updateProjectMutation.mutate(
       {
-        id: project._id,
+        id: project._id || project.id,
         data: { taskTemplates: nextTemplates },
       },
       {
