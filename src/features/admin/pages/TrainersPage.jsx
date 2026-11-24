@@ -229,7 +229,7 @@ export function TrainersPage() {
           return (
             <button
               type="button"
-              onClick={() => setAssignmentsTarget(trainer)}
+              onClick={() => setAssignmentsTarget({ trainer, initialTab: 'students' })}
               className="inline-flex items-center gap-1.5 transition-transform hover:scale-105 focus-visible:outline-none"
               title="Click to view assigned students"
             >
@@ -249,7 +249,7 @@ export function TrainersPage() {
           return (
             <button
               type="button"
-              onClick={() => setAssignmentsTarget(trainer)}
+              onClick={() => setAssignmentsTarget({ trainer, initialTab: 'groups' })}
               className="inline-flex items-center gap-1.5 transition-transform hover:scale-105 focus-visible:outline-none"
               title="Click to view assigned student groups / teams"
             >
@@ -291,7 +291,7 @@ export function TrainersPage() {
               {
                 label: 'View assigned students & groups',
                 icon: Users,
-                onClick: () => setAssignmentsTarget(trainer),
+                onClick: () => setAssignmentsTarget({ trainer, initialTab: 'all' }),
               },
               {
                 label: 'Assign student or group',
@@ -564,7 +564,8 @@ export function TrainersPage() {
 
       {/* Assignments Drawer */}
       <TrainerAssignmentsDrawer
-        trainer={assignmentsTarget}
+        trainer={assignmentsTarget?.trainer || assignmentsTarget}
+        initialTab={assignmentsTarget?.initialTab || 'all'}
         open={Boolean(assignmentsTarget)}
         onClose={() => setAssignmentsTarget(null)}
         onOpenAssign={(tr) => {

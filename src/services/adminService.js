@@ -34,11 +34,11 @@ export const updateTrainerStatus = (id, payload) =>
 export const deleteTrainer = (id) =>
   api.delete(`/admin/trainers/${encodeURIComponent(id)}`);
 export const getTrainerAssignments = (trainerId) =>
-  api.get('/admin/trainer-assignments', { trainerId });
+  api.get(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`);
 export const assignToTrainer = (trainerId, payload) =>
-  api.post('/admin/trainer-assignments', { trainerId, ...payload });
-export const removeTrainerAssignment = (_trainerId, assignmentId) =>
-  api.delete(`/admin/trainer-assignments/${encodeURIComponent(assignmentId)}`);
+  api.post(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`, payload);
+export const removeTrainerAssignment = (trainerId, assignmentId) =>
+  api.delete(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments/${encodeURIComponent(assignmentId)}`);
 
 export const fetchTrainerResumeBlob = async (trainerId, { download = false } = {}) => {
   const res = await apiClient.get(`/admin/trainers/${encodeURIComponent(trainerId)}/resume`, {
