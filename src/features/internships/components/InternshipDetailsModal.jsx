@@ -271,7 +271,15 @@ export function InternshipDetailsModal({
         const items = res?.items || res?.data?.items || (Array.isArray(res) ? res : []);
         setDomainProjects(items);
         if (items.length > 0) {
-          setSelectedProject((prev) => prev || items.find((p) => p.isDefault) || items[0]);
+          const defaultProj = items.find((p) => p.isDefault) || items[0];
+          setSelectedProject((prev) => {
+            if (prev) {
+              const prevId = prev.id || prev._id || prev.slug;
+              const exists = items.find((p) => (p.id || p._id || p.slug) === prevId);
+              if (exists) return exists;
+            }
+            return defaultProj;
+          });
         }
       })
       .catch((err) => {
@@ -803,7 +811,7 @@ export function InternshipDetailsModal({
                         <span>Assigned Industry Project for {formData.selectedDomain}</span>
                       </div>
                       <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
-                        Admin-assigned live project matching your chosen domain ({formData.selectedDomain}) and track ({currentRole.trackType}).
+                        Select <strong>one</strong> project below for your {formData.selectedDomain} ({currentRole.trackType}) internship.
                       </p>
                     </div>
 
@@ -814,11 +822,13 @@ export function InternshipDetailsModal({
                       </div>
                     ) : domainProjects.length > 0 ? (
                       <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                        {domainProjects.map((proj) => {
-                          const isSelected = selectedProject?.id === proj.id || (!selectedProject && proj.isDefault);
+                        {domainProjects.map((proj, idx) => {
+                          const projId = proj.id || proj._id || proj.slug || `proj-${idx}`;
+                          const selectedId = selectedProject?.id || selectedProject?._id || selectedProject?.slug;
+                          const isSelected = Boolean(selectedId && selectedId === projId);
                           return (
                             <div
-                              key={proj.id}
+                              key={projId}
                               onClick={() => setSelectedProject(proj)}
                               className={cn(
                                 'cursor-pointer rounded-xl border p-4 transition-all',
@@ -845,7 +855,7 @@ export function InternshipDetailsModal({
                                 </div>
                                 <div
                                   className={cn(
-                                    'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs',
+                                    'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs transition-all',
                                     isSelected
                                       ? 'border-brand-600 bg-brand-600 text-white dark:border-brand-500 dark:bg-brand-500'
                                       : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-800',

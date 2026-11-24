@@ -17,6 +17,7 @@ export const ROUTES = Object.freeze({
   // Auth
   LOGIN: '/login',
   REGISTER: '/register',
+  REGISTER_TRAINER: '/register/trainer',
   CHECK_EMAIL: '/check-email',
   VERIFY_EMAIL: '/verify-email',
   FORGOT_PASSWORD: '/forgot-password',

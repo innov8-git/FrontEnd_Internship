@@ -54,6 +54,7 @@ export function Footer() {
         : [
             { label: 'Log in', to: ROUTES.LOGIN },
             { label: 'Create account', to: ROUTES.REGISTER },
+            { label: 'Register as Trainer', to: ROUTES.REGISTER_TRAINER },
           ],
     },
   ];

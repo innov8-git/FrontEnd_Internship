@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api, apiClient } from './api';
 
 /** Admin operations (MM16, MM18, SD15). Lists take { page, limit, search, ...filters }. */
 export const getAdminStats = () => api.get('/admin/stats');
@@ -31,9 +31,40 @@ export const getTrainers = (params = {}) => api.get('/admin/trainers', params);
 export const createTrainer = (payload) => api.post('/admin/trainers', payload);
 export const updateTrainerStatus = (id, payload) =>
   api.patch(`/admin/trainers/${encodeURIComponent(id)}`, payload);
+export const deleteTrainer = (id) =>
+  api.delete(`/admin/trainers/${encodeURIComponent(id)}`);
 export const getTrainerAssignments = (trainerId) =>
-  api.get('/admin/trainer-assignments', { trainerId });
+  api.get(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`);
 export const assignToTrainer = (trainerId, payload) =>
-  api.post('/admin/trainer-assignments', { trainerId, ...payload });
-export const removeTrainerAssignment = (_trainerId, assignmentId) =>
-  api.delete(`/admin/trainer-assignments/${encodeURIComponent(assignmentId)}`);
+  api.post(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`, payload);
+export const removeTrainerAssignment = (trainerId, assignmentId) =>
+  api.delete(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments/${encodeURIComponent(assignmentId)}`);
+
+export const fetchTrainerResumeBlob = async (trainerId, { download = false } = {}) => {
+  const res = await apiClient.get(`/admin/trainers/${encodeURIComponent(trainerId)}/resume`, {
+    params: download ? { download: '1' } : undefined,
+    responseType: 'blob',
+  });
+  return res.data;
+};
+
+// Trainer join requests (public applications -> admin accept/delete)
+export const getTrainerApplications = (params = {}) =>
+  api.get('/admin/trainer-applications', params);
+
+export const acceptTrainerApplication = (id, payload = {}) =>
+  api.post(`/admin/trainer-applications/${encodeURIComponent(id)}/accept`, payload);
+
+export const deleteTrainerApplication = (id) =>
+  api.delete(`/admin/trainer-applications/${encodeURIComponent(id)}`);
+
+export const fetchTrainerApplicationResumeBlob = async (id, { download = false } = {}) => {
+  const res = await apiClient.get(
+    `/admin/trainer-applications/${encodeURIComponent(id)}/resume`,
+    {
+      params: download ? { download: '1' } : undefined,
+      responseType: 'blob',
+    },
+  );
+  return res.data;
+};
