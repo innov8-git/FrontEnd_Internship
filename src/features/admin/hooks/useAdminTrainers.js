@@ -1,6 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getTrainers,
+  getTrainerAssignments,
   createTrainer,
   updateTrainerStatus,
   assignToTrainer,
@@ -18,8 +19,20 @@ function useInvalidateTrainerData() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.trainers }),
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.users }),
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.assignments }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.enrollments }),
       ...(trainerId ? [queryClient.invalidateQueries({ queryKey: queryKeys.admin.trainerAssignments(trainerId) })] : []),
     ]);
+}
+
+/** Fetch active assignments for a single trainer */
+export function useTrainerAssignments(trainerId, options = {}) {
+  return useQuery({
+    queryKey: queryKeys.admin.trainerAssignments(trainerId),
+    queryFn: () => getTrainerAssignments(trainerId),
+    enabled: Boolean(trainerId),
+    staleTime: 10_000,
+    ...options,
+  });
 }
 
 /** Toggle trainer privilege (assign or unassign user as trainer) */
