@@ -19,6 +19,7 @@ export const DesignationDetailPage = lazy(
 // Auth (SN3, SN4)
 export const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
 export const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'));
+export const TrainerRegisterPage = lazy(() => import('@/features/auth/pages/TrainerRegisterPage'));
 export const CheckEmailPage = lazy(() => import('@/features/auth/pages/CheckEmailPage'));
 export const VerifyEmailPage = lazy(() => import('@/features/auth/pages/VerifyEmailPage'));
 export const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
