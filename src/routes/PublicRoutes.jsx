@@ -9,6 +9,7 @@ import {
   NotFoundPage,
   TeamInvitePage,
   TermsPage,
+  TrainerRegisterPage,
   UiKitPage,
   VerifyCertificatePage,
 } from './lazyPages';
@@ -27,6 +28,7 @@ export const publicRoutes = {
       element: <Layout />,
       children: [
         { index: true, element: <HomePage /> },
+        { path: 'register/trainer', element: <TrainerRegisterPage /> },
         { path: 'domain-assessment', element: <Navigate to="/internships" replace /> },
         { path: 'terms', element: <TermsPage /> },
         { path: 'verify', element: <VerifyCertificatePage /> },

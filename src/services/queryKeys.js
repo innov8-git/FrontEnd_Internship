@@ -78,6 +78,7 @@ export const queryKeys = {
     teams: ['admin', 'teams'],
     assignments: ['admin', 'assignments'],
     trainers: ['admin', 'trainers'],
+    trainerApplications: ['admin', 'trainer-applications'],
     trainerDetail: (id) => ['admin', 'trainers', 'detail', id],
     trainerAssignments: (id) => ['admin', 'trainers', id, 'assignments'],
     certificates: ['admin', 'certificates'],
