@@ -15,6 +15,9 @@ export const updateStudentTrainer = (id, payload) =>
 // Enrollments and payments monitoring
 export const getAdminEnrollments = (params = {}) => api.get('/admin/enrollments', params);
 export const getAdminEnrollment = (id) => api.get(`/admin/enrollments/${encodeURIComponent(id)}`);
+export const getAdminSubmissions = (params = {}) => api.get('/admin/submissions', params);
+export const reviewAdminSubmission = (id, { decision, feedback }) =>
+  api.post(`/admin/submissions/${encodeURIComponent(id)}/review`, { decision, feedback });
 export const getAdminPayments = (params = {}) => api.get('/admin/payments', params);
 export const getAdminPayment = (id) => api.get(`/admin/payments/${encodeURIComponent(id)}`);
 

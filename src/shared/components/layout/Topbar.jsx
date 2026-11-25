@@ -1,5 +1,6 @@
 import { Button, Logo, ThemeToggle } from '@/shared/components/ui';
 import { Menu } from '@/shared/icons';
+import { NotificationBell } from './NotificationBell';
 import { UserMenu } from './UserMenu';
 
 /**
@@ -34,6 +35,7 @@ export function Topbar({ onMenuClick, roleLabel, homeTo = '/', menuOpen = false 
         ) : null}
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          <NotificationBell />
           <ThemeToggle />
           <UserMenu />
         </div>

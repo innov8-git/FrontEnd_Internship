@@ -15,26 +15,46 @@ import {
   Sparkles,
 } from '@/shared/icons';
 
-const DEFAULT_MENTOR = {
-  name: 'Priya Nair',
-  email: 'trainer@demo.dev',
-  designation: 'Principal Systems Architect & Lead Engineering Mentor',
-  organization: 'ALFRE Engineering Network',
-  avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop',
-  bio: 'Senior engineer with 8+ years of production experience in enterprise software. Responsible for reviewing your GitHub code submissions, providing architectural guidance, and certifying production standards.',
-  specialties: ['Code Review', 'Clean Architecture', 'GitHub Workflows', 'Enterprise Backend'],
-  availability: 'Online for Daily Sprint Reviews',
-};
+const DEFAULT_SPECIALTIES = ['Code Review', 'Clean Architecture', 'GitHub Workflows'];
 
 /**
  * Dedicated Mentor Profile Card on the student's project dashboard.
- * Displays the assigned mentor's photo, full name, professional designation,
- * core responsibilities (code reviews, technical guidance, milestone sign-off),
- * and quick contact modalities to establish transparency and trust.
+ * Renders the real assigned mentor from the enrollment or an honest pending-assignment state
+ * when an administrator has not assigned a trainer yet.
  */
 export function MentorProfileCard({ mentor, className }) {
-  const profile = mentor || DEFAULT_MENTOR;
   const [modalOpen, setModalOpen] = useState(false);
+
+  if (!mentor) {
+    return (
+      <Card className={className} aria-labelledby="mentor-profile-heading">
+        <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-amber-500" />
+              <h2
+                id="mentor-profile-heading"
+                className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200"
+              >
+                Assigned Project Mentor
+              </h2>
+            </div>
+            <p className="text-base font-semibold text-slate-900 dark:text-white">
+              Mentor Assignment Pending
+            </p>
+            <p className="max-w-2xl text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+              An administrator will assign your dedicated technical mentor shortly. Once assigned, your mentor&apos;s details will appear here and they will review your GitHub task submissions.
+            </p>
+          </div>
+          <Badge variant="warning" icon={ShieldCheck} className="self-start sm:self-center shrink-0">
+            Awaiting Admin Assignment
+          </Badge>
+        </div>
+      </Card>
+    );
+  }
+
+  const profile = mentor;
 
   return (
     <>
@@ -98,7 +118,7 @@ export function MentorProfileCard({ mentor, className }) {
 
               {/* Specialties / Skills Tags */}
               <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1 lg:justify-start">
-                {(profile.specialties || DEFAULT_MENTOR.specialties).map((skill) => (
+                {(profile.specialties?.length ? profile.specialties : DEFAULT_SPECIALTIES).map((skill) => (
                   <span
                     key={skill}
                     className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300"

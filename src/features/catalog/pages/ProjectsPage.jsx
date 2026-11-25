@@ -195,7 +195,12 @@ export default function ProjectsPage() {
       <ProjectTasksModal
         open={tasksViewer.open}
         onClose={() => setTasksViewer({ open: false, project: null })}
-        project={tasksViewer.project}
+        project={
+          tasksViewer.project
+            ? (projectsQuery.data?.items ?? []).find((p) => p._id === tasksViewer.project._id) ||
+              tasksViewer.project
+            : null
+        }
       />
 
       <StatusChangeDialog
