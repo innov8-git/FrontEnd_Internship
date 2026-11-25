@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Outlet, ScrollRestoration } from 'react-router-dom';
+import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 import { PageLoader, Toaster } from '@/shared/components/ui';
 
 const ChatBot = lazy(() => import('@/features/chatbot/components/ChatBot'));
@@ -21,6 +21,9 @@ function handleSkipToContent(event) {
  * Must not pass an Outlet context: pages use its absence to know they render without a shell.
  */
 export function RootLayout() {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
+
   return (
     <>
       <a
@@ -35,9 +38,11 @@ export function RootLayout() {
         <Outlet />
       </Suspense>
       <Toaster />
-      <Suspense fallback={null}>
-        <ChatBot />
-      </Suspense>
+      {!isAdmin && (
+        <Suspense fallback={null}>
+          <ChatBot />
+        </Suspense>
+      )}
     </>
   );
 }

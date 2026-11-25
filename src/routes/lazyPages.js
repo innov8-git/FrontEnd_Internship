@@ -87,6 +87,7 @@ export const DomainQuestionsPage = lazy(
   () => import('@/features/catalog/pages/DomainQuestionsPage'),
 );
 export const PlansPage = lazy(() => import('@/features/catalog/pages/PlansPage'));
+export const AdminRevenuePage = lazy(() => import('@/features/admin/pages/RevenuePage'));
 export const AssessmentConfigListPage = lazy(
   () => import('@/features/assessment-builder/pages/AssessmentConfigListPage'),
 );

@@ -21,6 +21,9 @@ export const reviewAdminSubmission = (id, { decision, feedback }) =>
 export const getAdminPayments = (params = {}) => api.get('/admin/payments', params);
 export const getAdminPayment = (id) => api.get(`/admin/payments/${encodeURIComponent(id)}`);
 
+// Revenue analytics
+export const getAdminRevenue = (params = {}) => api.get('/admin/revenue', params);
+
 // Certificates and email status
 export const getAdminCertificates = (params = {}) => api.get('/admin/certificates', params);
 export const resendCertificateEmail = (id) =>
