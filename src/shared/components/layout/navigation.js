@@ -4,9 +4,11 @@ import {
   Briefcase,
   Building2,
   CalendarDays,
+  ClipboardCheck,
   ClipboardList,
   CreditCard,
   FolderGit2,
+  GraduationCap,
   History,
   Inbox,
   IndianRupee,
@@ -126,6 +128,7 @@ export function getAdminNavigation() {
       items: [
         { label: 'Users', to: ROUTES.ADMIN_USERS, icon: Users },
         { label: 'Trainers', to: ROUTES.ADMIN_TRAINERS, icon: UserCog },
+        { label: 'Trainer assignments', to: ROUTES.ADMIN_ASSIGNMENTS, icon: UserCheck },
       ],
     },
     {
@@ -137,11 +140,15 @@ export function getAdminNavigation() {
         { label: 'Internships', to: ROUTES.ADMIN_INTERNSHIPS, icon: Sparkles },
         { label: 'Designations', to: ROUTES.ADMIN_DESIGNATIONS, icon: Briefcase },
         { label: 'Plans & pricing', to: ROUTES.ADMIN_PLANS, icon: IndianRupee },
+        { label: 'Schedules', to: ROUTES.ADMIN_SCHEDULES, icon: CalendarDays },
+        { label: 'Tasks', to: ROUTES.ADMIN_TASKS, icon: ClipboardList },
       ],
     },
     {
       title: 'Operations',
       items: [
+        { label: 'Enrollments', to: ROUTES.ADMIN_ENROLLMENTS, icon: GraduationCap },
+        { label: 'Submissions', to: ROUTES.ADMIN_SUBMISSIONS, icon: ClipboardCheck },
         { label: 'Payments', to: ROUTES.ADMIN_PAYMENTS, icon: CreditCard },
         { label: 'Certificates', to: ROUTES.ADMIN_CERTIFICATES, icon: Award },
         { label: 'Audit log', to: ROUTES.ADMIN_AUDIT, icon: History },

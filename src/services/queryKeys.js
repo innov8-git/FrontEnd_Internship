@@ -73,6 +73,7 @@ export const queryKeys = {
     scheduleTasks: (id) => ['admin', 'schedules', 'tasks', id],
     enrollments: ['admin', 'enrollments'],
     enrollment: (id) => ['admin', 'enrollments', 'detail', id],
+    submissions: ['admin', 'submissions'],
     payments: ['admin', 'payments'],
     payment: (id) => ['admin', 'payments', 'detail', id],
     teams: ['admin', 'teams'],
@@ -90,6 +91,10 @@ export const queryKeys = {
     assignments: ['trainer', 'assignments'],
     submissions: (params = {}) => ['trainer', 'submissions', params],
     submission: (id) => ['trainer', 'submission', id],
+  },
+  notifications: {
+    all: ['notifications'],
+    list: (params = {}) => ['notifications', 'list', params],
   },
 };
 

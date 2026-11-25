@@ -50,7 +50,7 @@ export function ProjectTasksModal({ open, onClose, project }) {
     expectedOutcome: '',
     acceptanceCriteria: '',
     estimatedHours: 4,
-    requiresTrainerReview: false,
+    requiresTrainerReview: true,
   });
 
   const targetDayCount = WORKING_DAYS_BY_DURATION[selectedDuration] || 20;
@@ -68,7 +68,7 @@ export function ProjectTasksModal({ open, onClose, project }) {
         expectedOutcome: '',
         acceptanceCriteria: [],
         estimatedHours: 4,
-        requiresTrainerReview: false,
+        requiresTrainerReview: true,
         track: track === 'web' ? 'Web Development' : 'Mobile App Development',
       };
     });
@@ -93,9 +93,13 @@ export function ProjectTasksModal({ open, onClose, project }) {
     return slots.filter((task) => Boolean(task.title?.trim())).length;
   }, [slots]);
 
-  // Handle slot editing / manual insertion
-  const handleOpenEdit = (task, index) => {
-    setEditingTask({ ...task, slotIndex: index });
+  // Handle slot editing / manual insertion (resolve true index in `slots`, not filtered list index)
+  const handleOpenEdit = (task) => {
+    const realIndex = slots.findIndex(
+      (s) => (task._id && s._id === task._id) || s.dayNumber === task.dayNumber,
+    );
+    if (realIndex < 0) return;
+    setEditingTask({ ...task, slotIndex: realIndex });
     setEditForm({
       title: task.title || '',
       problemStatement: task.problemStatement || '',
@@ -104,7 +108,7 @@ export function ProjectTasksModal({ open, onClose, project }) {
         ? task.acceptanceCriteria.join('\n')
         : task.acceptanceCriteria || '',
       estimatedHours: task.estimatedHours || 4,
-      requiresTrainerReview: Boolean(task.requiresTrainerReview),
+      requiresTrainerReview: task.requiresTrainerReview !== false,
     });
   };
 

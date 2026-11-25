@@ -191,7 +191,7 @@ export function EnrollPage() {
     if (!terms) return;
     const variables = pendingEnrollment
       ? { enrollmentId: pendingEnrollment._id, termsVersion: terms.version }
-      : { quoteId: quote?.quoteId, termsVersion: terms.version };
+      : { quoteId: quote?.quoteId ?? quote?._id, termsVersion: terms.version };
     if (!variables.enrollmentId && !variables.quoteId) return;
     runFlow(variables, {
       onError: (error) => {

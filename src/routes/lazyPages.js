@@ -72,6 +72,9 @@ export const TrainerReportsPage = lazy(() => import('@/features/trainer/pages/Tr
 export const AdminDashboardPage = lazy(() => import('@/features/admin/pages/AdminDashboardPage'));
 export const UsersPage = lazy(() => import('@/features/admin/pages/UsersPage'));
 export const AdminEnrollmentsPage = lazy(() => import('@/features/admin/pages/EnrollmentsPage'));
+export const AdminSubmissionsPage = lazy(
+  () => import('@/features/admin/pages/AdminSubmissionsPage'),
+);
 export const AdminPaymentsPage = lazy(() => import('@/features/admin/pages/PaymentsPage'));
 export const AdminCertificatesPage = lazy(() => import('@/features/admin/pages/CertificatesPage'));
 export const AuditLogPage = lazy(() => import('@/features/admin/pages/AuditLogPage'));

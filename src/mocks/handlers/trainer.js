@@ -165,6 +165,56 @@ export const trainerHandlers = [
   // Admin (role ADMIN): teams lookup and trainer assignments (KD11)
   // ---------------------------------------------------------------------------
 
+  // Admin submission oversight queue & escalation resolution
+  mock.get('/admin/submissions', ({ request }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const query = getQuery(request);
+    const status = query.get('status') || undefined;
+    const search = query.get('search');
+    const unassignedOnly = query.get('unassignedOnly') === 'true';
+
+    let items = db.submissions
+      .filter((s) => !status || s.reviewStatus === status)
+      .map((s) => {
+        const dto = trainerSubmissionListItemDto(s);
+        if (!dto) return null;
+        const assigned = db.trainerAssignments.find(
+          (a) => a.active && ((s.teamId && a.teamId === s.teamId) || a.enrollmentId === s.enrollmentId),
+        );
+        const trainerUser = assigned ? findUser(assigned.trainerId) : null;
+        return {
+          ...dto,
+          trainer: trainerUser ? { _id: trainerUser._id, name: trainerUser.name, email: trainerUser.email } : null,
+          isUnassigned: !assigned,
+        };
+      })
+      .filter(Boolean);
+
+    if (unassignedOnly) items = items.filter((item) => item.isUnassigned);
+    if (search) {
+      items = items.filter((row) =>
+        matchesSearch(search, row.student?.name, row.student?.email, row.team?.name, row.task?.title),
+      );
+    }
+    return json(paginate(applySort(items, request, 'submittedAt:asc'), request, 20));
+  }),
+
+  mock.post('/admin/submissions/:id/review', async ({ request, params }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const submission = findSubmission(params.id);
+    if (!submission) return notFound('Submission');
+    const body = await readJson(request);
+    const result = applyReview({
+      trainer: auth.user,
+      submission,
+      decision: body.decision,
+      feedback: typeof body.feedback === 'string' ? body.feedback : '',
+    });
+    return json(reviewResultDto(result));
+  }),
+
   // Frontend addition: team picker for assignments. ?search (team or leader), ?status.
   mock.get('/admin/teams', ({ request }) => {
     const auth = requireAuth(request, ADMIN_ONLY);

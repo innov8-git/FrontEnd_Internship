@@ -155,16 +155,21 @@ export function TeamNotStartedState({ teamId }) {
   );
 }
 
-export function NoTasksState() {
+export function NoTasksState({ enrollment = null }) {
+  const awaitingProject = Boolean(enrollment) && !enrollment.projectId;
   return (
     <EmptyState
       titleAs="h2"
       icon={ClipboardList}
-      title="No tasks yet"
-      description="Your tasks will appear here as soon as your schedule is ready."
+      title={awaitingProject ? 'Awaiting Admin Project Assignment' : 'No tasks yet'}
+      description={
+        awaitingProject
+          ? 'Your enrollment is active. An administrator will assign your domain capstone project and tasks shortly—once assigned, your tasks will appear here automatically.'
+          : 'Your tasks will appear here as soon as your schedule is ready.'
+      }
       action={
-        <Button as={Link} to={ROUTES.SCHEDULE} variant="outline">
-          View schedule
+        <Button as={Link} to={awaitingProject ? ROUTES.DASHBOARD : ROUTES.SCHEDULE} variant="outline">
+          {awaitingProject ? 'Back to dashboard' : 'View schedule'}
         </Button>
       }
     />

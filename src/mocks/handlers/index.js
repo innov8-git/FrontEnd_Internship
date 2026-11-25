@@ -13,6 +13,7 @@ import { adminCatalogHandlers } from './adminCatalog';
 import { adminScheduleHandlers } from './adminSchedules';
 import { projectHandlers } from './projects';
 import { trainerHandlers } from './trainer';
+import { notificationHandlers } from './notifications';
 
 /**
  * Every mocked endpoint, one file per API area (ticket GP1). Response shapes follow
@@ -34,6 +35,7 @@ export const handlers = [
   ...adminScheduleHandlers,
   ...projectHandlers,
   ...trainerHandlers,
+  ...notificationHandlers,
 ];
 
 export default handlers;
