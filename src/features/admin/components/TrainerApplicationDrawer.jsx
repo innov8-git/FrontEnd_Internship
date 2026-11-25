@@ -27,6 +27,7 @@ function formatBytes(bytes) {
 }
 
 /** Opens or downloads a trainer application's resume via authenticated admin API. */
+// eslint-disable-next-line react-refresh/only-export-components
 export async function openApplicationResume(application, { download = false } = {}) {
   const blob = await fetchTrainerApplicationResumeBlob(application._id, { download });
   const blobUrl = URL.createObjectURL(blob);

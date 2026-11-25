@@ -14,6 +14,14 @@ export const CATALOG_DESCRIPTION_MAX = 500;
 /** Highest base price an admin can set, in rupees (₹10,00,000). */
 export const PLAN_PRICE_MAX_RUPEES = 1000000;
 
+export const designationItemSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(CATALOG_NAME_MIN, `Enter at least ${CATALOG_NAME_MIN} characters.`)
+    .max(CATALOG_NAME_MAX, `Keep the name to ${CATALOG_NAME_MAX} characters or fewer.`),
+});
+
 export const catalogItemSchema = z.object({
   name: z
     .string()
