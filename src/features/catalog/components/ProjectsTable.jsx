@@ -91,16 +91,23 @@ export function ProjectsTable({
       {
         key: 'track',
         header: 'Tracks & Role',
-        cell: () => (
-          <div className="space-y-0.5">
-            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
-              Trainee Software Engineer
-            </span>
-            <Badge variant="brand" size="sm" icon={Sparkles}>
-              Web & App Dev
-            </Badge>
-          </div>
-        ),
+        cell: (row) => {
+          const roleName = row?.designation?.name || 'Trainee Software Engineer';
+          const hasWeb = (Array.isArray(row?.webTechStack) && row.webTechStack.length > 0) || Boolean(row?.webDeliverables);
+          const hasApp = (Array.isArray(row?.appTechStack) && row.appTechStack.length > 0) || Boolean(row?.appDeliverables);
+          const trackLabel =
+            hasWeb && !hasApp ? 'Web Dev' : !hasWeb && hasApp ? 'App Dev' : 'Web & App Dev';
+          return (
+            <div className="space-y-0.5">
+              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+                {roleName}
+              </span>
+              <Badge variant="brand" size="sm" icon={Sparkles}>
+                {trackLabel}
+              </Badge>
+            </div>
+          );
+        },
       },
       {
         key: 'durations',

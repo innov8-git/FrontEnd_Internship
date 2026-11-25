@@ -3,9 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, Modal, StatusBanner, Textarea, toast } from '@/shared/components/ui';
 import { Plus, Save } from '@/shared/icons';
-import { PUBLISH_STATUS, paths } from '@/shared/constants';
 import { getErrorMessage, getFieldErrors, isErrorCode } from '@/shared/utils/errors';
-import { slugify } from '@/shared/utils/helpers';
 import { getCatalogKind, useCreateCatalogItem, useUpdateCatalogItem } from '../hooks/useCatalogAdmin';
 import {
   CATALOG_DESCRIPTION_MAX,
@@ -13,6 +11,7 @@ import {
   CATALOG_NAME_MAX,
   CATALOG_NAME_MIN,
   catalogItemSchema,
+  designationItemSchema,
 } from '../schemas/catalogValidation';
 import { applyKnownFieldErrors } from '../utils/formErrors';
 import { FormActions } from './FormActions';
@@ -26,18 +25,13 @@ const DESCRIPTION_HINTS = {
 
 const NAME_PLACEHOLDERS = { designation: 'e.g. Java Developer', domain: 'e.g. Banking' };
 
-function nameHint(config, item, name) {
-  if (config.kind !== 'designation') return `${CATALOG_NAME_MIN}–${CATALOG_NAME_MAX} characters.`;
-  // A published designation keeps its web address so links that were shared keep working.
-  if (item && item.status === PUBLISH_STATUS.PUBLISHED && item.slug) {
-    return `Web address: ${paths.designation(item.slug)}`;
-  }
-  const slug = slugify(name);
-  return slug ? `Web address: ${paths.designation(slug)}` : `${CATALOG_NAME_MIN}–${CATALOG_NAME_MAX} characters.`;
+function nameHint() {
+  return `${CATALOG_NAME_MIN}–${CATALOG_NAME_MAX} characters.`;
 }
 
 function CatalogItemForm({ kind, item, onCancel, onSaved }) {
   const config = getCatalogKind(kind);
+  const isDesignation = config.kind === 'designation';
   const isEdit = Boolean(item);
   const createMutation = useCreateCatalogItem(kind);
   const updateMutation = useUpdateCatalogItem(kind);
@@ -47,15 +41,13 @@ function CatalogItemForm({ kind, item, onCancel, onSaved }) {
     register,
     handleSubmit,
     setError,
-    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm({
-    resolver: zodResolver(catalogItemSchema),
+    resolver: zodResolver(isDesignation ? designationItemSchema : catalogItemSchema),
     mode: 'onTouched',
     defaultValues: { name: item?.name ?? '', description: item?.description ?? '' },
   });
 
-  const nameValue = watch('name');
   const isBusy = isSubmitting || createMutation.isPending || updateMutation.isPending;
 
   const handleError = (error) => {
@@ -103,22 +95,24 @@ function CatalogItemForm({ kind, item, onCancel, onSaved }) {
         required
         autoComplete="off"
         placeholder={NAME_PLACEHOLDERS[config.kind]}
-        hint={nameHint(config, item, nameValue)}
+        hint={nameHint()}
         error={errors.name?.message}
         {...register('name')}
       />
 
-      <Textarea
-        label="Description"
-        required
-        rows={5}
-        showCount
-        minLength={CATALOG_DESCRIPTION_MIN}
-        maxLength={CATALOG_DESCRIPTION_MAX}
-        hint={DESCRIPTION_HINTS[config.kind]}
-        error={errors.description?.message}
-        {...register('description')}
-      />
+      {!isDesignation ? (
+        <Textarea
+          label="Description"
+          required
+          rows={5}
+          showCount
+          minLength={CATALOG_DESCRIPTION_MIN}
+          maxLength={CATALOG_DESCRIPTION_MAX}
+          hint={DESCRIPTION_HINTS[config.kind]}
+          error={errors.description?.message}
+          {...register('description')}
+        />
+      ) : null}
 
       {!isEdit ? (
         <p className="text-sm text-slate-500">

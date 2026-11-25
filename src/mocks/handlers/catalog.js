@@ -114,6 +114,27 @@ export const catalogHandlers = [
 
     return json({ planId: plan._id, totalDays: days.length, days });
   }),
+
+  mock.get('/internships', () => {
+    return json({ success: true, companies: [] });
+  }),
+  mock.get('/internships/:id', () => {
+    return json({ success: true });
+  }),
+  mock.post('/admin/internships', async ({ request }) => {
+    const body = await request.json().catch(() => ({}));
+    return json({ success: true, role: body });
+  }),
+  mock.put('/admin/internships/:id', async ({ request }) => {
+    const body = await request.json().catch(() => ({}));
+    return json({ success: true, role: body });
+  }),
+  mock.delete('/admin/internships/:id', () => {
+    return json({ success: true });
+  }),
+  mock.post('/admin/internships/reset', () => {
+    return json({ success: true, companies: [] });
+  }),
 ];
 
 export default catalogHandlers;

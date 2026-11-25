@@ -23,7 +23,7 @@ const EMPTY_DESCRIPTIONS = {
  * KD3 list of designations or domains (server-paginated DataTable): name, slug, description,
  * status and last update, with Edit and Publish / Unpublish row actions.
  */
-export function CatalogTable({ kind, onCreate, onEdit, onChangeStatus }) {
+export function CatalogTable({ kind, onCreate, onEdit, onChangeStatus, onDelete }) {
   const config = getCatalogKind(kind);
   const [status, setStatus] = useState('');
 
@@ -36,28 +36,23 @@ export function CatalogTable({ kind, onCreate, onEdit, onChangeStatus }) {
         className: 'min-w-[10rem]',
         cell: (row) => <span className="font-medium text-slate-900">{row.name}</span>,
       },
-      {
-        key: 'slug',
-        header: 'Slug',
-        cell: (row) => (
-          <code className="whitespace-nowrap rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700">
-            {row.slug}
-          </code>
-        ),
-      },
-      {
-        key: 'description',
-        header: 'Description',
-        className: 'min-w-[16rem] max-w-md',
-        cell: (row) =>
-          row.description ? (
-            <p className="line-clamp-2 text-slate-600" title={row.description}>
-              {row.description}
-            </p>
-          ) : (
-            <span className="text-slate-500">—</span>
-          ),
-      },
+      ...(config.kind !== 'designation'
+        ? [
+          {
+            key: 'description',
+            header: 'Description',
+            className: 'min-w-[16rem] max-w-md',
+            cell: (row) =>
+              row.description ? (
+                <p className="line-clamp-2 text-slate-600" title={row.description}>
+                  {row.description}
+                </p>
+              ) : (
+                <span className="text-slate-500">—</span>
+              ),
+          },
+        ]
+        : []),
       {
         key: 'status',
         header: 'Status',
@@ -88,11 +83,12 @@ export function CatalogTable({ kind, onCreate, onEdit, onChangeStatus }) {
             status={row.status}
             onEdit={() => onEdit(row)}
             onChangeStatus={(nextStatus) => onChangeStatus(row, nextStatus)}
+            onDelete={onDelete ? () => onDelete(row) : undefined}
           />
         ),
       },
     ],
-    [onEdit, onChangeStatus],
+    [config.kind, onEdit, onChangeStatus, onDelete],
   );
 
   return (
