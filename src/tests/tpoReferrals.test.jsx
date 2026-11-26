@@ -192,7 +192,7 @@ describe('InternshipDetailsModal Step 3 Demo Payment TPO Reference Code', () => 
     );
 
     // Complete Demo Checkout
-    await user.click(screen.getByRole('button', { name: /pay ₹1,699/i }));
+    await user.click(screen.getByRole('button', { name: /complete demo checkout/i }));
 
     await waitFor(() => {
       expect(checkoutSpy).toHaveBeenCalledWith(
