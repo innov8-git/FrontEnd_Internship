@@ -191,6 +191,70 @@ function sendPasswordResetEmail(user) {
 // ---------------------------------------------------------------------------
 
 export const authHandlers = [
+  mock.get('/auth/referral-code/:code', ({ params }) => {
+    const code = String(params.code ?? '').trim().toUpperCase();
+    const tpo = (db.tpos || []).find(
+      (candidate) => candidate.referralCode === code && candidate.isActive,
+    );
+    if (!tpo) {
+      return apiError(404, 'NOT_FOUND', 'Invalid or inactive TPO reference code.');
+    }
+    return json({
+      valid: true,
+      referralCode: tpo.referralCode,
+      tpoName: tpo.name,
+      college: tpo.college,
+    });
+  }),
+
+  mock.post('/auth/register/student', async ({ request }) => {
+    const body = await readJson(request);
+    const name = normalizeName(body.name);
+    const email = normalizeEmail(body.email);
+    const password = typeof body.password === 'string' ? body.password : '';
+    const referralCode = typeof body.referralCode === 'string' ? body.referralCode.trim().toUpperCase() : '';
+
+    const details = [...nameDetails(name), ...emailDetails(email), ...passwordDetails(password)];
+    if (details.length > 0) return validationError(details);
+
+    if (findUserByEmail(email)) {
+      return conflict('EMAIL_TAKEN', MESSAGES.emailTaken, [
+        { field: 'email', message: MESSAGES.emailTaken },
+      ]);
+    }
+
+    let referredTpo = null;
+    if (referralCode) {
+      referredTpo = (db.tpos || []).find(
+        (candidate) => candidate.referralCode === referralCode && candidate.isActive,
+      );
+      if (!referredTpo) {
+        return validationError([
+          { field: 'referralCode', message: 'Invalid or inactive TPO reference code.' },
+        ]);
+      }
+    }
+
+    const timestamp = nowIso();
+    const user = {
+      _id: oid(),
+      name,
+      email,
+      password,
+      roles: [ROLES.STUDENT],
+      status: USER_STATUS.PENDING_VERIFICATION,
+      emailVerified: false,
+      referredByTpoId: referredTpo?._id || null,
+      referralCodeUsed: referredTpo?.referralCode || null,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    db.users.push(user);
+    sendVerificationEmail(user);
+
+    return created({ user: publicUser(user) });
+  }),
+
   mock.post('/auth/register', async ({ request }) => {
     const body = await readJson(request);
     const name = normalizeName(body.name);

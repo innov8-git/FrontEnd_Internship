@@ -32,6 +32,7 @@ export const COLLECTIONS = Object.freeze([
   'emailJobs',
   'auditLogs',
   'sopAccessLogs',
+  'tpos',
 ]);
 
 /**

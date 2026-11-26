@@ -7,16 +7,20 @@ import { GoogleLoginButton } from './GoogleLoginButton';
  */
 export function SocialAuthButtons({
   mode = 'login', // 'login' | 'register'
+  referralCode = '',
   className,
   onGoogleClick,
+  onGoogleError,
 }) {
   return (
     <div className={cn('space-y-4', className)}>
       <GoogleLoginButton
         mode={mode}
+        referralCode={referralCode}
         variant="full"
         fullWidth
         onClick={onGoogleClick}
+        onError={onGoogleError}
       />
 
       <div className="relative my-4 flex items-center justify-center">

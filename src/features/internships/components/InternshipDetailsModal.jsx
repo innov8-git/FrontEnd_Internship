@@ -5,8 +5,10 @@ import { AuthContext } from '@/shared/context/AuthContext';
 import { ROUTES, paths } from '@/shared/constants';
 import { getDomainProjects } from '@/services/projectService';
 import { completeDemoCheckout } from '@/services/paymentService';
+import * as authService from '@/services/authService';
 import { queryClient } from '@/services/queryClient';
 import { queryKeys } from '@/services/queryKeys';
+import { useDebounce } from '@/shared/hooks';
 import {
   ArrowLeft,
   ArrowRight,
@@ -25,6 +27,7 @@ import {
   Phone,
   Send,
   Sparkles,
+  Tag,
   Users,
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
@@ -205,6 +208,12 @@ export function InternshipDetailsModal({
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [demoResult, setDemoResult] = useState(null);
   const [errors, setErrors] = useState({});
+  const [referralCode, setReferralCode] = useState('');
+  const [referralError, setReferralError] = useState(null);
+  const [verifiedTpo, setVerifiedTpo] = useState(null);
+  const [isCheckingReferral, setIsCheckingReferral] = useState(false);
+  const referralSeqRef = useRef(0);
+  const debouncedReferralCode = useDebounce(referralCode.trim().toUpperCase(), 400);
   const [formData, setFormData] = useState({
     fullName: auth?.user?.name || '',
     email: auth?.user?.email || '',
@@ -263,8 +272,56 @@ export function InternshipDetailsModal({
       setIsPaying(false);
       setPaymentSuccess(false);
       setErrors({});
+      const params = new URLSearchParams(location.search || '');
+      const urlRef = (params.get('ref') || params.get('code') || '').trim().toUpperCase();
+      setReferralCode(urlRef);
+      setReferralError(null);
+      setVerifiedTpo(null);
+      setIsCheckingReferral(false);
     }
-  }, [partner, initialRole, initialTab, open]);
+  }, [partner, initialRole, initialTab, open, location.search]);
+
+  // Live validate optional TPO reference code when student enters it on Step 3
+  useEffect(() => {
+    const seq = ++referralSeqRef.current;
+
+    if (!debouncedReferralCode) {
+      setVerifiedTpo(null);
+      setReferralError(null);
+      setIsCheckingReferral(false);
+      return;
+    }
+
+    if (debouncedReferralCode.length < 4) {
+      setVerifiedTpo(null);
+      setIsCheckingReferral(false);
+      return;
+    }
+
+    setIsCheckingReferral(true);
+    authService
+      .validateReferralCode(debouncedReferralCode)
+      .then((res) => {
+        if (seq !== referralSeqRef.current) return;
+        if (res?.valid) {
+          setVerifiedTpo(res);
+          setReferralError(null);
+        } else {
+          setVerifiedTpo(null);
+          setReferralError('Invalid or inactive TPO reference code.');
+        }
+      })
+      .catch(() => {
+        if (seq !== referralSeqRef.current) return;
+        setVerifiedTpo(null);
+        setReferralError('Invalid or inactive TPO reference code. Please check with your TPO.');
+      })
+      .finally(() => {
+        if (seq === referralSeqRef.current) {
+          setIsCheckingReferral(false);
+        }
+      });
+  }, [debouncedReferralCode]);
 
   // Fetch real backend projects under the selected domain when entering Step 2 or 3
   useEffect(() => {
@@ -422,8 +479,23 @@ export function InternshipDetailsModal({
     setApplyStep(3);
   };
 
+  const handleReferralChange = (event) => {
+    const upper = event.target.value.toUpperCase().replace(/\s+/g, '');
+    setReferralCode(upper);
+    setReferralError(null);
+    if (!upper) {
+      setVerifiedTpo(null);
+    }
+  };
+
   const handleDemoPayment = async () => {
+    const normalizedRef = referralCode.trim().toUpperCase();
+    if (normalizedRef && (referralError || isCheckingReferral)) {
+      return;
+    }
+
     setIsPaying(true);
+    let checkoutCompleted = false;
     try {
       const durMatched = String(formData.duration || '').match(/\d+/);
       const durationMonths = durMatched ? parseInt(durMatched[0], 10) : 3;
@@ -440,21 +512,39 @@ export function InternshipDetailsModal({
         projectTitle: selectedProject?.title || selectedProject?.name,
         amount: 169900,
         track: formData.preferredTrack || currentRole?.track || 'web',
+        ...(normalizedRef ? { referralCode: normalizedRef } : {}),
       };
 
       const res = await completeDemoCheckout(payload);
       const resultData = res?.data || res;
       setDemoResult(resultData);
+      checkoutCompleted = true;
 
-      // Invalidate admin queries so that revenue and payment pages update live
+      // Invalidate admin queries so that revenue, payments, and TPO referrals update live
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.revenue });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.payments });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.tpos });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.users });
     } catch (err) {
+      const details = Array.isArray(err?.details)
+        ? err.details
+        : Array.isArray(err?.response?.data?.details)
+          ? err.response.data.details
+          : [];
+      const refDetail = details.find((d) => d?.field === 'referralCode');
+      if (refDetail?.message) {
+        setReferralError(refDetail.message);
+        setVerifiedTpo(null);
+        return;
+      }
       console.warn('Demo payment API checkout notice:', err);
+      checkoutCompleted = true;
     } finally {
       setIsPaying(false);
-      setPaymentSuccess(true);
+      if (checkoutCompleted) {
+        setPaymentSuccess(true);
+      }
     }
   };
 
@@ -465,6 +555,10 @@ export function InternshipDetailsModal({
     setPaymentSuccess(false);
     setDemoResult(null);
     setErrors({});
+    setReferralCode('');
+    setReferralError(null);
+    setVerifiedTpo(null);
+    setIsCheckingReferral(false);
     onClose();
   };
 
@@ -1033,6 +1127,14 @@ export function InternshipDetailsModal({
                         <span className="text-slate-500 dark:text-slate-400">Demo Amount Paid:</span>
                         <span className="font-bold text-emerald-600 dark:text-emerald-400">₹1,699 (Paid)</span>
                       </div>
+                      {(demoResult?.referralCodeUsed || verifiedTpo?.referralCode) ? (
+                        <div className="flex justify-between items-center border-t border-slate-200/80 pt-2 dark:border-slate-800">
+                          <span className="text-slate-500 dark:text-slate-400">TPO Reference Code:</span>
+                          <span className="font-mono font-semibold text-brand-700 dark:text-brand-300">
+                            {demoResult?.referralCodeUsed || verifiedTpo?.referralCode}
+                          </span>
+                        </div>
+                      ) : null}
                     </div>
 
                     <div className="rounded-xl border border-blue-200/80 bg-blue-50/60 p-3 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 max-w-lg mx-auto">
@@ -1146,6 +1248,49 @@ export function InternshipDetailsModal({
                       </div>
                     </div>
 
+                    {/* TPO Reference Code (Optional) */}
+                    <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 space-y-1.5">
+                      <Input
+                        id="payment-tpo-referral-code"
+                        data-testid="payment-referral-code-input"
+                        label="TPO Reference Code (Optional)"
+                        autoCapitalize="characters"
+                        spellCheck={false}
+                        maxLength={32}
+                        placeholder="e.g. TPO-RS-7K4M9"
+                        leftIcon={Tag}
+                        value={referralCode}
+                        onChange={handleReferralChange}
+                        disabled={isPaying}
+                        error={referralError}
+                        hint={
+                          !referralError && !verifiedTpo
+                            ? 'Have a TPO reference code from your college? Apply it here to unlock your student discount before payment.'
+                            : undefined
+                        }
+                      />
+
+                      {isCheckingReferral ? (
+                        <p className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                          Checking reference code…
+                        </p>
+                      ) : null}
+
+                      {!isCheckingReferral && verifiedTpo ? (
+                        <p
+                          data-testid="payment-verified-tpo-banner"
+                          className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <span>
+                            Code verified — {verifiedTpo.tpoName}
+                            {verifiedTpo.college ? ` (${verifiedTpo.college})` : ''}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
+
                     {/* Demo Payment Selector */}
                     <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-900/40">
                       <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-2">Select Demo Payment Method:</span>
@@ -1176,6 +1321,7 @@ export function InternshipDetailsModal({
                         variant="primary"
                         type="button"
                         loading={isPaying}
+                        disabled={Boolean(referralCode.trim() && (referralError || isCheckingReferral))}
                         leftIcon={CreditCard}
                         onClick={handleDemoPayment}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 shadow-md"

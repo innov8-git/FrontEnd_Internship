@@ -14,12 +14,15 @@ export function useStudentRegister() {
   const redirectTo = getSafeRedirect(searchParams.get('redirect'));
 
   const mutation = useMutation({
-    mutationFn: (values) =>
-      authService.registerStudent({
+    mutationFn: (values) => {
+      const referralCode = String(values?.referralCode ?? '').trim().toUpperCase();
+      return authService.registerStudent({
         name: String(values?.name ?? '').trim(),
         email: String(values?.email ?? '').trim(),
         password: String(values?.password ?? ''),
-      }),
+        ...(referralCode ? { referralCode } : {}),
+      });
+    },
     onSuccess: (data, variables) => {
       const email = data?.user?.email ?? String(variables?.email ?? '').trim();
       navigate(buildPath(ROUTES.CHECK_EMAIL, {}, { email, redirect: redirectTo }));
@@ -43,12 +46,15 @@ export function useRegister() {
   const redirectTo = getSafeRedirect(searchParams.get('redirect'));
 
   const mutation = useMutation({
-    mutationFn: (values) =>
-      authService.registerStudent({
+    mutationFn: (values) => {
+      const referralCode = String(values?.referralCode ?? '').trim().toUpperCase();
+      return authService.registerStudent({
         name: String(values?.name ?? '').trim(),
         email: String(values?.email ?? '').trim(),
         password: String(values?.password ?? ''),
-      }),
+        ...(referralCode ? { referralCode } : {}),
+      });
+    },
     onSuccess: (data, variables) => {
       const email = data?.user?.email ?? String(variables?.email ?? '').trim();
       navigate(buildPath(ROUTES.CHECK_EMAIL, {}, { email, redirect: redirectTo }));
