@@ -29,7 +29,7 @@ import {
 } from '@/shared/icons';
 import { SUPPORT_EMAIL } from '@/shared/constants';
 import { getErrorMessage, getFieldErrors } from '@/shared/utils/errors';
-import { useUpdateProfile } from '../hooks/useProfile';
+import { useUpdateProfile, useUploadAvatar } from '../hooks/useProfile';
 import { PROFILE_NAME_MAX, profileSchema } from '../schemas/profileValidation';
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
@@ -41,6 +41,7 @@ const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
  */
 export function ProfileForm({ user, className }) {
   const updateProfile = useUpdateProfile();
+  const uploadAvatar = useUploadAvatar();
   const photoInputRef = useRef(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
@@ -77,7 +78,7 @@ export function ProfileForm({ user, className }) {
     if (!isDirty) reset(defaultValues);
   }, [defaultValues, isDirty, reset]);
 
-  const handlePhotoUpload = (file) => {
+  const handlePhotoUpload = async (file) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -93,28 +94,16 @@ export function ProfileForm({ user, className }) {
     }
 
     setIsUploadingPhoto(true);
-    const reader = new FileReader();
-
-    reader.onload = async (e) => {
-      const avatarUrl = e.target?.result;
-      try {
-        await updateProfile.mutateAsync({ avatarUrl });
-        toast.success('Profile picture updated', {
-          description: 'Your photo has been saved successfully.',
-        });
-      } catch (error) {
-        toast.error(getErrorMessage(error, "Couldn't save your profile picture. Please try again."));
-      } finally {
-        setIsUploadingPhoto(false);
-      }
-    };
-
-    reader.onerror = () => {
-      toast.error('Error reading the selected image file.');
+    try {
+      await uploadAvatar.mutateAsync(file);
+      toast.success('Profile picture updated', {
+        description: 'Your photo has been saved successfully.',
+      });
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Couldn't save your profile picture. Please try again."));
+    } finally {
       setIsUploadingPhoto(false);
-    };
-
-    reader.readAsDataURL(file);
+    }
   };
 
   const handlePhotoChange = (e) => {

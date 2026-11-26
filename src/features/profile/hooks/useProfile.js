@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getMe, resendVerification, updateMe } from '@/services/authService';
+import { getMe, resendVerification, updateMe, uploadAvatar, uploadResume } from '@/services/authService';
 import { getMyAttempts } from '@/services/assessmentService';
 import { queryKeys } from '@/services/queryKeys';
 import { useAuth } from '@/shared/hooks/useAuth';
@@ -58,6 +58,36 @@ export function useUpdateProfile() {
         queryClient.setQueryData(queryKeys.auth.me, updated);
       } else {
         updateUser(variables);
+      }
+    },
+  });
+}
+
+/** POST /auth/me/avatar (multipart) -> User uploaded to Cloudinary; keeps AuthContext and /auth/me in sync. */
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+  const { updateUser } = useAuth();
+  return useMutation({
+    mutationFn: (file) => uploadAvatar(file),
+    onSuccess: (updated) => {
+      if (updated && typeof updated === 'object' && (updated._id || updated.id)) {
+        updateUser(updated);
+        queryClient.setQueryData(queryKeys.auth.me, updated);
+      }
+    },
+  });
+}
+
+/** POST /auth/me/resume (multipart) -> Trainer User with Cloudinary resumeUrl; keeps AuthContext and /auth/me in sync. */
+export function useUploadResume() {
+  const queryClient = useQueryClient();
+  const { updateUser } = useAuth();
+  return useMutation({
+    mutationFn: (file) => uploadResume(file),
+    onSuccess: (updated) => {
+      if (updated && typeof updated === 'object' && (updated._id || updated.id)) {
+        updateUser(updated);
+        queryClient.setQueryData(queryKeys.auth.me, updated);
       }
     },
   });

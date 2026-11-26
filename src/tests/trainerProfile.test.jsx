@@ -104,6 +104,14 @@ describe('Trainer Profile & Resume Updation', () => {
 
     it('allows editing fields and updating resume document', async () => {
       const user = userEvent.setup();
+      const uploadResumeSpy = vi.spyOn(authService, 'uploadResume').mockResolvedValue({
+        ...mockTrainer,
+        trainerProfile: {
+          ...mockTrainer.trainerProfile,
+          resumeName: 'New_Resume_2026.pdf',
+          resumeUrl: 'https://res.cloudinary.com/qmp6tnnz/raw/upload/internship-portal/resumes/New_Resume_2026.pdf',
+        },
+      });
       const patchSpy = vi.spyOn(authService, 'updateMe').mockResolvedValue({
         ...mockTrainer,
         name: 'Priya Nair Updated',
@@ -143,6 +151,7 @@ describe('Trainer Profile & Resume Updation', () => {
       await user.click(saveBtn);
 
       await waitFor(() => {
+        expect(uploadResumeSpy).toHaveBeenCalledWith(newResume);
         expect(patchSpy).toHaveBeenCalledTimes(1);
       });
 
@@ -150,6 +159,7 @@ describe('Trainer Profile & Resume Updation', () => {
       expect(callArgs.trainerProfile.organization).toBe('Google');
       expect(callArgs.trainerProfile.resumeName).toBe('New_Resume_2026.pdf');
 
+      uploadResumeSpy.mockRestore();
       patchSpy.mockRestore();
     });
 
