@@ -46,11 +46,20 @@ function loadGoogleScript() {
  *   const { signInWithGoogle, isPending, error, reset } = useGoogleAuth({ mode: 'login' });
  */
 export function useGoogleAuth(options = {}) {
-  const { mode = 'login', redirectTo: customRedirectTo, onSuccess, onError } = options;
+  const {
+    mode = 'login',
+    referralCode = '',
+    redirectTo: customRedirectTo,
+    onSuccess,
+    onError,
+  } = options;
   const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = customRedirectTo ?? getSafeRedirect(searchParams.get('redirect'));
+  const urlRefCode = (searchParams.get('ref') ?? searchParams.get('code') ?? '').trim().toUpperCase();
+  const effectiveReferralCode =
+    String(referralCode ?? '').trim().toUpperCase() || (mode === 'register' ? urlRefCode : '');
 
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(null);
@@ -79,7 +88,10 @@ export function useGoogleAuth(options = {}) {
       try {
         setIsPending(true);
         setError(null);
-        const user = await loginWithGoogle(payload);
+        const enrichedPayload = effectiveReferralCode
+          ? { ...payload, referralCode: effectiveReferralCode }
+          : payload;
+        const user = await loginWithGoogle(enrichedPayload);
 
         toast.success(
           mode === 'register'
@@ -120,7 +132,7 @@ export function useGoogleAuth(options = {}) {
         inFlightRef.current = false;
       }
     },
-    [loginWithGoogle, mode, navigate, onError, onSuccess, redirectTo],
+    [effectiveReferralCode, loginWithGoogle, mode, navigate, onError, onSuccess, redirectTo],
   );
 
   /**

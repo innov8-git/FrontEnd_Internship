@@ -101,7 +101,19 @@ export function UsersPage() {
         sortable: true,
         headerClassName: 'min-w-[220px]',
         className: 'min-w-[220px]',
-        cell: (user) => <PersonCell person={user} isYou={user._id === currentUserId} />,
+        cell: (user) => (
+          <div>
+            <PersonCell person={user} isYou={user._id === currentUserId} />
+            {user.referredByTpo ? (
+              <span
+                className="mt-1 inline-flex items-center rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-700 dark:bg-brand-950/60 dark:text-brand-300"
+                title={`Referred by TPO ${user.referredByTpo.name} (${user.referredByTpo.college})`}
+              >
+                TPO: {user.referredByTpo.referralCode}
+              </span>
+            ) : null}
+          </div>
+        ),
       },
       {
         key: 'roles',

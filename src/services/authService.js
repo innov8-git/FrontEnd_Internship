@@ -1,5 +1,8 @@
 import { api } from './api';
 
+export const validateReferralCode = (code) =>
+  api.get(`/auth/referral-code/${encodeURIComponent(String(code ?? '').trim().toUpperCase())}`);
+
 export const register = (payload) =>
   api.post('/auth/register', payload);
 
@@ -54,6 +57,12 @@ export const forgotPassword = (email) => api.post('/auth/forgot-password', { ema
 export const resetPassword = ({ token, password }) =>
   api.post('/auth/reset-password', { token, password });
 
-export const loginWithGoogle = ({ credential, code } = {}) =>
-  api.post('/auth/google', { credential, code });
+export const loginWithGoogle = ({ credential, code, referralCode } = {}) => {
+  const normalizedCode = typeof referralCode === 'string' ? referralCode.trim().toUpperCase() : '';
+  return api.post('/auth/google', {
+    credential,
+    code,
+    ...(normalizedCode ? { referralCode: normalizedCode } : {}),
+  });
+};
 
