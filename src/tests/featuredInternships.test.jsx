@@ -134,7 +134,8 @@ describe('FeaturedInternships Section & Partner Companies', () => {
       await screen.findByText(/Demo Payment Mode/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/Fee & Charges Breakdown/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/₹1,699/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Direct Platform Concession/i)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/₹1,999/i).length).toBeGreaterThan(0);
   });
 
   it('displays all 8 assigned domains across the 4 companies (2 domains per company)', () => {
