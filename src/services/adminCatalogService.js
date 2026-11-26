@@ -9,6 +9,8 @@ export const updateDesignation = (id, data) =>
   api.put(`/admin/designations/${encodeURIComponent(id)}`, data);
 export const setDesignationStatus = (id, status) =>
   api.patch(`/admin/designations/${encodeURIComponent(id)}/status`, { status });
+export const deleteDesignation = (id) =>
+  api.delete(`/admin/designations/${encodeURIComponent(id)}`);
 
 // Domains
 export const getAdminDomains = (params = {}) => api.get('/admin/domains', params);
@@ -16,6 +18,8 @@ export const createDomain = (data) => api.post('/admin/domains', data);
 export const updateDomain = (id, data) => api.put(`/admin/domains/${encodeURIComponent(id)}`, data);
 export const setDomainStatus = (id, status) =>
   api.patch(`/admin/domains/${encodeURIComponent(id)}/status`, { status });
+export const deleteDomain = (id) =>
+  api.delete(`/admin/domains/${encodeURIComponent(id)}`);
 
 // Domain Question Bank (up to 100 questions per domain)
 export const getDomainQuestions = (domainId, params = {}) =>
