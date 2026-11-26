@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge, Button, Input, Modal } from '@/shared/components/ui';
 import { AuthContext } from '@/shared/context/AuthContext';
@@ -6,6 +6,13 @@ import { ROUTES, paths } from '@/shared/constants';
 import { getDomainProjects } from '@/services/projectService';
 import { completeDemoCheckout } from '@/services/paymentService';
 import * as authService from '@/services/authService';
+import { getPartnerInternshipQuote } from '@/services/internshipService';
+import { PartnerLogo } from './PartnerLogo';
+import {
+  calculateInternshipPrice,
+  formatInr,
+  parseDurationMonths,
+} from '../data/companyInternshipsStore';
 import { queryClient } from '@/services/queryClient';
 import { queryKeys } from '@/services/queryKeys';
 import { useDebounce } from '@/shared/hooks';
@@ -207,6 +214,7 @@ export function InternshipDetailsModal({
   const [isPaying, setIsPaying] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [demoResult, setDemoResult] = useState(null);
+  const [serverQuote, setServerQuote] = useState(null);
   const [errors, setErrors] = useState({});
   const [referralCode, setReferralCode] = useState('');
   const [referralError, setReferralError] = useState(null);
@@ -360,9 +368,60 @@ export function InternshipDetailsModal({
     };
   }, [activeTab, applyStep, formData.selectedDomain]);
 
-  if (!partner) return null;
+  const currentRole =
+    selectedRole || initialRole || partner?.role || partner?.roles?.[0] || partner?.internship;
 
-  const currentRole = selectedRole || initialRole || partner.role || partner.roles?.[0] || partner.internship;
+  const localPriceBreakdown = useMemo(
+    () =>
+      calculateInternshipPrice({
+        role: currentRole,
+        partner,
+        domainName: formData.selectedDomain,
+        duration: formData.duration,
+      }),
+    [currentRole, partner, formData.selectedDomain, formData.duration],
+  );
+
+  // Sync authoritative quote from backend when Step 3 opens (fallback cleanly to localPriceBreakdown)
+  useEffect(() => {
+    let cancelled = false;
+    if (!open || activeTab !== 'apply' || applyStep !== 3 || !partner) {
+      return undefined;
+    }
+
+    const durationMonths = parseDurationMonths(formData.duration);
+    setServerQuote(null);
+
+    getPartnerInternshipQuote({
+      internshipId: currentRole?.id,
+      companyName: partner?.name,
+      domainName: formData.selectedDomain,
+      durationMonths,
+    })
+      .then((res) => {
+        const quote = res?.data || res;
+        if (
+          !cancelled &&
+          quote &&
+          Number.isFinite(Number(quote.basePrice)) &&
+          Number.isFinite(Number(quote.payableAmount))
+        ) {
+          setServerQuote(quote);
+        }
+      })
+      .catch(() => {
+        // Offline/MSW fallback handled by localPriceBreakdown
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, activeTab, applyStep, partner, currentRole?.id, formData.selectedDomain, formData.duration]);
+
+  const activePrice =
+    currentRole?.pricing || !serverQuote ? localPriceBreakdown : serverQuote;
+
+  if (!partner) return null;
 
   const validate = () => {
     const errs = {};
@@ -497,8 +556,7 @@ export function InternshipDetailsModal({
     setIsPaying(true);
     let checkoutCompleted = false;
     try {
-      const durMatched = String(formData.duration || '').match(/\d+/);
-      const durationMonths = durMatched ? parseInt(durMatched[0], 10) : 3;
+      const durationMonths = parseDurationMonths(formData.duration);
 
       const payload = {
         fullName: formData.fullName,
@@ -508,9 +566,11 @@ export function InternshipDetailsModal({
         domainName: formData.selectedDomain,
         duration: formData.duration,
         durationMonths,
+        internshipId: currentRole?.id,
+        companyName: partner?.name,
         projectId: selectedProject?.id || selectedProject?._id || selectedProject?.slug,
         projectTitle: selectedProject?.title || selectedProject?.name,
-        amount: 169900,
+        amount: activePrice.payablePaise,
         track: formData.preferredTrack || currentRole?.track || 'web',
         ...(normalizedRef ? { referralCode: normalizedRef } : {}),
       };
@@ -569,11 +629,7 @@ export function InternshipDetailsModal({
       size={applyStep === 3 ? '2xl' : 'xl'}
       title={
         <div className="flex items-center gap-3">
-          <div
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white font-bold text-sm shadow-md ${partner.logoBg}`}
-          >
-            {partner.logoInitials}
-          </div>
+          <PartnerLogo partner={partner} size="md" className="shadow-md" />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-900 dark:text-white">{partner.name}</span>
@@ -1125,7 +1181,14 @@ export function InternshipDetailsModal({
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-slate-500 dark:text-slate-400">Demo Amount Paid:</span>
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">₹1,699 (Paid)</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          {formatInr(
+                            demoResult?.amount
+                              ? Math.round(Number(demoResult.amount) / 100)
+                              : activePrice.payableAmount,
+                          )}{' '}
+                          (Paid)
+                        </span>
                       </div>
                       {(demoResult?.referralCodeUsed || verifiedTpo?.referralCode) ? (
                         <div className="flex justify-between items-center border-t border-slate-200/80 pt-2 dark:border-slate-800">
@@ -1228,20 +1291,22 @@ export function InternshipDetailsModal({
                               <span className="font-semibold text-emerald-600 dark:text-emerald-400">₹0 (100% Free / Unpaid)</span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Standard Platform Infrastructure:</span>
-                              <span className="text-slate-900 dark:text-white font-medium">₹1,999</span>
+                              <span>Standard Platform Infrastructure ({activePrice.durationMonths} {activePrice.durationMonths === 1 ? 'Month' : 'Months'}):</span>
+                              <span className="text-slate-900 dark:text-white font-medium">{formatInr(activePrice.basePrice)}</span>
                             </div>
-                            <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
-                              <span>Direct Platform Concession (15%):</span>
-                              <span>-₹300</span>
-                            </div>
+                            {activePrice.concessionPercent > 0 && activePrice.discountAmount > 0 && (
+                              <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
+                                <span>Direct Platform Concession ({activePrice.concessionPercent}%):</span>
+                                <span>-{formatInr(activePrice.discountAmount)}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
                         <div className="border-t border-slate-200 dark:border-slate-800 pt-3">
                           <div className="flex justify-between items-center text-sm font-bold text-slate-900 dark:text-white">
                             <span>Total Payable (Demo):</span>
-                            <span className="text-lg text-brand-600 dark:text-brand-400">₹1,699</span>
+                            <span className="text-lg text-brand-600 dark:text-brand-400">{formatInr(activePrice.payableAmount)}</span>
                           </div>
                           <p className="mt-1 text-[10px] text-slate-400">Includes verified GitHub mentor reviews & certificate validation.</p>
                         </div>
@@ -1326,7 +1391,7 @@ export function InternshipDetailsModal({
                         onClick={handleDemoPayment}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 shadow-md"
                       >
-                        Pay ₹1,699 (Complete Demo Checkout)
+                        Pay {formatInr(activePrice.payableAmount)} (Complete Demo Checkout)
                       </Button>
                     </div>
                   </div>

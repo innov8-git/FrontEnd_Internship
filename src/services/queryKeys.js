@@ -88,6 +88,7 @@ export const queryKeys = {
     tpoReferrals: (id, params = {}) => ['admin', 'tpos', id, 'referrals', params],
     certificates: ['admin', 'certificates'],
     audit: ['admin', 'audit'],
+    trainerChangeRequests: ['admin', 'trainer-change-requests'],
   },
   trainer: {
     all: ['trainer'],

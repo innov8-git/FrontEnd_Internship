@@ -19,9 +19,17 @@ export const getSchedulePreview = (planId) =>
 
 // Partner Internships (Public & Admin Catalog)
 export const getPartnerInternships = (params = {}) => api.get('/internships', params);
+export const getPartnerInternshipQuote = (params = {}) => api.get('/internships/quote', params);
 export const getPartnerInternship = (id) => api.get(`/internships/${encodeURIComponent(id)}`);
 export const createPartnerInternship = (data) => api.post('/admin/internships', data);
 export const updatePartnerInternship = (id, data) => api.put(`/admin/internships/${encodeURIComponent(id)}`, data);
 export const deletePartnerInternship = (id) => api.delete(`/admin/internships/${encodeURIComponent(id)}`);
 export const resetPartnerInternships = () => api.post('/admin/internships/reset');
+export const uploadPartnerLogo = (file) => {
+  const form = new FormData();
+  form.append('logo', file);
+  return api.post('/admin/internships/logo', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
 
