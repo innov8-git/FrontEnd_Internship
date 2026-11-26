@@ -118,8 +118,21 @@ export const catalogHandlers = [
   mock.get('/internships', () => {
     return json({ success: true, companies: [] });
   }),
+  mock.get('/internships/quote', () => {
+    return json({
+      success: true,
+      basePrice: 1999,
+      concessionPercent: 0,
+      discountAmount: 0,
+      payableAmount: 1999,
+      payablePaise: 199900,
+    });
+  }),
   mock.get('/internships/:id', () => {
     return json({ success: true });
+  }),
+  mock.post('/admin/internships/logo', () => {
+    return json({ success: true, logoUrl: '/uploads/mock-logo.png' });
   }),
   mock.post('/admin/internships', async ({ request }) => {
     const body = await request.json().catch(() => ({}));

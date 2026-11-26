@@ -202,7 +202,7 @@ describe('DomainAssessmentFlow, Calculator & Direct Enrollment Flow', () => {
   });
 
   describe('AssessmentRedirect Component', () => {
-    it('redirects to /internships even when designationId is present (assessment removed)', () => {
+    it('redirects to /internships when designationId is present', () => {
       render(
         <MemoryRouter initialEntries={['/assessment/desig-777']}>
           <Routes>

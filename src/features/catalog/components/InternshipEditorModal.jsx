@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Input, Modal, Select, toast } from '@/shared/components/ui';
+import { uploadPartnerLogo } from '@/services/internshipService';
+import { PartnerLogo } from '@/features/internships/components/PartnerLogo';
 import { useCatalogOptions } from '../hooks/useCatalogAdmin';
 import {
   BASE_APP_RESPONSIBILITIES,
@@ -7,19 +9,29 @@ import {
   BASE_WEB_RESPONSIBILITIES,
   BASE_WEB_SKILLS,
 } from '@/features/internships/data/companyInternshipsData';
-import { COLOR_THEMES } from '@/features/internships/data/companyInternshipsStore';
+import {
+  COLOR_THEMES,
+  DEFAULT_CONCESSION_PERCENT,
+  DEFAULT_DURATION_PRICES,
+  PRICING_DURATIONS,
+  formatInr,
+  normalizePricing,
+} from '@/features/internships/data/companyInternshipsStore';
 import {
   Briefcase,
   Building2,
   CheckCircle2,
   Code2,
   FileText,
+  IndianRupee,
   Plus,
   RotateCcw,
   Save,
   Smartphone,
   Sparkles,
   Trash2,
+  Upload,
+  X,
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 
@@ -58,7 +70,9 @@ export function InternshipEditorModal({
 
   // Form State
   const [companyName, setCompanyName] = useState('');
-  const [logoInitials, setLogoInitials] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoInputRef = useRef(null);
   const [themeColor, setThemeColor] = useState('blue');
   const [tagline, setTagline] = useState('');
   const [assignedDomains, setAssignedDomains] = useState('');
@@ -84,6 +98,7 @@ export function InternshipEditorModal({
     'Placement Support & Interview Drives',
   ]);
   const [techStack, setTechStack] = useState('HTML5, CSS3, JavaScript, React.js, Node.js, REST APIs, Git');
+  const [pricing, setPricing] = useState(() => normalizePricing({}, []));
 
   const [errors, setErrors] = useState({});
 
@@ -93,7 +108,7 @@ export function InternshipEditorModal({
 
     if (existingRole && existingPartner) {
       setCompanyName(existingPartner.name || '');
-      setLogoInitials(existingPartner.logoInitials || '');
+      setLogoUrl(existingPartner.logoUrl || '');
       // Find theme color key if possible
       const foundTheme = Object.keys(COLOR_THEMES).find(
         (key) => COLOR_THEMES[key].logoBg === existingPartner.logoBg,
@@ -146,10 +161,16 @@ export function InternshipEditorModal({
           ? existingRole.techStack.join(', ')
           : 'HTML5, CSS3, JavaScript, React.js, Node.js',
       );
+      const initialDomains = existingPartner.assignedDomains?.length
+        ? existingPartner.assignedDomains
+        : existingPartner.domain
+          ? [existingPartner.domain]
+          : [];
+      setPricing(normalizePricing(existingRole.pricing || existingPartner.pricing || {}, initialDomains));
     } else {
       // New Internship Defaults
       setCompanyName('');
-      setLogoInitials('');
+      setLogoUrl('');
       setThemeColor('blue');
       setTagline('');
       setAssignedDomains('');
@@ -172,6 +193,7 @@ export function InternshipEditorModal({
         'Placement Support & Interview Drives',
       ]);
       setTechStack('HTML5, CSS3, JavaScript, React.js, Node.js, REST APIs, Git');
+      setPricing(normalizePricing({}, []));
     }
 
     setErrors({});
@@ -236,6 +258,39 @@ export function InternshipEditorModal({
     toast.success('Loaded standard technical skills');
   };
 
+  const handleLogoFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please choose a PNG, JPG, WEBP, or SVG image.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Logo image must be 2 MB or smaller.');
+      e.target.value = '';
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const response = await uploadPartnerLogo(file);
+      const uploadedUrl = response?.data?.logoUrl || response?.logoUrl || '';
+      if (!uploadedUrl) {
+        throw new Error('Upload succeeded but no logo URL was returned.');
+      }
+      setLogoUrl(uploadedUrl);
+      toast.success('Company logo uploaded');
+    } catch (err) {
+      toast.error(err?.message || 'Failed to upload company logo');
+    } finally {
+      setIsUploadingLogo(false);
+      e.target.value = '';
+    }
+  };
+
   // Submit & Validation
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -278,8 +333,9 @@ export function InternshipEditorModal({
 
     const payload = {
       companyName: companyName.trim(),
+      logoUrl: logoUrl.trim(),
       logoInitials:
-        logoInitials.trim() ||
+        existingPartner?.logoInitials ||
         companyName
           .split(' ')
           .map((w) => w[0])
@@ -303,6 +359,7 @@ export function InternshipEditorModal({
       skillsRequired: skills,
       perks,
       techStack: techStack.split(',').map((s) => s.trim()).filter(Boolean),
+      pricing: normalizePricing(pricing, domainList),
     };
 
     onSave(payload, existingRole?.id || null);
@@ -386,6 +443,19 @@ export function InternshipEditorModal({
             <Sparkles className="h-4 w-4" />
             Outcomes &amp; Perks
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('pricing')}
+            className={cn(
+              'flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors',
+              activeTab === 'pricing'
+                ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
+            )}
+          >
+            <IndianRupee className="h-4 w-4" />
+            Pricing &amp; Fees
+          </button>
         </div>
 
         {/* TAB 1: COMPANY & DOMAIN */}
@@ -399,13 +469,55 @@ export function InternshipEditorModal({
                 placeholder="e.g. Inlarge Software"
                 error={errors.companyName}
               />
-              <Input
-                label="Logo Initials (1-3 letters)"
-                value={logoInitials}
-                onChange={(e) => setLogoInitials(e.target.value.toUpperCase().slice(0, 3))}
-                placeholder="e.g. IS"
-                maxLength={3}
-              />
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Company Logo
+                </label>
+                <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/40">
+                  <PartnerLogo
+                    partner={{
+                      name: companyName || 'Partner',
+                      logoUrl,
+                      logoBg: COLOR_THEMES[themeColor]?.logoBg,
+                    }}
+                    size="sm"
+                  />
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    className="hidden"
+                    onChange={handleLogoFileChange}
+                  />
+                  <div className="flex flex-1 flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={isUploadingLogo}
+                      onClick={() => logoInputRef.current?.click()}
+                    >
+                      <Upload className="mr-1.5 h-3.5 w-3.5" />
+                      {isUploadingLogo ? 'Uploading...' : logoUrl ? 'Change Logo' : 'Upload Logo'}
+                    </Button>
+                    {logoUrl && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setLogoUrl('')}
+                        aria-label="Remove company logo"
+                      >
+                        <X className="mr-1 h-3.5 w-3.5" />
+                        Remove
+                      </Button>
+                    )}
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      PNG, JPG, WEBP, SVG (max 2 MB)
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -804,6 +916,118 @@ export function InternshipEditorModal({
             </div>
           </div>
         )}
+
+        {/* TAB 5: PRICING & FEES (BY DOMAIN & DURATION) */}
+        {activeTab === 'pricing' && (() => {
+          const activeDomains = assignedDomains
+            .split(',')
+            .map((d) => d.trim())
+            .filter(Boolean);
+          const concession = Number(pricing?.concessionPercent ?? DEFAULT_CONCESSION_PERCENT);
+          const rowsToEdit = activeDomains.length > 0 ? activeDomains : ['Default'];
+
+          const handleConcessionChange = (val) => {
+            const num = val === '' ? 0 : Math.min(100, Math.max(0, Number(val) || 0));
+            setPricing((prev) => ({ ...prev, concessionPercent: num }));
+          };
+
+          const handleDomainPriceChange = (domKey, dur, rawVal) => {
+            const num = rawVal === '' ? 0 : Math.max(0, Math.round(Number(rawVal) || 0));
+            const durKey = String(dur);
+            setPricing((prev) => {
+              if (domKey === 'Default' && activeDomains.length === 0) {
+                return {
+                  ...prev,
+                  defaultPrices: {
+                    ...(prev.defaultPrices || DEFAULT_DURATION_PRICES),
+                    [durKey]: num,
+                  },
+                };
+              }
+              const currentDomMap =
+                prev.domainPrices?.[domKey] ||
+                prev.defaultPrices ||
+                { ...DEFAULT_DURATION_PRICES };
+              return {
+                ...prev,
+                domainPrices: {
+                  ...(prev.domainPrices || {}),
+                  [domKey]: {
+                    ...currentDomMap,
+                    [durKey]: num,
+                  },
+                },
+              };
+            });
+          };
+
+          return (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2 items-end rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                <Input
+                  label="Direct Platform Concession (%)"
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={concession}
+                  onChange={(e) => handleConcessionChange(e.target.value)}
+                  helperText="Percentage discount applied automatically on the Demo Payment step."
+                />
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Set base platform infrastructure fees (₹) for <strong>1, 2, 3, and 6 months</strong> per domain. Students will see the exact payable amount automatically.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {rowsToEdit.map((domKey) => {
+                  const isFallbackRow = domKey === 'Default' && activeDomains.length === 0;
+                  const priceMap = isFallbackRow
+                    ? pricing.defaultPrices || DEFAULT_DURATION_PRICES
+                    : pricing.domainPrices?.[domKey] || pricing.defaultPrices || DEFAULT_DURATION_PRICES;
+
+                  return (
+                    <div
+                      key={domKey}
+                      className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/70 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Building2 className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                          {isFallbackRow ? 'Default Pricing (All Domains)' : `${domKey} Domain`}
+                        </span>
+                        <span className="text-[11px] text-slate-500">
+                          Concession: {concession}%
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        {PRICING_DURATIONS.map((dur) => {
+                          const base = Number(priceMap[String(dur)] ?? priceMap[dur] ?? DEFAULT_DURATION_PRICES[dur]);
+                          const discount = Math.round(base * (concession / 100));
+                          const payable = Math.max(0, base - discount);
+                          return (
+                            <div key={dur} className="space-y-1">
+                              <Input
+                                label={`${dur} ${dur === 1 ? 'Month' : 'Months'} (₹)`}
+                                type="number"
+                                min={0}
+                                value={base}
+                                onChange={(e) => handleDomainPriceChange(domKey, dur, e.target.value)}
+                              />
+                              <p className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                                Payable: {formatInr(payable)}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Modal Footer */}
         <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
