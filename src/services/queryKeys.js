@@ -76,6 +76,7 @@ export const queryKeys = {
     submissions: ['admin', 'submissions'],
     payments: ['admin', 'payments'],
     payment: (id) => ['admin', 'payments', 'detail', id],
+    revenue: ['admin', 'revenue'],
     teams: ['admin', 'teams'],
     assignments: ['admin', 'assignments'],
     assignmentsSummary: ['admin', 'assignments', 'summary'],

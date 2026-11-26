@@ -2,8 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AdminInternshipsPage from '@/features/catalog/pages/AdminInternshipsPage';
+import { InternshipEditorModal } from '@/features/catalog/components/InternshipEditorModal';
+import * as catalogHooks from '@/features/catalog/hooks/useCatalogAdmin';
 import { FeaturedInternships } from '@/features/internships/components/FeaturedInternships';
-import { resetStoredPartnerCompanies } from '@/features/internships/data/companyInternshipsStore';
+import {
+  calculateInternshipPrice,
+  resetStoredPartnerCompanies,
+} from '@/features/internships/data/companyInternshipsStore';
 
 describe('Admin Partner Internships Management & Cross-Portal Sync', () => {
   beforeEach(() => {
@@ -129,7 +134,7 @@ describe('Admin Partner Internships Management & Cross-Portal Sync', () => {
     const companyInput = screen.getByLabelText(/Partner Company Name \*/i);
     fireEvent.change(companyInput, { target: { value: 'Apex Robotics' } });
 
-    const domainInput = screen.getByLabelText(/Assigned Sub-Domains/i);
+    const domainInput = screen.getByLabelText(/^Domain \*/i);
     fireEvent.change(domainInput, { target: { value: 'Robotics, Automation' } });
 
     // Fill Role tab
@@ -221,5 +226,69 @@ describe('Admin Partner Internships Management & Cross-Portal Sync', () => {
     await waitFor(() => {
       expect(screen.getByText('8')).toBeInTheDocument();
     });
+  });
+
+  it('hides unpublished (DRAFT) domains and designations in InternshipEditorModal', () => {
+    const spy = vi.spyOn(catalogHooks, 'useCatalogOptions').mockImplementation((kind) => {
+      if (kind === 'domain') {
+        return {
+          data: [
+            { _id: 'd1', name: 'Banking', status: 'PUBLISHED' },
+            { _id: 'd2', name: 'investment', status: 'DRAFT' },
+          ],
+        };
+      }
+      return {
+        data: [
+          { _id: 'g1', name: 'Java Developer', status: 'PUBLISHED' },
+          { _id: 'g2', name: 'demo', status: 'DRAFT' },
+        ],
+      };
+    });
+
+    render(<InternshipEditorModal open={true} onClose={vi.fn()} onSave={vi.fn()} />);
+
+    // Company & Domain tab: Banking should be visible, investment (DRAFT) should NOT be visible
+    expect(screen.getByRole('button', { name: 'Banking' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'investment' })).not.toBeInTheDocument();
+
+    // Switch to Role & Track tab
+    fireEvent.click(screen.getByRole('button', { name: /Role & Track/i }));
+
+    // Java Developer should be visible, demo (DRAFT) should NOT be visible
+    expect(screen.getByRole('button', { name: 'Java Developer' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'demo' })).not.toBeInTheDocument();
+
+    spy.mockRestore();
+  });
+
+  it('calculates dynamic pricing by company, domain, and duration (1, 2, 3, 6 months)', () => {
+    const partner = {
+      name: 'Inlarge Software',
+      assignedDomains: ['Banking', 'Finance'],
+    };
+    const role = {
+      id: 'inlarge-fintech-eng',
+      pricing: {
+        concessionPercent: 10,
+        defaultPrices: { 1: 1000, 2: 1500, 3: 2000, 6: 3000 },
+        domainPrices: {
+          Banking: { 1: 1000, 2: 1800, 3: 2500, 6: 4000 },
+          Finance: { 1: 1200, 2: 2000, 3: 3000, 6: 5000 },
+        },
+      },
+    };
+
+    const banking1m = calculateInternshipPrice({ role, partner, domainName: 'Banking', duration: '1 Month' });
+    expect(banking1m.basePrice).toBe(1000);
+    expect(banking1m.discountAmount).toBe(100);
+    expect(banking1m.payableAmount).toBe(900);
+    expect(banking1m.payablePaise).toBe(90000);
+
+    const finance6m = calculateInternshipPrice({ role, partner, domainName: 'Finance', duration: '6 Months' });
+    expect(finance6m.basePrice).toBe(5000);
+    expect(finance6m.discountAmount).toBe(500);
+    expect(finance6m.payableAmount).toBe(4500);
+    expect(finance6m.payablePaise).toBe(450000);
   });
 });

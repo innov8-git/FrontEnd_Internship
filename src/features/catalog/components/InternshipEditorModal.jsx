@@ -1,24 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Input, Modal, Select, toast } from '@/shared/components/ui';
+import { uploadPartnerLogo } from '@/services/internshipService';
+import { PartnerLogo } from '@/features/internships/components/PartnerLogo';
+import { useCatalogOptions } from '../hooks/useCatalogAdmin';
 import {
   BASE_APP_RESPONSIBILITIES,
   BASE_APP_SKILLS,
   BASE_WEB_RESPONSIBILITIES,
   BASE_WEB_SKILLS,
 } from '@/features/internships/data/companyInternshipsData';
-import { COLOR_THEMES } from '@/features/internships/data/companyInternshipsStore';
+import {
+  COLOR_THEMES,
+  DEFAULT_CONCESSION_PERCENT,
+  DEFAULT_DURATION_PRICES,
+  PRICING_DURATIONS,
+  formatInr,
+  normalizePricing,
+} from '@/features/internships/data/companyInternshipsStore';
 import {
   Briefcase,
   Building2,
   CheckCircle2,
   Code2,
   FileText,
+  IndianRupee,
   Plus,
   RotateCcw,
   Save,
   Smartphone,
   Sparkles,
   Trash2,
+  Upload,
+  X,
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 
@@ -34,13 +47,35 @@ export function InternshipEditorModal({
 
   const [activeTab, setActiveTab] = useState('company');
 
+  // Dynamic Catalog Options from backend (Domains & Designations)
+  const domainsQuery = useCatalogOptions('domain');
+  const designationsQuery = useCatalogOptions('designation');
+
+  const catalogDomains = useMemo(() => {
+    return (domainsQuery.data ?? [])
+      .filter((d) => d.status === 'PUBLISHED')
+      .map((d) => d.name)
+      .filter(Boolean);
+  }, [domainsQuery.data]);
+
+  const catalogDesignations = useMemo(() => {
+    return (designationsQuery.data ?? [])
+      .filter((d) => d.status === 'PUBLISHED')
+      .map((d) => d.name)
+      .filter(Boolean);
+  }, [designationsQuery.data]);
+
+  const defaultDesignationRef = useRef('Trainee Software Engineer');
+  defaultDesignationRef.current = catalogDesignations[0] || 'Trainee Software Engineer';
+
   // Form State
   const [companyName, setCompanyName] = useState('');
-  const [logoInitials, setLogoInitials] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoInputRef = useRef(null);
   const [themeColor, setThemeColor] = useState('blue');
   const [tagline, setTagline] = useState('');
-  const [domainCategory, setDomainCategory] = useState('Banking & FinTech');
-  const [assignedDomains, setAssignedDomains] = useState('Banking, Finance');
+  const [assignedDomains, setAssignedDomains] = useState('');
   const [workMode, setWorkMode] = useState('100% Online Remote');
 
   const [track, setTrack] = useState('web');
@@ -63,6 +98,7 @@ export function InternshipEditorModal({
     'Placement Support & Interview Drives',
   ]);
   const [techStack, setTechStack] = useState('HTML5, CSS3, JavaScript, React.js, Node.js, REST APIs, Git');
+  const [pricing, setPricing] = useState(() => normalizePricing({}, []));
 
   const [errors, setErrors] = useState({});
 
@@ -72,16 +108,17 @@ export function InternshipEditorModal({
 
     if (existingRole && existingPartner) {
       setCompanyName(existingPartner.name || '');
-      setLogoInitials(existingPartner.logoInitials || '');
+      setLogoUrl(existingPartner.logoUrl || '');
       // Find theme color key if possible
       const foundTheme = Object.keys(COLOR_THEMES).find(
         (key) => COLOR_THEMES[key].logoBg === existingPartner.logoBg,
       ) || 'blue';
       setThemeColor(foundTheme);
       setTagline(existingPartner.tagline || '');
-      setDomainCategory(existingPartner.domain || 'Banking & FinTech');
       setAssignedDomains(
-        existingPartner.assignedDomains ? existingPartner.assignedDomains.join(', ') : 'Banking, Finance',
+        existingPartner.assignedDomains?.length
+          ? existingPartner.assignedDomains.join(', ')
+          : existingPartner.domain || '',
       );
       setWorkMode(existingRole.workMode || existingPartner.location || '100% Online Remote');
 
@@ -124,19 +161,25 @@ export function InternshipEditorModal({
           ? existingRole.techStack.join(', ')
           : 'HTML5, CSS3, JavaScript, React.js, Node.js',
       );
+      const initialDomains = existingPartner.assignedDomains?.length
+        ? existingPartner.assignedDomains
+        : existingPartner.domain
+          ? [existingPartner.domain]
+          : [];
+      setPricing(normalizePricing(existingRole.pricing || existingPartner.pricing || {}, initialDomains));
     } else {
       // New Internship Defaults
       setCompanyName('');
-      setLogoInitials('');
+      setLogoUrl('');
       setThemeColor('blue');
       setTagline('');
-      setDomainCategory('Cloud & Systems');
-      setAssignedDomains('Cloud, Systems');
+      setAssignedDomains('');
       setWorkMode('100% Online Remote');
 
       setTrack('web');
-      setRoleTitle('Trainee Software Engineer');
-      setDesignation('Trainee Software Engineer – Web Development');
+      const defaultRole = defaultDesignationRef.current;
+      setRoleTitle(defaultRole);
+      setDesignation(`${defaultRole} – Web Development`);
       setTrackType('Full Stack Web Engineering Track');
       setDuration('1 to 6 Months');
       setApplicantsCount(100);
@@ -150,6 +193,7 @@ export function InternshipEditorModal({
         'Placement Support & Interview Drives',
       ]);
       setTechStack('HTML5, CSS3, JavaScript, React.js, Node.js, REST APIs, Git');
+      setPricing(normalizePricing({}, []));
     }
 
     setErrors({});
@@ -160,8 +204,9 @@ export function InternshipEditorModal({
   const handleTrackChange = (newTrack) => {
     setTrack(newTrack);
     const isWeb = newTrack === 'web';
-    if (!isEdit || designation.includes('Software Engineer')) {
-      setDesignation(`Trainee Software Engineer – ${isWeb ? 'Web Development' : 'App Development'}`);
+    if (!isEdit || designation.includes('Development')) {
+      const baseRole = roleTitle.trim() || catalogDesignations[0] || 'Trainee Software Engineer';
+      setDesignation(`${baseRole} – ${isWeb ? 'Web Development' : 'App Development'}`);
       setTrackType(isWeb ? 'Full Stack Web Engineering Track' : 'Mobile Application Engineering Track');
     }
     if (responsibilities.length === 0) {
@@ -176,7 +221,7 @@ export function InternshipEditorModal({
   const handleRoleTitleChange = (val) => {
     setRoleTitle(val);
     const isWeb = track === 'web';
-    if (!isEdit || designation.includes('Software Engineer')) {
+    if (!isEdit || designation.includes('Development')) {
       setDesignation(`${val} – ${isWeb ? 'Web Development' : 'App Development'}`);
     }
   };
@@ -211,6 +256,39 @@ export function InternshipEditorModal({
   const handleLoadStandardSkills = () => {
     setSkills(track === 'web' ? [...BASE_WEB_SKILLS] : [...BASE_APP_SKILLS]);
     toast.success('Loaded standard technical skills');
+  };
+
+  const handleLogoFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please choose a PNG, JPG, WEBP, or SVG image.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Logo image must be 2 MB or smaller.');
+      e.target.value = '';
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const response = await uploadPartnerLogo(file);
+      const uploadedUrl = response?.data?.logoUrl || response?.logoUrl || '';
+      if (!uploadedUrl) {
+        throw new Error('Upload succeeded but no logo URL was returned.');
+      }
+      setLogoUrl(uploadedUrl);
+      toast.success('Company logo uploaded');
+    } catch (err) {
+      toast.error(err?.message || 'Failed to upload company logo');
+    } finally {
+      setIsUploadingLogo(false);
+      e.target.value = '';
+    }
   };
 
   // Submit & Validation
@@ -250,10 +328,14 @@ export function InternshipEditorModal({
       return;
     }
 
+    const domainList = assignedDomains.split(',').map((d) => d.trim()).filter(Boolean);
+    const primaryDomain = domainList[0] || assignedDomains.trim();
+
     const payload = {
       companyName: companyName.trim(),
+      logoUrl: logoUrl.trim(),
       logoInitials:
-        logoInitials.trim() ||
+        existingPartner?.logoInitials ||
         companyName
           .split(' ')
           .map((w) => w[0])
@@ -262,9 +344,9 @@ export function InternshipEditorModal({
           .toUpperCase(),
       themeColor,
       tagline: tagline.trim(),
-      domainCategory: domainCategory.trim(),
-      domain: domainCategory.trim(),
-      assignedDomains: assignedDomains.split(',').map((d) => d.trim()).filter(Boolean),
+      domainCategory: primaryDomain,
+      domain: primaryDomain,
+      assignedDomains: domainList,
       workMode: workMode.trim(),
       track,
       role: roleTitle.trim(),
@@ -277,6 +359,7 @@ export function InternshipEditorModal({
       skillsRequired: skills,
       perks,
       techStack: techStack.split(',').map((s) => s.trim()).filter(Boolean),
+      pricing: normalizePricing(pricing, domainList),
     };
 
     onSave(payload, existingRole?.id || null);
@@ -360,6 +443,19 @@ export function InternshipEditorModal({
             <Sparkles className="h-4 w-4" />
             Outcomes &amp; Perks
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('pricing')}
+            className={cn(
+              'flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors',
+              activeTab === 'pricing'
+                ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
+            )}
+          >
+            <IndianRupee className="h-4 w-4" />
+            Pricing &amp; Fees
+          </button>
         </div>
 
         {/* TAB 1: COMPANY & DOMAIN */}
@@ -373,13 +469,55 @@ export function InternshipEditorModal({
                 placeholder="e.g. Inlarge Software"
                 error={errors.companyName}
               />
-              <Input
-                label="Logo Initials (1-3 letters)"
-                value={logoInitials}
-                onChange={(e) => setLogoInitials(e.target.value.toUpperCase().slice(0, 3))}
-                placeholder="e.g. IS"
-                maxLength={3}
-              />
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Company Logo
+                </label>
+                <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/40">
+                  <PartnerLogo
+                    partner={{
+                      name: companyName || 'Partner',
+                      logoUrl,
+                      logoBg: COLOR_THEMES[themeColor]?.logoBg,
+                    }}
+                    size="sm"
+                  />
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    className="hidden"
+                    onChange={handleLogoFileChange}
+                  />
+                  <div className="flex flex-1 flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={isUploadingLogo}
+                      onClick={() => logoInputRef.current?.click()}
+                    >
+                      <Upload className="mr-1.5 h-3.5 w-3.5" />
+                      {isUploadingLogo ? 'Uploading...' : logoUrl ? 'Change Logo' : 'Upload Logo'}
+                    </Button>
+                    {logoUrl && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setLogoUrl('')}
+                        aria-label="Remove company logo"
+                      >
+                        <X className="mr-1 h-3.5 w-3.5" />
+                        Remove
+                      </Button>
+                    )}
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      PNG, JPG, WEBP, SVG (max 2 MB)
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -401,21 +539,60 @@ export function InternshipEditorModal({
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Input
-                label="Industry Domain Category *"
-                value={domainCategory}
-                onChange={(e) => setDomainCategory(e.target.value)}
-                placeholder="e.g. Banking & FinTech"
-              />
-              <Input
-                label="Assigned Sub-Domains (Comma-separated) *"
-                value={assignedDomains}
-                onChange={(e) => setAssignedDomains(e.target.value)}
-                placeholder="e.g. Banking, Finance"
-                error={errors.assignedDomains}
-              />
-            </div>
+            <Input
+              label="Domain *"
+              value={assignedDomains}
+              onChange={(e) => setAssignedDomains(e.target.value)}
+              placeholder="Select a domain below or type e.g. Banking, Finance"
+              error={errors.assignedDomains}
+            />
+
+            {catalogDomains.length > 0 && (
+              <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900/40">
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                  <Building2 className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                  <span>Select from Listed Catalog Domains:</span>
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {catalogDomains.map((dom) => {
+                    const currentList = assignedDomains
+                      .split(',')
+                      .map((d) => d.trim().toLowerCase())
+                      .filter(Boolean);
+                    const isSelected = currentList.includes(dom.toLowerCase());
+                    return (
+                      <button
+                        key={dom}
+                        type="button"
+                        onClick={() => {
+                          const existing = assignedDomains
+                            .split(',')
+                            .map((d) => d.trim())
+                            .filter(Boolean);
+                          const next = isSelected
+                            ? existing.filter((d) => d.toLowerCase() !== dom.toLowerCase())
+                            : [...existing, dom];
+                          setAssignedDomains(next.join(', '));
+                        }}
+                        className={cn(
+                          'inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-all',
+                          isSelected
+                            ? 'bg-brand-600 text-white shadow-sm ring-1 ring-brand-700 dark:bg-brand-500'
+                            : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',
+                        )}
+                      >
+                        {isSelected ? (
+                          <CheckCircle2 className="h-3 w-3" />
+                        ) : (
+                          <Plus className="h-3 w-3 opacity-60" />
+                        )}
+                        <span>{dom}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <Input
               label="Location / Work Mode"
@@ -479,6 +656,38 @@ export function InternshipEditorModal({
                 placeholder="e.g. Trainee Software Engineer – Web Development"
               />
             </div>
+
+            {catalogDesignations.length > 0 && (
+              <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900/40">
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                  <Briefcase className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                  <span>Choose from Listed Catalog Designations:</span>
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {catalogDesignations.map((desigName) => {
+                    const isSelected = roleTitle.toLowerCase() === desigName.toLowerCase();
+                    return (
+                      <button
+                        key={desigName}
+                        type="button"
+                        onClick={() => {
+                          handleRoleTitleChange(desigName);
+                        }}
+                        className={cn(
+                          'inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-all',
+                          isSelected
+                            ? 'bg-brand-600 text-white shadow-sm ring-1 ring-brand-700 dark:bg-brand-500'
+                            : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',
+                        )}
+                      >
+                        {isSelected ? <CheckCircle2 className="h-3 w-3" /> : null}
+                        <span>{desigName}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="sm:col-span-2">
@@ -707,6 +916,118 @@ export function InternshipEditorModal({
             </div>
           </div>
         )}
+
+        {/* TAB 5: PRICING & FEES (BY DOMAIN & DURATION) */}
+        {activeTab === 'pricing' && (() => {
+          const activeDomains = assignedDomains
+            .split(',')
+            .map((d) => d.trim())
+            .filter(Boolean);
+          const concession = Number(pricing?.concessionPercent ?? DEFAULT_CONCESSION_PERCENT);
+          const rowsToEdit = activeDomains.length > 0 ? activeDomains : ['Default'];
+
+          const handleConcessionChange = (val) => {
+            const num = val === '' ? 0 : Math.min(100, Math.max(0, Number(val) || 0));
+            setPricing((prev) => ({ ...prev, concessionPercent: num }));
+          };
+
+          const handleDomainPriceChange = (domKey, dur, rawVal) => {
+            const num = rawVal === '' ? 0 : Math.max(0, Math.round(Number(rawVal) || 0));
+            const durKey = String(dur);
+            setPricing((prev) => {
+              if (domKey === 'Default' && activeDomains.length === 0) {
+                return {
+                  ...prev,
+                  defaultPrices: {
+                    ...(prev.defaultPrices || DEFAULT_DURATION_PRICES),
+                    [durKey]: num,
+                  },
+                };
+              }
+              const currentDomMap =
+                prev.domainPrices?.[domKey] ||
+                prev.defaultPrices ||
+                { ...DEFAULT_DURATION_PRICES };
+              return {
+                ...prev,
+                domainPrices: {
+                  ...(prev.domainPrices || {}),
+                  [domKey]: {
+                    ...currentDomMap,
+                    [durKey]: num,
+                  },
+                },
+              };
+            });
+          };
+
+          return (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2 items-end rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                <Input
+                  label="Direct Platform Concession (%)"
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={concession}
+                  onChange={(e) => handleConcessionChange(e.target.value)}
+                  helperText="Percentage discount applied automatically on the Demo Payment step."
+                />
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Set base platform infrastructure fees (₹) for <strong>1, 2, 3, and 6 months</strong> per domain. Students will see the exact payable amount automatically.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {rowsToEdit.map((domKey) => {
+                  const isFallbackRow = domKey === 'Default' && activeDomains.length === 0;
+                  const priceMap = isFallbackRow
+                    ? pricing.defaultPrices || DEFAULT_DURATION_PRICES
+                    : pricing.domainPrices?.[domKey] || pricing.defaultPrices || DEFAULT_DURATION_PRICES;
+
+                  return (
+                    <div
+                      key={domKey}
+                      className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/70 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Building2 className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                          {isFallbackRow ? 'Default Pricing (All Domains)' : `${domKey} Domain`}
+                        </span>
+                        <span className="text-[11px] text-slate-500">
+                          Concession: {concession}%
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        {PRICING_DURATIONS.map((dur) => {
+                          const base = Number(priceMap[String(dur)] ?? priceMap[dur] ?? DEFAULT_DURATION_PRICES[dur]);
+                          const discount = Math.round(base * (concession / 100));
+                          const payable = Math.max(0, base - discount);
+                          return (
+                            <div key={dur} className="space-y-1">
+                              <Input
+                                label={`${dur} ${dur === 1 ? 'Month' : 'Months'} (₹)`}
+                                type="number"
+                                min={0}
+                                value={base}
+                                onChange={(e) => handleDomainPriceChange(domKey, dur, e.target.value)}
+                              />
+                              <p className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                                Payable: {formatInr(payable)}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Modal Footer */}
         <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">

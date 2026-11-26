@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Badge,
   Button,
   Input,
   Modal,
@@ -17,7 +16,6 @@ import {
   Plus,
   Save,
   Smartphone,
-  Sparkles,
 } from '@/shared/icons';
 import { getErrorMessage, getFieldErrors } from '@/shared/utils/errors';
 import { slugify } from '@/shared/utils/helpers';
@@ -51,11 +49,13 @@ export function ProjectDialog({ open, onClose, project }) {
   const createMutation = useCreateProject();
   const updateMutation = useUpdateProject();
   const [formError, setFormError] = useState(null);
+  const [enabledTracks, setEnabledTracks] = useState({ web: true, app: true });
 
-  // All 8 domains from the home page in order
+  // Only published domains are selectable when creating a project (keep current domain in edit mode)
   const domainOptions = useMemo(
     () =>
       (domainsQuery.data ?? [])
+        .filter((d) => d.status === 'PUBLISHED' || (isEdit && d._id === project?.domainId))
         .map((d) => ({
           value: d._id,
           label: d.name,
@@ -69,13 +69,14 @@ export function ProjectDialog({ open, onClose, project }) {
           if (idxB !== -1) return 1;
           return a.label.localeCompare(b.label);
         }),
-    [domainsQuery.data],
+    [domainsQuery.data, isEdit, project?.domainId],
   );
 
-  // Target designation defaults to Trainee Software Engineer
+  // Target designation defaults to Trainee Software Engineer (published only, or current in edit mode)
   const designationOptions = useMemo(
     () =>
       (designationsQuery.data ?? [])
+        .filter((d) => d.status === 'PUBLISHED' || (isEdit && d._id === project?.designationId))
         .map((d) => ({
           value: d._id,
           label: d.name,
@@ -85,7 +86,7 @@ export function ProjectDialog({ open, onClose, project }) {
           if (b.label.toLowerCase() === 'trainee software engineer') return 1;
           return a.label.localeCompare(b.label);
         }),
-    [designationsQuery.data],
+    [designationsQuery.data, isEdit, project?.designationId],
   );
 
   const defaultDesignationId = designationOptions[0]?.value || 'trainee-software-engineer';
@@ -143,6 +144,9 @@ export function ProjectDialog({ open, onClose, project }) {
         isDefault: Boolean(project.isDefault),
         status: project.status ?? 'PUBLISHED',
       });
+      const hasWeb = (Array.isArray(project.webTechStack) && project.webTechStack.length > 0) || Boolean(project.webDeliverables);
+      const hasApp = (Array.isArray(project.appTechStack) && project.appTechStack.length > 0) || Boolean(project.appDeliverables);
+      setEnabledTracks(hasWeb || hasApp ? { web: hasWeb, app: hasApp } : { web: true, app: true });
     } else {
       reset({
         title: '',
@@ -159,9 +163,21 @@ export function ProjectDialog({ open, onClose, project }) {
         isDefault: false,
         status: 'PUBLISHED',
       });
+      setEnabledTracks({ web: true, app: true });
     }
     setFormError(null);
   }, [project, open, reset, defaultDesignationId]);
+
+  const toggleTrack = (trackKey) => {
+    setEnabledTracks((prev) => {
+      const next = { ...prev, [trackKey]: !prev[trackKey] };
+      // Ensure at least one track remains enabled
+      if (!next.web && !next.app) {
+        return prev;
+      }
+      return next;
+    });
+  };
 
   const selectedDurations = watch('durationsSupported') || [];
   const titleValue = watch('title');
@@ -181,13 +197,17 @@ export function ProjectDialog({ open, onClose, project }) {
 
   const onSubmit = async (values) => {
     setFormError(null);
-    const webStackArray = typeof values.webTechStack === 'string'
-      ? values.webTechStack.split(',').map((s) => s.trim()).filter(Boolean)
-      : values.webTechStack ?? [];
+    const webStackArray = enabledTracks.web
+      ? (typeof values.webTechStack === 'string'
+          ? values.webTechStack.split(',').map((s) => s.trim()).filter(Boolean)
+          : values.webTechStack ?? [])
+      : [];
 
-    const appStackArray = typeof values.appTechStack === 'string'
-      ? values.appTechStack.split(',').map((s) => s.trim()).filter(Boolean)
-      : values.appTechStack ?? [];
+    const appStackArray = enabledTracks.app
+      ? (typeof values.appTechStack === 'string'
+          ? values.appTechStack.split(',').map((s) => s.trim()).filter(Boolean)
+          : values.appTechStack ?? [])
+      : [];
 
     const combinedTechnologies = Array.from(new Set([...webStackArray, ...appStackArray]));
 
@@ -197,9 +217,9 @@ export function ProjectDialog({ open, onClose, project }) {
       slug: slugValue,
       technologies: combinedTechnologies.length > 0 ? combinedTechnologies : ['Web & App Development'],
       webTechStack: webStackArray,
-      webDeliverables: values.webDeliverables || '',
+      webDeliverables: enabledTracks.web ? (values.webDeliverables || '') : '',
       appTechStack: appStackArray,
-      appDeliverables: values.appDeliverables || '',
+      appDeliverables: enabledTracks.app ? (values.appDeliverables || '') : '',
       durationsSupported: values.durationsSupported.map(Number),
     };
 
@@ -239,29 +259,58 @@ export function ProjectDialog({ open, onClose, project }) {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {formError ? <StatusBanner variant="error">{formError}</StatusBanner> : null}
 
-        {/* Single unified designation for Web & App */}
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5 dark:border-slate-800 dark:bg-slate-800/60">
-          <div>
-            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Internship Role & Designation
-            </p>
-            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
-              Trainee Software Engineer
-            </p>
-          </div>
-          <Badge variant="brand" icon={Sparkles}>
-            Supports Web & App Development
-          </Badge>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Select
+            label="Domain"
+            placeholder="Select a domain"
+            {...register('domainId')}
+            options={domainOptions}
+            error={errors.domainId?.message}
+            required
+          />
+
+          <Select
+            label="Role / Designation"
+            placeholder="Select a designation"
+            {...register('designationId')}
+            options={designationOptions}
+            error={errors.designationId?.message}
+            required
+          />
         </div>
 
-        <Select
-          label="Domain"
-          placeholder="Select a domain"
-          {...register('domainId')}
-          options={domainOptions}
-          error={errors.domainId?.message}
-          required
-        />
+        {/* Editable Supported Tracks */}
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Supported Tracks
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => toggleTrack('web')}
+              className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-all ${
+                enabledTracks.web
+                  ? 'border-sky-500 bg-sky-50 text-sky-900 ring-1 ring-sky-500/40 dark:bg-sky-950/50 dark:text-sky-200'
+                  : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
+              }`}
+            >
+              <Code2 className="h-4 w-4" />
+              <span>Web Development</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleTrack('app')}
+              className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-all ${
+                enabledTracks.app
+                  ? 'border-emerald-500 bg-emerald-50 text-emerald-900 ring-1 ring-emerald-500/40 dark:bg-emerald-950/50 dark:text-emerald-200'
+                  : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
+              }`}
+            >
+              <Smartphone className="h-4 w-4" />
+              <span>Mobile App Development</span>
+            </button>
+          </div>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
@@ -297,7 +346,8 @@ export function ProjectDialog({ open, onClose, project }) {
         </div>
 
         {/* Track 1: Web Development Track Specification */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs dark:border-slate-800 dark:bg-slate-800/60">
+        {enabledTracks.web ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs dark:border-slate-800 dark:bg-slate-800/60">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
               <Code2 className="h-4 w-4" />
@@ -326,9 +376,11 @@ export function ProjectDialog({ open, onClose, project }) {
             {...register('webDeliverables')}
           />
         </div>
+        ) : null}
 
         {/* Track 2: Mobile App Development Track Specification */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs dark:border-slate-800 dark:bg-slate-800/60">
+        {enabledTracks.app ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs dark:border-slate-800 dark:bg-slate-800/60">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
               <Smartphone className="h-4 w-4" />
@@ -357,6 +409,7 @@ export function ProjectDialog({ open, onClose, project }) {
             {...register('appDeliverables')}
           />
         </div>
+        ) : null}
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">

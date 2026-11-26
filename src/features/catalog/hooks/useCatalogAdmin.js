@@ -1,7 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useContext } from 'react';
+import { useMutation, useQuery, useQueryClient, QueryClientContext, QueryClient } from '@tanstack/react-query';
 import {
   createDesignation,
   createDomain,
+  deleteDesignation,
+  deleteDomain,
   getAdminDesignations,
   getAdminDomains,
   setDesignationStatus,
@@ -10,6 +13,10 @@ import {
   updateDomain,
 } from '@/services/adminCatalogService';
 import { queryKeys } from '@/services/queryKeys';
+
+const fallbackQueryClient = new QueryClient({
+  defaultOptions: { queries: { enabled: false, retry: false } },
+});
 
 /**
  * Admin catalog: designations and domains (KD3, MM4, MM5). Both share one shape and one set of
@@ -31,6 +38,7 @@ export const CATALOG_KINDS = Object.freeze({
     create: createDesignation,
     update: updateDesignation,
     setStatus: setDesignationStatus,
+    remove: deleteDesignation,
   }),
   domain: Object.freeze({
     kind: 'domain',
@@ -43,6 +51,7 @@ export const CATALOG_KINDS = Object.freeze({
     create: createDomain,
     update: updateDomain,
     setStatus: setDomainStatus,
+    remove: deleteDomain,
   }),
 });
 
@@ -73,13 +82,19 @@ const selectItems = (data) => {
 /** Every designation or domain (drafts included), sorted by name — for filters and form selects. */
 export function useCatalogOptions(kind, options = {}) {
   const config = getCatalogKind(kind);
-  return useQuery({
-    queryKey: [...config.queryKey, 'options'],
-    queryFn: () => config.list({ page: 1, limit: CATALOG_OPTIONS_LIMIT, sort: 'name:asc' }),
-    select: selectItems,
-    staleTime: 60 * 1000,
-    ...options,
-  });
+  const contextClient = useContext(QueryClientContext);
+  const clientToUse = contextClient || fallbackQueryClient;
+  return useQuery(
+    {
+      queryKey: [...config.queryKey, 'options'],
+      queryFn: () => config.list({ page: 1, limit: CATALOG_OPTIONS_LIMIT, sort: 'name:asc' }),
+      select: selectItems,
+      staleTime: 60 * 1000,
+      enabled: Boolean(contextClient) && (options.enabled ?? true),
+      ...options,
+    },
+    clientToUse,
+  );
 }
 
 export function useCreateCatalogItem(kind) {
@@ -111,6 +126,18 @@ export function useSetCatalogStatus(kind) {
   const config = getCatalogKind(kind);
   return useMutation({
     mutationFn: ({ id, status }) => config.setStatus(id, status),
+    onSuccess: () => {
+      invalidateCatalogQueries(queryClient);
+    },
+  });
+}
+
+/** mutate(id) */
+export function useDeleteCatalogItem(kind) {
+  const queryClient = useQueryClient();
+  const config = getCatalogKind(kind);
+  return useMutation({
+    mutationFn: (id) => config.remove(id),
     onSuccess: () => {
       invalidateCatalogQueries(queryClient);
     },

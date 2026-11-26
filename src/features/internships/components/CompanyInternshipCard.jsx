@@ -11,6 +11,7 @@ import {
   Smartphone,
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
+import { PartnerLogo } from './PartnerLogo';
 
 function getDomainIcon(category) {
   switch (category) {
@@ -69,14 +70,11 @@ export function CompanyInternshipCard({
         {/* Header: Company Identity + Single Track Pill */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3.5">
-            <div
-              className={cn(
-                'flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-base font-bold text-white shadow-md ring-2 ring-white/80 dark:ring-slate-800',
-                partner.logoBg,
-              )}
-            >
-              {partner.logoInitials}
-            </div>
+            <PartnerLogo
+              partner={partner}
+              size="lg"
+              className="rounded-2xl shadow-md ring-2 ring-white/80 dark:ring-slate-800"
+            />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="truncate font-bold text-slate-900 dark:text-white">

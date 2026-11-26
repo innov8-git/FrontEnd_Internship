@@ -23,9 +23,9 @@ const LINKS = [
     icon: Building2,
   },
   {
-    label: 'Plans & pricing',
-    description: 'Durations and base prices',
-    to: ROUTES.ADMIN_PLANS,
+    label: 'Revenue',
+    description: 'Track student payments, calculate revenue and view analytics',
+    to: ROUTES.ADMIN_REVENUE,
     icon: IndianRupee,
   },
   {

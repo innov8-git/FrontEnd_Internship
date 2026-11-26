@@ -130,11 +130,13 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     const submitBtn = screen.getByRole('button', { name: /Submit Application/i });
     await user.click(submitBtn);
 
-    // Verify submission confirmation with domain & duration details
+    // Verify Step 3: Demo Payment tab opens directly after application submission
     expect(
-      await screen.findByText(/Application Submitted to Inlarge Software!/i),
+      await screen.findByText(/Demo Payment Mode/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Banking Domain/i)).toBeInTheDocument();
+    expect(screen.getByText(/Fee & Charges Breakdown/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Direct Platform Concession/i)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/₹1,999/i).length).toBeGreaterThan(0);
   });
 
   it('displays all 8 assigned domains across the 4 companies (2 domains per company)', () => {
@@ -181,28 +183,28 @@ describe('FeaturedInternships Section & Partner Companies', () => {
   it(
     'opens modal strictly for the specific clicked position (Web or App) without track switcher',
     async () => {
-    const user = userEvent.setup();
-    renderFeaturedInternships();
+      const user = userEvent.setup();
+      renderFeaturedInternships();
 
-    const viewDetailsButtons = screen.getAllByRole('button', { name: /view details/i });
-    // First card is Inlarge Web Development
-    await user.click(viewDetailsButtons[0]);
+      const viewDetailsButtons = screen.getAllByRole('button', { name: /view details/i });
+      // First card is Inlarge Web Development
+      await user.click(viewDetailsButtons[0]);
 
-    // Modal view has Web Development role with responsibilities
-    expect(screen.getByText(/Full Stack Web Engineering Track/i)).toBeInTheDocument();
-    expect(screen.getByText(/Role Overview/i)).toBeInTheDocument();
-    expect(screen.getByText(/Role Responsibilities & What You Will Build/i)).toBeInTheDocument();
+      // Modal view has Web Development role with responsibilities
+      expect(screen.getByText(/Full Stack Web Engineering Track/i)).toBeInTheDocument();
+      expect(screen.getByText(/Role Overview/i)).toBeInTheDocument();
+      expect(screen.getByText(/Role Responsibilities & What You Will Build/i)).toBeInTheDocument();
 
-    // Verifies no position switcher button exists in the modal
-    expect(screen.queryByText(/Select Position:/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Confirm Selected Position/i)).not.toBeInTheDocument();
+      // Verifies no position switcher button exists in the modal
+      expect(screen.queryByText(/Select Position:/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Confirm Selected Position/i)).not.toBeInTheDocument();
 
-    // Outcome tags inside modal are Internship Completion Letter & Placement Support
-    const completionLetters = screen.getAllByText('Internship Completion Letter');
-    expect(completionLetters.length).toBeGreaterThanOrEqual(1);
-    const placementSupports = screen.getAllByText('Placement Support');
-    expect(placementSupports.length).toBeGreaterThanOrEqual(1);
-  }, 15000);
+      // Outcome tags inside modal are Internship Completion Letter & Placement Support
+      const completionLetters = screen.getAllByText('Internship Completion Letter');
+      expect(completionLetters.length).toBeGreaterThanOrEqual(1);
+      const placementSupports = screen.getAllByText('Placement Support');
+      expect(placementSupports.length).toBeGreaterThanOrEqual(1);
+    }, 15000);
 
   it('renders 4 cards initially when limit={4} and displays a View More redirect CTA linking to /internships', () => {
     render(
@@ -268,7 +270,7 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     await user.click(submitBtn);
 
     expect(
-      await screen.findByText(/Application Submitted to Inlarge Software!/i),
+      await screen.findByText(/Demo Payment Mode/i),
     ).toBeInTheDocument();
   });
 });

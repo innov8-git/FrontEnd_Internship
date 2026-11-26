@@ -429,6 +429,30 @@ export const authHandlers = [
     return json(publicUser(auth.user));
   }),
 
+  mock.post('/auth/me/avatar', async ({ request }) => {
+    const auth = requireAuth(request);
+    if (auth.error) return auth.error;
+    auth.user.avatarUrl = `https://res.cloudinary.com/qmp6tnnz/image/upload/internship-portal/avatars/${auth.user._id}.png`;
+    auth.user.updatedAt = nowIso();
+    return json(publicUser(auth.user));
+  }),
+
+  mock.post('/auth/me/resume', async ({ request }) => {
+    const auth = requireAuth(request);
+    if (auth.error) return auth.error;
+    const formData = await request.formData();
+    const file = formData.get('resume');
+    const resumeName = file?.name || 'resume.pdf';
+    auth.user.trainerProfile = {
+      ...(auth.user.trainerProfile || {}),
+      resumeName,
+      resumeSize: file?.size || 1024,
+      resumeUrl: `https://res.cloudinary.com/qmp6tnnz/raw/upload/internship-portal/resumes/${resumeName}`,
+    };
+    auth.user.updatedAt = nowIso();
+    return json(publicUser(auth.user));
+  }),
+
   mock.post('/auth/verify-email', async ({ request }) => {
     const body = await readJson(request);
     const token = typeof body.token === 'string' ? body.token.trim() : '';

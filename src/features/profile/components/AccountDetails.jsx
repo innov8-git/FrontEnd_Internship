@@ -28,7 +28,7 @@ import { ROLE_LABELS } from '@/shared/constants';
 import { cn } from '@/shared/utils/cn';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { formatDate, humanize } from '@/shared/utils/helpers';
-import { useResendVerification, useUpdateProfile } from '../hooks/useProfile';
+import { useResendVerification, useUpdateProfile, useUploadAvatar } from '../hooks/useProfile';
 
 function VerificationBadge({ verified }) {
   return verified ? (
@@ -51,6 +51,7 @@ const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB
 export function AccountDetails({ user, className }) {
   const resend = useResendVerification();
   const updateProfile = useUpdateProfile();
+  const uploadAvatar = useUploadAvatar();
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -60,7 +61,7 @@ export function AccountDetails({ user, className }) {
   const verified = Boolean(user.emailVerified);
   const roles = Array.isArray(user.roles) ? user.roles : [];
 
-  const handlePhotoFile = (file) => {
+  const handlePhotoFile = async (file) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -76,28 +77,16 @@ export function AccountDetails({ user, className }) {
     }
 
     setIsUploading(true);
-    const reader = new FileReader();
-
-    reader.onload = async (e) => {
-      const avatarUrl = e.target?.result;
-      try {
-        await updateProfile.mutateAsync({ avatarUrl });
-        toast.success('Profile picture updated', {
-          description: 'Your photo has been saved successfully.',
-        });
-      } catch (error) {
-        toast.error(getErrorMessage(error, "Couldn't save your profile picture. Please try again."));
-      } finally {
-        setIsUploading(false);
-      }
-    };
-
-    reader.onerror = () => {
-      toast.error('Error reading the selected image file.');
+    try {
+      await uploadAvatar.mutateAsync(file);
+      toast.success('Profile picture updated', {
+        description: 'Your photo has been saved successfully.',
+      });
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Couldn't save your profile picture. Please try again."));
+    } finally {
       setIsUploading(false);
-    };
-
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleFileChange = (e) => {

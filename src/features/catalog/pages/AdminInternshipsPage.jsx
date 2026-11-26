@@ -3,6 +3,7 @@ import { Button, Modal, PageHeader, Select, toast } from '@/shared/components/ui
 import { useDocumentTitle } from '@/shared/hooks';
 import { useCompanyInternships } from '@/features/internships/hooks/useCompanyInternships';
 import { InternshipDetailsModal } from '@/features/internships/components/InternshipDetailsModal';
+import { PartnerLogo } from '@/features/internships/components/PartnerLogo';
 import { CatalogTabs } from '../components/CatalogTabs';
 import { InternshipEditorModal } from '../components/InternshipEditorModal';
 import {
@@ -290,14 +291,7 @@ export default function AdminInternshipsPage() {
                       {/* Company Name & Logo */}
                       <td className="py-4 pl-6 pr-4">
                         <div className="flex items-center gap-3">
-                          <div
-                            className={cn(
-                              'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white shadow-xs',
-                              partner.logoBg || 'bg-brand-600',
-                            )}
-                          >
-                            {partner.logoInitials || 'IS'}
-                          </div>
+                          <PartnerLogo partner={partner} size="sm" className="shadow-xs" />
                           <div>
                             <span className="font-bold text-slate-900 dark:text-white">
                               {partner.name}

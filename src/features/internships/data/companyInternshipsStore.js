@@ -9,6 +9,117 @@ import {
 export const STORAGE_KEY_PARTNER_COMPANIES = 'alfre_partner_companies_v1';
 export const EVENT_PARTNER_COMPANIES_UPDATED = 'alfre:partner-companies-updated';
 
+export const PRICING_DURATIONS = Object.freeze([1, 2, 3, 6]);
+export const DEFAULT_DURATION_PRICES = Object.freeze({
+  1: 999,
+  2: 1499,
+  3: 1999,
+  6: 2999,
+});
+export const DEFAULT_CONCESSION_PERCENT = 0;
+
+export function parseDurationMonths(value) {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return Math.round(value);
+  }
+  const matched = String(value || '').match(/\d+/);
+  return matched ? parseInt(matched[0], 10) : 3;
+}
+
+function normalizeDurationMap(rawMap = {}, fallbackMap = DEFAULT_DURATION_PRICES) {
+  const result = {};
+  PRICING_DURATIONS.forEach((m) => {
+    const key = String(m);
+    const parsed = Number(rawMap?.[key] ?? rawMap?.[m]);
+    result[key] = Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : fallbackMap[m] ?? 1999;
+  });
+  return result;
+}
+
+export function normalizePricing(rawPricing = {}, domains = []) {
+  const rawConcession = Number(rawPricing?.concessionPercent);
+  const concessionPercent = Number.isFinite(rawConcession)
+    ? Math.min(100, Math.max(0, Math.round(rawConcession)))
+    : DEFAULT_CONCESSION_PERCENT;
+
+  const defaultPrices = normalizeDurationMap(rawPricing?.defaultPrices, DEFAULT_DURATION_PRICES);
+  const domainPrices = {};
+  const incomingDomains =
+    rawPricing?.domainPrices && typeof rawPricing.domainPrices === 'object'
+      ? rawPricing.domainPrices
+      : {};
+
+  Object.entries(incomingDomains).forEach(([domKey, map]) => {
+    const clean = String(domKey || '').trim();
+    if (clean && map && typeof map === 'object') {
+      domainPrices[clean] = normalizeDurationMap(map, defaultPrices);
+    }
+  });
+
+  (Array.isArray(domains) ? domains : []).forEach((dom) => {
+    const clean = String(dom || '').trim();
+    if (clean && !domainPrices[clean]) {
+      domainPrices[clean] = { ...defaultPrices };
+    }
+  });
+
+  return {
+    concessionPercent,
+    defaultPrices,
+    domainPrices,
+  };
+}
+
+function findDomainPriceMap(domainPrices, domainName) {
+  if (!domainPrices || typeof domainPrices !== 'object' || !domainName) return null;
+  const target = String(domainName).trim().toLowerCase();
+  const matchedKey = Object.keys(domainPrices).find((k) => k.trim().toLowerCase() === target);
+  return matchedKey ? domainPrices[matchedKey] : null;
+}
+
+export function calculateInternshipPrice({ role, partner, domainName, duration }) {
+  const dur = parseDurationMonths(duration);
+  const durKey = String(dur);
+
+  const rolePricing = role?.pricing;
+  const partnerPricing = partner?.pricing;
+
+  const roleDomainMap = findDomainPriceMap(rolePricing?.domainPrices, domainName);
+  const partnerDomainMap = findDomainPriceMap(partnerPricing?.domainPrices, domainName);
+
+  const rawBase =
+    roleDomainMap?.[durKey] ??
+    partnerDomainMap?.[durKey] ??
+    rolePricing?.defaultPrices?.[durKey] ??
+    partnerPricing?.defaultPrices?.[durKey] ??
+    DEFAULT_DURATION_PRICES[dur] ??
+    1999;
+
+  const basePrice = Math.max(0, Math.round(Number(rawBase) || 0));
+  const rawConcession =
+    rolePricing?.concessionPercent ??
+    partnerPricing?.concessionPercent ??
+    DEFAULT_CONCESSION_PERCENT;
+  const concessionPercent = Math.min(100, Math.max(0, Math.round(Number(rawConcession) || 0)));
+  const discountAmount = Math.round(basePrice * (concessionPercent / 100));
+  const payableAmount = Math.max(0, basePrice - discountAmount);
+
+  return {
+    durationMonths: dur,
+    domainName: domainName || partner?.assignedDomains?.[0] || partner?.domain || '',
+    basePrice,
+    concessionPercent,
+    discountAmount,
+    payableAmount,
+    payablePaise: payableAmount * 100,
+    currency: 'INR',
+  };
+}
+
+export function formatInr(amount) {
+  return `₹${Number(amount || 0).toLocaleString('en-IN')}`;
+}
+
 /**
  * Deep clones partner companies array to prevent accidental mutations.
  */
@@ -275,6 +386,7 @@ export function addOrUpdateCompanyInternship(formData, originalRoleId = null) {
       (isWeb
         ? 'B.Tech / B.E / BCA / MCA with core programming and web fundamentals.'
         : 'B.Tech / B.E / BCA / MCA with mobile development or OOP fundamentals.'),
+    pricing: normalizePricing(formData.pricing, assignedDomains),
   };
 
   // If editing an existing role
@@ -297,6 +409,14 @@ export function addOrUpdateCompanyInternship(formData, originalRoleId = null) {
           company.badgeTint = theme.badgeTint;
         }
         if (formData.logoInitials) company.logoInitials = formData.logoInitials;
+        if (formData.logoUrl !== undefined) {
+          const trimmedLogoUrl = typeof formData.logoUrl === 'string' ? formData.logoUrl.trim() : '';
+          if (trimmedLogoUrl) {
+            company.logoUrl = trimmedLogoUrl;
+          } else {
+            delete company.logoUrl;
+          }
+        }
         company.assignedDomains = assignedDomains;
         company.domainCategory = domainCategory;
         company.internship = company.roles[0];
@@ -326,6 +446,14 @@ export function addOrUpdateCompanyInternship(formData, originalRoleId = null) {
     } else {
       targetCompany.roles.push(assembledRole);
     }
+    if (formData.logoUrl !== undefined) {
+      const trimmedLogoUrl = typeof formData.logoUrl === 'string' ? formData.logoUrl.trim() : '';
+      if (trimmedLogoUrl) {
+        targetCompany.logoUrl = trimmedLogoUrl;
+      } else {
+        delete targetCompany.logoUrl;
+      }
+    }
     targetCompany.internship = targetCompany.roles[0];
   } else {
     // Create new company container
@@ -346,6 +474,9 @@ export function addOrUpdateCompanyInternship(formData, originalRoleId = null) {
       accentBorder: theme.accentBorder,
       badgeTint: theme.badgeTint,
       logoBg: theme.logoBg,
+      ...(typeof formData.logoUrl === 'string' && formData.logoUrl.trim()
+        ? { logoUrl: formData.logoUrl.trim() }
+        : {}),
       logoInitials:
         formData.logoInitials ||
         companyName

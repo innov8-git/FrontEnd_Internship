@@ -1,6 +1,5 @@
-import { Navigate, useParams } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 export default function AssessmentRedirect() {
-  const { designationId } = useParams();
-  return <Navigate to={designationId ? `/enroll?designationId=${designationId}` : '/internships'} replace />;
+  return <Navigate to="/internships" replace />;
 }
