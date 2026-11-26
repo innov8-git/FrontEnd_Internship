@@ -4,6 +4,7 @@ import { getAdminEnrollments, getUsers } from '@/services/adminService';
 import {
   createAssignment,
   getAdminAssignments,
+  getAdminAssignmentsSummary,
   getAdminTeams,
   removeAssignment,
 } from '@/services/adminAssignmentService';
@@ -27,6 +28,14 @@ export function useAssignmentsTable() {
     () => ({ fetcher: getAdminAssignments, queryKey: queryKeys.admin.assignments }),
     [],
   );
+}
+
+/** Overall trainer count + task/review/pending metrics for /admin/assignments. */
+export function useAssignmentsSummary() {
+  return useQuery({
+    queryKey: queryKeys.admin.assignmentsSummary,
+    queryFn: () => getAdminAssignmentsSummary(),
+  });
 }
 
 /** Active users with the TRAINER role, for the trainer picker. */

@@ -67,6 +67,7 @@ export const ROUTES = Object.freeze({
   ADMIN_PAYMENTS: '/admin/payments',
   ADMIN_ASSIGNMENTS: '/admin/assignments',
   ADMIN_TRAINERS: '/admin/trainers',
+  ADMIN_TRAINER_REPORTS: '/admin/trainers/:trainerId/reports',
   ADMIN_CERTIFICATES: '/admin/certificates',
   ADMIN_AUDIT: '/admin/audit',
   ADMIN_PROFILE: '/admin/profile',
@@ -119,6 +120,7 @@ export const paths = Object.freeze({
   adminAssessment: (designationId) => buildPath(ROUTES.ADMIN_ASSESSMENT, { designationId }),
   adminSchedule: (id) => buildPath(ROUTES.ADMIN_SCHEDULE, { id }),
   adminScheduleTasks: (id) => buildPath(ROUTES.ADMIN_SCHEDULE_TASKS, { id }),
+  adminTrainerReports: (trainerId) => buildPath(ROUTES.ADMIN_TRAINER_REPORTS, { trainerId }),
   login: (redirectTo) => buildPath(ROUTES.LOGIN, {}, redirectTo ? { redirect: redirectTo } : undefined),
   register: (redirectTo) =>
     buildPath(ROUTES.REGISTER, {}, redirectTo ? { redirect: redirectTo } : undefined),

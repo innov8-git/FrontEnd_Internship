@@ -236,6 +236,48 @@ export const trainerHandlers = [
     return json(paginate(items, request, 20));
   }),
 
+  // Admin view of one trainer's progress report (same shape as GET /trainer/assignments).
+  mock.get('/admin/trainers/:id/reports', ({ request, params }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const trainer = findUser(params.id);
+    if (!trainer) return notFound('Trainer');
+    const search = getQuery(request).get('search');
+
+    const items = assignmentsForTrainer(trainer._id)
+      .map(trainerAssignmentViewDto)
+      .filter(Boolean)
+      .filter((row) =>
+        matchesSearch(search, row.student?.name, row.student?.email, row.team?.name),
+      )
+      .sort((a, b) => time(a.lastActivityAt) - time(b.lastActivityAt));
+    return json({
+      ...paginate(items, request, 100),
+      trainer: { _id: trainer._id, name: trainer.name, email: trainer.email },
+    });
+  }),
+
+  // Overall trainer count, tasks, reviewed tasks and pending tasks for /admin/assignments.
+  mock.get('/admin/trainer-assignments/summary', ({ request }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const totalTrainers = db.users.filter(
+      (u) => Array.isArray(u.roles) && u.roles.includes(ROLES.TRAINER),
+    ).length;
+    const activeAssignments = db.trainerAssignments.filter((a) => Boolean(a.active));
+    const assignedTrainers = new Set(activeAssignments.map((a) => a.trainerId)).size;
+    return json({
+      totalTrainers,
+      assignedTrainers,
+      activeAssignments: activeAssignments.length,
+      totalTasks: db.taskProgress?.length || 0,
+      approvedTasks: (db.taskProgress || []).filter((p) => p.status === 'APPROVED').length,
+      totalSubmissions: db.submissions?.length || 0,
+      reviewedTasks: (db.submissions || []).filter((s) => s.reviewStatus !== 'PENDING').length,
+      pendingTasks: (db.submissions || []).filter((s) => s.reviewStatus === 'PENDING').length,
+    });
+  }),
+
   // ?search (trainer, student or team), ?active=true|false|all (default all), newest first.
   mock.get('/admin/trainer-assignments', ({ request }) => {
     const auth = requireAuth(request, ADMIN_ONLY);

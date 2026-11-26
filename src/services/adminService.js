@@ -38,6 +38,8 @@ export const deleteTrainer = (id) =>
   api.delete(`/admin/trainers/${encodeURIComponent(id)}`);
 export const getTrainerAssignments = (trainerId) =>
   api.get(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`);
+export const getAdminTrainerReports = (trainerId, params = {}) =>
+  api.get(`/admin/trainers/${encodeURIComponent(trainerId)}/reports`, { limit: 100, ...params });
 export const assignToTrainer = (trainerId, payload) =>
   api.post(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`, payload);
 export const removeTrainerAssignment = (trainerId, assignmentId) =>

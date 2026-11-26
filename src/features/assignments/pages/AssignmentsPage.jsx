@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Avatar,
   Badge,
@@ -8,11 +9,15 @@ import {
   DropdownMenu,
   PageHeader,
   Select,
+  StatCard,
   toast,
 } from '@/shared/components/ui';
-import { PAGE_SIZE_OPTIONS } from '@/shared/constants';
+import { PAGE_SIZE_OPTIONS, paths } from '@/shared/constants';
 import { useDocumentTitle } from '@/shared/hooks';
 import {
+  CheckCircle2,
+  ClipboardList,
+  Clock,
   GraduationCap,
   MoreHorizontal,
   RefreshCw,
@@ -22,9 +27,18 @@ import {
   Users,
 } from '@/shared/icons';
 import { getErrorMessage } from '@/shared/utils/errors';
-import { formatDate, formatDateTime, formatRelativeTime } from '@/shared/utils/helpers';
+import {
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  formatRelativeTime,
+} from '@/shared/utils/helpers';
 import { AssignTrainerDialog } from '../components/AssignTrainerDialog';
-import { useAssignmentsTable, useRemoveAssignment } from '../hooks/useAssignments';
+import {
+  useAssignmentsSummary,
+  useAssignmentsTable,
+  useRemoveAssignment,
+} from '../hooks/useAssignments';
 import {
   TARGET_TYPE,
   assignmentPlan,
@@ -81,7 +95,10 @@ function TargetCell({ row }) {
 export function AssignmentsPage() {
   useDocumentTitle('Trainer assignments');
   const { fetcher, queryKey } = useAssignmentsTable();
+  const summaryQuery = useAssignmentsSummary();
   const removeMutation = useRemoveAssignment();
+  const summary = summaryQuery.data || {};
+  const summaryLoading = summaryQuery.isPending;
   const [activeFilter, setActiveFilter] = useState('true');
   const [dialog, setDialog] = useState({ open: false, target: null });
   const [toUnassign, setToUnassign] = useState(null);
@@ -117,17 +134,41 @@ export function AssignmentsPage() {
         key: 'trainer',
         header: 'Trainer',
         className: 'min-w-[13rem]',
-        cell: (row) => (
-          <div className="flex min-w-0 items-center gap-3">
-            <Avatar name={row.trainer?.name ?? ''} size="sm" aria-hidden="true" />
-            <div className="min-w-0">
-              <p className="truncate font-medium text-slate-900">{row.trainer?.name ?? 'Unknown trainer'}</p>
-              {row.trainer?.email ? (
-                <p className="truncate text-xs text-slate-500">{row.trainer.email}</p>
-              ) : null}
+        cell: (row) => {
+          const trainerId = row.trainer?._id || row.trainer?.id || row.trainerId;
+          const trainerName = row.trainer?.name ?? 'Unknown trainer';
+          const content = (
+            <div className="flex min-w-0 items-center gap-3">
+              <Avatar name={row.trainer?.name ?? ''} size="sm" aria-hidden="true" />
+              <div className="min-w-0">
+                <p
+                  className={
+                    trainerId
+                      ? 'truncate font-medium text-slate-900 transition-colors group-hover:text-brand-600 group-hover:underline dark:text-slate-100 dark:group-hover:text-brand-400'
+                      : 'truncate font-medium text-slate-900 dark:text-slate-100'
+                  }
+                >
+                  {trainerName}
+                </p>
+                {row.trainer?.email ? (
+                  <p className="truncate text-xs text-slate-500">{row.trainer.email}</p>
+                ) : null}
+              </div>
             </div>
-          </div>
-        ),
+          );
+
+          if (!trainerId) return content;
+
+          return (
+            <Link
+              to={paths.adminTrainerReports(trainerId)}
+              title={`View reports for ${trainerName}`}
+              className="group inline-flex max-w-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            >
+              {content}
+            </Link>
+          );
+        },
       },
       {
         key: 'target',
@@ -234,6 +275,40 @@ export function AssignmentsPage() {
           </Button>
         }
       />
+
+      <section aria-label="Trainer summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Total trainers"
+          value={formatNumber(summary.totalTrainers ?? 0)}
+          hint={`${formatNumber(summary.assignedTrainers ?? 0)} assigned · ${formatNumber(summary.activeAssignments ?? 0)} active assignments`}
+          icon={UserCog}
+          loading={summaryLoading}
+        />
+        <StatCard
+          label="Overall trainer tasks"
+          value={formatNumber(summary.totalTasks ?? 0)}
+          hint={`${formatNumber(summary.totalSubmissions ?? 0)} submitted by students`}
+          icon={ClipboardList}
+          tone="brand"
+          loading={summaryLoading}
+        />
+        <StatCard
+          label="Overall reviewed tasks"
+          value={formatNumber(summary.reviewedTasks ?? 0)}
+          hint={`${formatNumber(summary.approvedTasks ?? 0)} approved`}
+          icon={CheckCircle2}
+          tone="success"
+          loading={summaryLoading}
+        />
+        <StatCard
+          label="Overall pending tasks"
+          value={formatNumber(summary.pendingTasks ?? 0)}
+          hint="Waiting for trainer review"
+          icon={Clock}
+          tone={(summary.pendingTasks ?? 0) > 0 ? 'warning' : 'default'}
+          loading={summaryLoading}
+        />
+      </section>
 
       <DataTable
         columns={columns}
