@@ -29,6 +29,22 @@ export const getMe = () => api.get('/auth/me');
 
 export const updateMe = (payload) => api.patch('/auth/me', payload);
 
+export const uploadAvatar = (file) => {
+  const form = new FormData();
+  form.append('avatar', file);
+  return api.post('/auth/me/avatar', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const uploadResume = (file) => {
+  const form = new FormData();
+  form.append('resume', file);
+  return api.post('/auth/me/resume', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
 export const verifyEmail = (token) => api.post('/auth/verify-email', { token });
 
 export const resendVerification = (email) => api.post('/auth/resend-verification', { email });

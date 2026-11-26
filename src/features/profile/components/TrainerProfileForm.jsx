@@ -15,7 +15,7 @@ import { Award, Building2, Globe, Mail, Save, User } from '@/shared/icons';
 import { SUPPORT_EMAIL } from '@/shared/constants';
 import { EXPERIENCE_LEVELS, ResumeUpload, TRAINER_DOMAINS } from '@/features/auth';
 import { getErrorMessage, getFieldErrors } from '@/shared/utils/errors';
-import { useUpdateProfile } from '../hooks/useProfile';
+import { useUpdateProfile, useUploadResume } from '../hooks/useProfile';
 import { trainerProfileSchema } from '../schemas/trainerProfileValidation';
 import { PROFILE_NAME_MAX } from '../schemas/profileValidation';
 
@@ -44,6 +44,7 @@ function getTrainerFormDefaults(user) {
  */
 export function TrainerProfileForm({ user, className }) {
   const updateProfile = useUpdateProfile();
+  const uploadResume = useUploadResume();
 
   const {
     register,
@@ -69,9 +70,15 @@ export function TrainerProfileForm({ user, className }) {
   }, [user, isDirty, reset]);
 
   const onSubmit = async (values) => {
-    if (updateProfile.isPending) return;
+    if (updateProfile.isPending || uploadResume.isPending) return;
 
     try {
+      let uploadedResumeUrl;
+      if (values.resume instanceof File) {
+        const uploadedUser = await uploadResume.mutateAsync(values.resume);
+        uploadedResumeUrl = uploadedUser?.trainerProfile?.resumeUrl;
+      }
+
       const resumeName = values.resume?.name ? String(values.resume.name).trim() : '';
       const resumeSize = values.resume?.size ? Number(values.resume.size) : 0;
 
@@ -82,6 +89,8 @@ export function TrainerProfileForm({ user, className }) {
         linkedinUrl: String(values.linkedinUrl ?? '').trim(),
         resumeName,
         resumeSize,
+        ...(uploadedResumeUrl ? { resumeUrl: uploadedResumeUrl } : {}),
+        ...(!values.resume ? { resumeUrl: null } : {}),
       };
 
       await updateProfile.mutateAsync({
@@ -115,7 +124,7 @@ export function TrainerProfileForm({ user, className }) {
     }
   };
 
-  const saving = isSubmitting || updateProfile.isPending;
+  const saving = isSubmitting || updateProfile.isPending || uploadResume.isPending;
 
   return (
     <Card padding="none" className={className}>

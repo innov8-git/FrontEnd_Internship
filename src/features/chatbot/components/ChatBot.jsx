@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { cn } from '@/shared/utils/cn';
 import { GREETING_MESSAGE } from '../data/chatbotIntents';
 import { matchIntent, getChatbotResponse, getRelatedQuestions } from '../utils/intentMatcher';
@@ -10,6 +11,15 @@ function formatTime() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function useCurrentPath() {
+  try {
+    const loc = useLocation();
+    return loc?.pathname || '';
+  } catch {
+    return '';
+  }
+}
+
 const BOT_TYPING_DELAY_MS = 380;
 
 /**
@@ -17,6 +27,7 @@ const BOT_TYPING_DELAY_MS = 380;
  * smooth animations, categorized topic suggestions, and zero-hallucination answers.
  */
 export function ChatBot() {
+  const pathname = useCurrentPath();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -146,6 +157,10 @@ export function ChatBot() {
   const handleQuestionClick = (question) => {
     sendMessage(question);
   };
+
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <>
