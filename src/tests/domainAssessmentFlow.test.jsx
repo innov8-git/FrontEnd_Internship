@@ -202,17 +202,17 @@ describe('DomainAssessmentFlow, Calculator & Direct Enrollment Flow', () => {
   });
 
   describe('AssessmentRedirect Component', () => {
-    it('redirects to /enroll with designationId when present', () => {
+    it('redirects to /internships even when designationId is present (assessment removed)', () => {
       render(
         <MemoryRouter initialEntries={['/assessment/desig-777']}>
           <Routes>
             <Route path="/assessment/:designationId" element={<AssessmentRedirect />} />
-            <Route path="/enroll" element={<div>Target Enrollment Page</div>} />
+            <Route path="/internships" element={<div>Target Catalog Page</div>} />
           </Routes>
         </MemoryRouter>,
       );
 
-      expect(screen.getByText('Target Enrollment Page')).toBeInTheDocument();
+      expect(screen.getByText('Target Catalog Page')).toBeInTheDocument();
     });
 
     it('redirects to /internships when designationId is absent', () => {
