@@ -28,6 +28,7 @@ import {
   UserPlus,
   Users,
   UserX,
+  RefreshCw,
 } from '@/shared/icons';
 import { PAGE_SIZE_OPTIONS } from '@/shared/constants';
 import { queryKeys } from '@/services/queryKeys';
@@ -44,6 +45,7 @@ import {
   TrainerApplicationDrawer,
   openApplicationResume,
 } from '../components/TrainerApplicationDrawer';
+import { ChangeTrainerRequestsTab } from '../components/ChangeTrainerRequestsTab';
 import { AcceptTrainerApplicationModal } from '../components/AcceptTrainerApplicationModal';
 import {
   fetchAdminTrainers,
@@ -73,7 +75,12 @@ export function TrainersPage() {
   const currentUserId = currentUser?._id;
 
   const { values, setValue, clear, activeCount } = useUrlFilters(FILTER_KEYS);
-  const activeTab = values.tab === 'requests' ? 'requests' : 'trainers';
+  const activeTab =
+    values.tab === 'requests'
+      ? 'requests'
+      : values.tab === 'change-requests'
+        ? 'change-requests'
+        : 'trainers';
 
   // Active trainers modal / drawer states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -528,6 +535,12 @@ export function TrainersPage() {
         </div>
       ),
     },
+    {
+      value: 'change-requests',
+      label: 'Change Requests',
+      icon: RefreshCw,
+      content: <ChangeTrainerRequestsTab />,
+    },
   ];
 
   return (
@@ -546,7 +559,9 @@ export function TrainersPage() {
         aria-label="Trainer management sections"
         items={tabItems}
         value={activeTab}
-        onChange={(nextTab) => setValue('tab', nextTab === 'requests' ? 'requests' : '')}
+        onChange={(nextTab) =>
+          setValue('tab', nextTab === 'trainers' ? '' : nextTab)
+        }
       />
 
       {/* Create Trainer Modal (manual) */}
