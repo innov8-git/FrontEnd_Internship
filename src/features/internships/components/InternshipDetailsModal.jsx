@@ -377,9 +377,21 @@ export function InternshipDetailsModal({
         role: currentRole,
         partner,
         domainName: formData.selectedDomain,
+        projectId: selectedProject?.id || selectedProject?._id,
+        projectSlug: selectedProject?.slug,
+        projectTitle: selectedProject?.title,
         duration: formData.duration,
       }),
-    [currentRole, partner, formData.selectedDomain, formData.duration],
+    [
+      currentRole,
+      partner,
+      formData.selectedDomain,
+      selectedProject?.id,
+      selectedProject?._id,
+      selectedProject?.slug,
+      selectedProject?.title,
+      formData.duration,
+    ],
   );
 
   // Sync authoritative quote from backend when Step 3 opens (fallback cleanly to localPriceBreakdown)
@@ -396,6 +408,9 @@ export function InternshipDetailsModal({
       internshipId: currentRole?.id,
       companyName: partner?.name,
       domainName: formData.selectedDomain,
+      projectId: selectedProject?.id || selectedProject?._id,
+      projectSlug: selectedProject?.slug,
+      projectTitle: selectedProject?.title,
       durationMonths,
     })
       .then((res) => {
@@ -416,7 +431,19 @@ export function InternshipDetailsModal({
     return () => {
       cancelled = true;
     };
-  }, [open, activeTab, applyStep, partner, currentRole?.id, formData.selectedDomain, formData.duration]);
+  }, [
+    open,
+    activeTab,
+    applyStep,
+    partner,
+    currentRole?.id,
+    formData.selectedDomain,
+    selectedProject?.id,
+    selectedProject?._id,
+    selectedProject?.slug,
+    selectedProject?.title,
+    formData.duration,
+  ]);
 
   const activePrice =
     currentRole?.pricing || !serverQuote ? localPriceBreakdown : serverQuote;
