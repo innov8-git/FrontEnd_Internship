@@ -105,3 +105,4 @@ export const TasksIndexPage = lazy(() => import('@/features/schedule-builder/pag
 export const AssignmentsPage = lazy(() => import('@/features/assignments/pages/AssignmentsPage'));
 export const TrainersPage = lazy(() => import('@/features/admin/pages/TrainersPage'));
 export const AdminTrainerReportsPage = lazy(() => import('@/features/trainer/pages/TrainerReportsPage'));
+export const TposPage = lazy(() => import('@/features/admin/pages/TposPage'));

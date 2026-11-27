@@ -76,3 +76,13 @@ export const fetchTrainerApplicationResumeBlob = async (id, { download = false }
   );
   return res.data;
 };
+
+// TPOs (referral code generation & student attribution)
+export const getTpos = (params = {}) => api.get('/admin/tpos', params);
+export const getTpo = (id) => api.get(`/admin/tpos/${encodeURIComponent(id)}`);
+export const createTpo = (payload) => api.post('/admin/tpos', payload);
+export const updateTpo = (id, payload) =>
+  api.patch(`/admin/tpos/${encodeURIComponent(id)}`, payload);
+export const deleteTpo = (id) => api.delete(`/admin/tpos/${encodeURIComponent(id)}`);
+export const getTpoReferrals = (id, params = {}) =>
+  api.get(`/admin/tpos/${encodeURIComponent(id)}/referrals`, params);

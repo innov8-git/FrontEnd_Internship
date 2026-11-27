@@ -24,6 +24,9 @@ export function AuthCard({
   description,
   showSocialAuth = false,
   socialAuthMode = 'login',
+  beforeSocialAuth = null,
+  socialAuthReferralCode = '',
+  onSocialAuthError,
   footer,
   autoFocusHeading = false,
   className,
@@ -63,8 +66,14 @@ export function AuthCard({
         {description ? (
           <div className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{description}</div>
         ) : null}
+        {beforeSocialAuth ? <div className="mt-5 text-left">{beforeSocialAuth}</div> : null}
         {showSocialAuth ? (
-          <SocialAuthButtons mode={socialAuthMode} className="mt-5" />
+          <SocialAuthButtons
+            mode={socialAuthMode}
+            referralCode={socialAuthReferralCode}
+            onGoogleError={onSocialAuthError}
+            className="mt-5"
+          />
         ) : null}
         {children ? <div className={cn('mt-6', centered && 'text-left')}>{children}</div> : null}
       </div>

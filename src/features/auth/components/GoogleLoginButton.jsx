@@ -12,6 +12,7 @@ export const GoogleLoginButton = forwardRef(function GoogleLoginButton(
   {
     mode = 'login', // 'login' | 'register'
     variant = 'compact', // 'compact' | 'full'
+    referralCode = '',
     text,
     disabled = false,
     fullWidth = false,
@@ -23,7 +24,12 @@ export const GoogleLoginButton = forwardRef(function GoogleLoginButton(
   },
   ref,
 ) {
-  const { signInWithGoogle, isPending } = useGoogleAuth({ mode, onSuccess, onError });
+  const { signInWithGoogle, isPending } = useGoogleAuth({
+    mode,
+    referralCode,
+    onSuccess,
+    onError,
+  });
 
   const isRegister = mode === 'register';
   const defaultLabel =

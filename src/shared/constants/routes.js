@@ -69,6 +69,7 @@ export const ROUTES = Object.freeze({
   ADMIN_ASSIGNMENTS: '/admin/assignments',
   ADMIN_TRAINERS: '/admin/trainers',
   ADMIN_TRAINER_REPORTS: '/admin/trainers/:trainerId/reports',
+  ADMIN_TPOS: '/admin/tpos',
   ADMIN_CERTIFICATES: '/admin/certificates',
   ADMIN_AUDIT: '/admin/audit',
   ADMIN_PROFILE: '/admin/profile',

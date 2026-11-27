@@ -17,6 +17,7 @@ import {
   ProjectAssignmentsPage,
   AdminInternshipsPage,
   TrainersPage,
+  TposPage,
   UsersPage,
   ProfilePage,
 } from './lazyPages';
@@ -49,6 +50,7 @@ export const adminRoutes = {
         { path: 'assignments', element: <AssignmentsPage /> },
         { path: 'trainers', element: <TrainersPage /> },
         { path: 'trainers/:trainerId/reports', element: <AdminTrainerReportsPage /> },
+        { path: 'tpos', element: <TposPage /> },
         { path: 'certificates', element: <AdminCertificatesPage /> },
         { path: 'audit', element: <AuditLogPage /> },
       ],

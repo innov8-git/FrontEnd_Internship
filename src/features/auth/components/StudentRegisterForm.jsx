@@ -153,4 +153,3 @@ export function StudentRegisterForm({ onSubmit, isPending = false, loginTo = ROU
 }
 
 export default StudentRegisterForm;
-

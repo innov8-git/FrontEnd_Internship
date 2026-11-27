@@ -11,9 +11,11 @@ import {
   CheckCircle2,
   GitPullRequest,
   MessageSquare,
+  RefreshCw,
   ShieldCheck,
   Sparkles,
 } from '@/shared/icons';
+import { ChangeTrainerRequestModal } from './ChangeTrainerRequestModal';
 
 const DEFAULT_SPECIALTIES = ['Code Review', 'Clean Architecture', 'GitHub Workflows'];
 
@@ -22,8 +24,9 @@ const DEFAULT_SPECIALTIES = ['Code Review', 'Clean Architecture', 'GitHub Workfl
  * Renders the real assigned mentor from the enrollment or an honest pending-assignment state
  * when an administrator has not assigned a trainer yet.
  */
-export function MentorProfileCard({ mentor, className }) {
+export function MentorProfileCard({ mentor, className, enrollment }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [changeRequestOpen, setChangeRequestOpen] = useState(false);
 
   if (!mentor) {
     return (
@@ -154,6 +157,15 @@ export function MentorProfileCard({ mentor, className }) {
               >
                 Review Guidance
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={RefreshCw}
+                onClick={() => setChangeRequestOpen(true)}
+                className="w-full sm:w-auto border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950/40"
+              >
+                Change Trainer Request
+              </Button>
             </div>
           </div>
 
@@ -235,6 +247,13 @@ export function MentorProfileCard({ mentor, className }) {
           </div>
         </div>
       </Modal>
+
+      {/* Change Trainer Request Modal */}
+      <ChangeTrainerRequestModal
+        open={changeRequestOpen}
+        onClose={() => setChangeRequestOpen(false)}
+        enrollment={enrollment}
+      />
     </>
   );
 }

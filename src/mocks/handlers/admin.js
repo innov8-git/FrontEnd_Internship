@@ -882,6 +882,164 @@ export const adminHandlers = [
     persist();
     return json({ success: true });
   }),
+
+  // ---------------------------------------------------------------------------
+  // TPO Management
+  // ---------------------------------------------------------------------------
+  mock.get('/admin/tpos', ({ request }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const query = getQuery(request);
+    const search = query.get('search');
+    const status = query.get('status');
+
+    const tpos = db.tpos || [];
+    const enrich = (tpo) => {
+      const linked = db.users.filter((u) => u.referredByTpoId === tpo._id);
+      return {
+        ...tpo,
+        totalReferences: linked.filter((u) => u.emailVerified).length,
+        pendingReferences: linked.filter((u) => !u.emailVerified).length,
+      };
+    };
+
+    const filtered = tpos
+      .filter((tpo) => {
+        if (status === 'active' && !tpo.isActive) return false;
+        if (status === 'inactive' && tpo.isActive) return false;
+        return matchesSearch(tpo, search, ['name', 'college', 'email', 'phone', 'referralCode']);
+      })
+      .map(enrich);
+
+    const page = pageOf(filtered, request, 'createdAt:desc', (item) => item);
+    return json({
+      ...page,
+      summary: {
+        totalTpos: tpos.length,
+        activeTpos: tpos.filter((t) => t.isActive).length,
+        inactiveTpos: tpos.filter((t) => !t.isActive).length,
+        totalReferences: db.users.filter((u) => u.referredByTpoId && u.emailVerified).length,
+      },
+    });
+  }),
+
+  mock.post('/admin/tpos', async ({ request }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const body = await readJson(request);
+    const name = String(body.name ?? '').trim();
+    const college = String(body.college ?? '').trim();
+    const email = String(body.email ?? '').trim().toLowerCase();
+    const phone = String(body.phone ?? '').trim();
+
+    const details = [];
+    if (name.length < 2) details.push({ field: 'name', message: 'Enter TPO full name.' });
+    if (college.length < 2) details.push({ field: 'college', message: 'Enter college name.' });
+    if (!email) details.push({ field: 'email', message: 'Enter TPO email address.' });
+    if (phone.length < 7) details.push({ field: 'phone', message: 'Enter TPO phone number.' });
+    if (details.length > 0) return validationError(details);
+
+    const initials = name
+      .replace(/[^A-Za-z\s]/g, ' ')
+      .trim()
+      .split(/\s+/)
+      .slice(0, 3)
+      .map((w) => w[0].toUpperCase())
+      .join('') || 'TP';
+    const suffix = Math.random().toString(36).slice(2, 7).toUpperCase().replace(/[01OIL]/g, '7');
+    const now = nowIso();
+    const record = {
+      _id: `tpo_${Date.now()}`,
+      name,
+      college,
+      email,
+      phone,
+      referralCode: `TPO-${initials}-${suffix}`,
+      isActive: true,
+      totalReferences: 0,
+      pendingReferences: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    if (!Array.isArray(db.tpos)) db.tpos = [];
+    db.tpos.push(record);
+    addAudit(auth.user._id, 'TPO_CREATED', 'Tpo', record._id, null, record);
+    persist();
+    return created(record);
+  }),
+
+  mock.patch('/admin/tpos/:id', async ({ request, params }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const id = decodeParam(params.id);
+    const tpo = (db.tpos || []).find((candidate) => candidate._id === id);
+    if (!tpo) return notFound('TPO not found.');
+
+    const body = await readJson(request);
+    if (body.name !== undefined) tpo.name = String(body.name).trim();
+    if (body.college !== undefined) tpo.college = String(body.college).trim();
+    if (body.email !== undefined) tpo.email = String(body.email).trim().toLowerCase();
+    if (body.phone !== undefined) tpo.phone = String(body.phone).trim();
+    if (body.isActive !== undefined) tpo.isActive = Boolean(body.isActive);
+    tpo.updatedAt = nowIso();
+    persist();
+    const linked = db.users.filter((u) => u.referredByTpoId === tpo._id);
+    return json({
+      ...tpo,
+      totalReferences: linked.filter((u) => u.emailVerified).length,
+      pendingReferences: linked.filter((u) => !u.emailVerified).length,
+    });
+  }),
+
+  mock.delete('/admin/tpos/:id', ({ request, params }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const id = decodeParam(params.id);
+    const index = (db.tpos || []).findIndex((candidate) => candidate._id === id);
+    if (index === -1) return notFound('TPO not found.');
+    db.tpos.splice(index, 1);
+    persist();
+    return json({ deleted: true, _id: id });
+  }),
+
+  mock.get('/admin/tpos/:id/referrals', ({ request, params }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const id = decodeParam(params.id);
+    const tpo = (db.tpos || []).find((candidate) => candidate._id === id);
+    if (!tpo) return notFound('TPO not found.');
+
+    const query = getQuery(request);
+    const verified = query.get('verified') ?? 'true';
+    const search = query.get('search');
+
+    const linked = db.users.filter((u) => u.referredByTpoId === tpo._id);
+    const filtered = linked.filter((u) => {
+      if (verified === 'true' && !u.emailVerified) return false;
+      if (verified === 'false' && u.emailVerified) return false;
+      return matchesSearch(u, search, ['name', 'email']);
+    });
+
+    const page = pageOf(filtered, request, 'createdAt:desc', (u) => ({
+      _id: u._id,
+      name: u.name,
+      email: u.email,
+      status: u.status,
+      emailVerified: Boolean(u.emailVerified),
+      authProvider: u.authProvider || 'LOCAL',
+      createdAt: u.createdAt,
+      latestEnrollment: null,
+    }));
+
+    return json({
+      ...page,
+      tpo: {
+        ...tpo,
+        totalReferences: linked.filter((u) => u.emailVerified).length,
+        pendingReferences: linked.filter((u) => !u.emailVerified).length,
+      },
+    });
+  }),
 ];
 
 export default adminHandlers;

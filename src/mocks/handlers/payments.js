@@ -1,4 +1,5 @@
 import { ROLES } from '@/shared/constants';
+import { db, oid, persist } from '../db';
 import {
   completeMockPayment,
   createPaymentOrder,
@@ -77,6 +78,50 @@ export const paymentHandlers = [
     // Idempotent: a replayed outcome is acknowledged without changing anything.
     const result = completeMockPayment({ orderId, outcome });
     return json({ status: result?.status ?? payment.status });
+  }),
+
+  mock.post('/payments/demo-checkout', async ({ request }) => {
+    const body = await readJson(request);
+    const email = String(body.email ?? '').trim().toLowerCase();
+    const referralCode = String(body.referralCode ?? '').trim().toUpperCase();
+
+    let referredTpo = null;
+    if (referralCode) {
+      referredTpo = (db.tpos || []).find(
+        (candidate) => candidate.referralCode === referralCode && candidate.isActive,
+      );
+      if (!referredTpo) {
+        return validationError([
+          {
+            field: 'referralCode',
+            message: 'Invalid or inactive TPO reference code. Please double-check with your TPO.',
+          },
+        ]);
+      }
+    }
+
+    const user = db.users.find((u) => String(u.email ?? '').toLowerCase() === email);
+    if (user && referredTpo) {
+      user.referredByTpoId = referredTpo._id;
+      user.referralCodeUsed = referredTpo.referralCode;
+      persist();
+    }
+
+    return created({
+      success: true,
+      enrollmentId: oid(),
+      orderId: `DEMO-TXN-${Math.floor(10000000 + Math.random() * 90000000)}`,
+      amount: Number(body.amount) || 169900,
+      currency: 'INR',
+      status: 'SUCCESS',
+      studentName: body.fullName || user?.name || 'Student',
+      studentEmail: email,
+      domainName: body.domainName,
+      projectTitle: body.projectTitle,
+      durationMonths: Number(body.durationMonths) || 3,
+      referralCodeUsed: referredTpo?.referralCode || user?.referralCodeUsed || null,
+      tpoName: referredTpo?.name || null,
+    });
   }),
 
   // Server-to-server in production (signed by the provider); acknowledged here.
