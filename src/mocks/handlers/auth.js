@@ -191,6 +191,70 @@ function sendPasswordResetEmail(user) {
 // ---------------------------------------------------------------------------
 
 export const authHandlers = [
+  mock.get('/auth/referral-code/:code', ({ params }) => {
+    const code = String(params.code ?? '').trim().toUpperCase();
+    const tpo = (db.tpos || []).find(
+      (candidate) => candidate.referralCode === code && candidate.isActive,
+    );
+    if (!tpo) {
+      return apiError(404, 'NOT_FOUND', 'Invalid or inactive TPO reference code.');
+    }
+    return json({
+      valid: true,
+      referralCode: tpo.referralCode,
+      tpoName: tpo.name,
+      college: tpo.college,
+    });
+  }),
+
+  mock.post('/auth/register/student', async ({ request }) => {
+    const body = await readJson(request);
+    const name = normalizeName(body.name);
+    const email = normalizeEmail(body.email);
+    const password = typeof body.password === 'string' ? body.password : '';
+    const referralCode = typeof body.referralCode === 'string' ? body.referralCode.trim().toUpperCase() : '';
+
+    const details = [...nameDetails(name), ...emailDetails(email), ...passwordDetails(password)];
+    if (details.length > 0) return validationError(details);
+
+    if (findUserByEmail(email)) {
+      return conflict('EMAIL_TAKEN', MESSAGES.emailTaken, [
+        { field: 'email', message: MESSAGES.emailTaken },
+      ]);
+    }
+
+    let referredTpo = null;
+    if (referralCode) {
+      referredTpo = (db.tpos || []).find(
+        (candidate) => candidate.referralCode === referralCode && candidate.isActive,
+      );
+      if (!referredTpo) {
+        return validationError([
+          { field: 'referralCode', message: 'Invalid or inactive TPO reference code.' },
+        ]);
+      }
+    }
+
+    const timestamp = nowIso();
+    const user = {
+      _id: oid(),
+      name,
+      email,
+      password,
+      roles: [ROLES.STUDENT],
+      status: USER_STATUS.PENDING_VERIFICATION,
+      emailVerified: false,
+      referredByTpoId: referredTpo?._id || null,
+      referralCodeUsed: referredTpo?.referralCode || null,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    db.users.push(user);
+    sendVerificationEmail(user);
+
+    return created({ user: publicUser(user) });
+  }),
+
   mock.post('/auth/register', async ({ request }) => {
     const body = await readJson(request);
     const name = normalizeName(body.name);
@@ -429,6 +493,30 @@ export const authHandlers = [
     return json(publicUser(auth.user));
   }),
 
+  mock.post('/auth/me/avatar', async ({ request }) => {
+    const auth = requireAuth(request);
+    if (auth.error) return auth.error;
+    auth.user.avatarUrl = `https://res.cloudinary.com/qmp6tnnz/image/upload/internship-portal/avatars/${auth.user._id}.png`;
+    auth.user.updatedAt = nowIso();
+    return json(publicUser(auth.user));
+  }),
+
+  mock.post('/auth/me/resume', async ({ request }) => {
+    const auth = requireAuth(request);
+    if (auth.error) return auth.error;
+    const formData = await request.formData();
+    const file = formData.get('resume');
+    const resumeName = file?.name || 'resume.pdf';
+    auth.user.trainerProfile = {
+      ...(auth.user.trainerProfile || {}),
+      resumeName,
+      resumeSize: file?.size || 1024,
+      resumeUrl: `https://res.cloudinary.com/qmp6tnnz/raw/upload/internship-portal/resumes/${resumeName}`,
+    };
+    auth.user.updatedAt = nowIso();
+    return json(publicUser(auth.user));
+  }),
+
   mock.post('/auth/verify-email', async ({ request }) => {
     const body = await readJson(request);
     const token = typeof body.token === 'string' ? body.token.trim() : '';
@@ -473,7 +561,21 @@ export const authHandlers = [
     const token = typeof body.token === 'string' ? body.token.trim() : '';
     const password = typeof body.password === 'string' ? body.password : '';
 
-    const record = findAuthToken(TOKEN_TYPES.PASSWORD_RESET, token);
+    let record = findAuthToken(TOKEN_TYPES.PASSWORD_RESET, token);
+    // Allow demo/preview tokens for rapid frontend development & testing
+    if (!record && (token === 'demo' || token === 'preview' || token.startsWith('mock-'))) {
+      const demoTrainer = db.users.find((u) => (u.roles ?? []).includes(ROLES.TRAINER)) || db.users[0];
+      if (demoTrainer) {
+        record = {
+          userId: demoTrainer._id,
+          type: TOKEN_TYPES.PASSWORD_RESET,
+          token,
+          expiresAt: new Date(Date.now() + 3600000).toISOString(),
+          usedAt: null,
+        };
+      }
+    }
+
     if (!record || record.usedAt) return badRequest('TOKEN_INVALID', MESSAGES.resetInvalid);
     if (isExpired(record.expiresAt)) return badRequest('TOKEN_EXPIRED', MESSAGES.resetExpired);
 

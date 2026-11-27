@@ -153,10 +153,6 @@ export function EnrollPage() {
   });
   const quote = existing ? null : quoteState.quote;
 
-  const assessmentRequired =
-    !existing &&
-    (isErrorCode(quoteState.error, 'ASSESSMENT_REQUIRED') ||
-      isErrorCode(flow.error, 'ASSESSMENT_REQUIRED'));
   const quoteExpired =
     Boolean(quote) && (quoteState.isExpired || isErrorCode(flow.error, 'QUOTE_EXPIRED'));
 
@@ -195,12 +191,12 @@ export function EnrollPage() {
     if (!terms) return;
     const variables = pendingEnrollment
       ? { enrollmentId: pendingEnrollment._id, termsVersion: terms.version }
-      : { quoteId: quote?.quoteId, termsVersion: terms.version };
+      : { quoteId: quote?.quoteId ?? quote?._id, termsVersion: terms.version };
     if (!variables.enrollmentId && !variables.quoteId) return;
     runFlow(variables, {
       onError: (error) => {
-        // Expired quotes and a missing assessment are explained by banners on the page.
-        if (isErrorCode(error, 'QUOTE_EXPIRED') || isErrorCode(error, 'ASSESSMENT_REQUIRED')) return;
+        // Expired quotes are explained by banners on the page.
+        if (isErrorCode(error, 'QUOTE_EXPIRED')) return;
         if (isErrorCode(error, 'TERMS_OUTDATED')) {
           // A newer version was published meanwhile: show it and ask again.
           setAcceptedVersion(null);
@@ -231,7 +227,7 @@ export function EnrollPage() {
       description="Your price comes from our server and is held for a limited time. You'll pay on the next step."
       backTo={
         designationId
-          ? { label: 'Back to your result', to: paths.assessmentResult(designationId) }
+          ? { label: 'Back to internship', to: paths.designation(designationId) }
           : undefined
       }
     />
@@ -244,7 +240,7 @@ export function EnrollPage() {
         <EmptyState
           icon={GraduationCap}
           title="Choose an internship first"
-          description="Open an internship from the catalog, take its assessment, then come back here to pick your plan."
+          description="Open an internship from the catalog, then come back here to pick your plan."
           action={
             <Button as={Link} to={ROUTES.CATALOG} leftIcon={Search}>
               Browse internships
@@ -293,7 +289,6 @@ export function EnrollPage() {
   let blockedReason = null;
   if (!activeEnrollment && !(pendingEnrollment && !pendingNeedsTerms)) {
     if (!planId) blockedReason = 'Choose a plan to continue.';
-    else if (!pendingEnrollment && assessmentRequired) blockedReason = 'Take the assessment to continue.';
     else if (!pendingEnrollment && !quote && (quoteState.isLoading || quoteState.isFetching)) {
       blockedReason = 'Getting your price…';
     } else if (!pendingEnrollment && !quote) blockedReason = 'We need a price before you can continue.';
@@ -384,22 +379,6 @@ export function EnrollPage() {
                 Continue to payment
               </Button>
             )
-          }
-        />
-      ) : null}
-
-      {assessmentRequired ? (
-        <EdgeStateBanner
-          state={EDGE_STATE.ASSESSMENT_REQUIRED}
-          action={
-            <Button
-              as={Link}
-              to={paths.assessment(designationId)}
-              size="sm"
-              variant="outline"
-            >
-              Take the assessment
-            </Button>
           }
         />
       ) : null}
@@ -498,19 +477,14 @@ export function EnrollPage() {
             isLoading={
               !existing &&
               Boolean(planId) &&
-              !assessmentRequired &&
               (quoteState.isLoading || !contextReady)
             }
             isRefreshing={!existing && quoteState.isFetching && Boolean(quote)}
-            error={!existing && !assessmentRequired ? quoteState.error : null}
+            error={!existing ? quoteState.error : null}
             onRetry={quoteState.refresh}
             isExpired={quoteExpired}
             onRefresh={handleRefreshQuote}
-            emptyMessage={
-              assessmentRequired
-                ? 'Take the assessment to see your price.'
-                : 'Choose a plan to see your price.'
-            }
+            emptyMessage="Choose a plan to see your price."
           >
             {continuePanel}
           </PriceBreakdown>

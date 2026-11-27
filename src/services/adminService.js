@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api, apiClient } from './api';
 
 /** Admin operations (MM16, MM18, SD15). Lists take { page, limit, search, ...filters }. */
 export const getAdminStats = () => api.get('/admin/stats');
@@ -15,8 +15,14 @@ export const updateStudentTrainer = (id, payload) =>
 // Enrollments and payments monitoring
 export const getAdminEnrollments = (params = {}) => api.get('/admin/enrollments', params);
 export const getAdminEnrollment = (id) => api.get(`/admin/enrollments/${encodeURIComponent(id)}`);
+export const getAdminSubmissions = (params = {}) => api.get('/admin/submissions', params);
+export const reviewAdminSubmission = (id, { decision, feedback }) =>
+  api.post(`/admin/submissions/${encodeURIComponent(id)}/review`, { decision, feedback });
 export const getAdminPayments = (params = {}) => api.get('/admin/payments', params);
 export const getAdminPayment = (id) => api.get(`/admin/payments/${encodeURIComponent(id)}`);
+
+// Revenue analytics
+export const getAdminRevenue = (params = {}) => api.get('/admin/revenue', params);
 
 // Certificates and email status
 export const getAdminCertificates = (params = {}) => api.get('/admin/certificates', params);
@@ -31,9 +37,52 @@ export const getTrainers = (params = {}) => api.get('/admin/trainers', params);
 export const createTrainer = (payload) => api.post('/admin/trainers', payload);
 export const updateTrainerStatus = (id, payload) =>
   api.patch(`/admin/trainers/${encodeURIComponent(id)}`, payload);
+export const deleteTrainer = (id) =>
+  api.delete(`/admin/trainers/${encodeURIComponent(id)}`);
 export const getTrainerAssignments = (trainerId) =>
   api.get(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`);
+export const getAdminTrainerReports = (trainerId, params = {}) =>
+  api.get(`/admin/trainers/${encodeURIComponent(trainerId)}/reports`, { limit: 100, ...params });
 export const assignToTrainer = (trainerId, payload) =>
   api.post(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments`, payload);
 export const removeTrainerAssignment = (trainerId, assignmentId) =>
   api.delete(`/admin/trainers/${encodeURIComponent(trainerId)}/assignments/${encodeURIComponent(assignmentId)}`);
+
+export const fetchTrainerResumeBlob = async (trainerId, { download = false } = {}) => {
+  const res = await apiClient.get(`/admin/trainers/${encodeURIComponent(trainerId)}/resume`, {
+    params: download ? { download: '1' } : undefined,
+    responseType: 'blob',
+  });
+  return res.data;
+};
+
+// Trainer join requests (public applications -> admin accept/delete)
+export const getTrainerApplications = (params = {}) =>
+  api.get('/admin/trainer-applications', params);
+
+export const acceptTrainerApplication = (id, payload = {}) =>
+  api.post(`/admin/trainer-applications/${encodeURIComponent(id)}/accept`, payload);
+
+export const deleteTrainerApplication = (id) =>
+  api.delete(`/admin/trainer-applications/${encodeURIComponent(id)}`);
+
+export const fetchTrainerApplicationResumeBlob = async (id, { download = false } = {}) => {
+  const res = await apiClient.get(
+    `/admin/trainer-applications/${encodeURIComponent(id)}/resume`,
+    {
+      params: download ? { download: '1' } : undefined,
+      responseType: 'blob',
+    },
+  );
+  return res.data;
+};
+
+// TPOs (referral code generation & student attribution)
+export const getTpos = (params = {}) => api.get('/admin/tpos', params);
+export const getTpo = (id) => api.get(`/admin/tpos/${encodeURIComponent(id)}`);
+export const createTpo = (payload) => api.post('/admin/tpos', payload);
+export const updateTpo = (id, payload) =>
+  api.patch(`/admin/tpos/${encodeURIComponent(id)}`, payload);
+export const deleteTpo = (id) => api.delete(`/admin/tpos/${encodeURIComponent(id)}`);
+export const getTpoReferrals = (id, params = {}) =>
+  api.get(`/admin/tpos/${encodeURIComponent(id)}/referrals`, params);

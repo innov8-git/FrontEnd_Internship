@@ -6,6 +6,7 @@ import { BarChart3 } from '@/shared/icons';
 import { AssignmentList } from '../components/AssignmentList';
 import { SubmissionQueue } from '../components/SubmissionQueue';
 import { TrainerStatCards } from '../components/TrainerStatCards';
+import { TrainerProfileCompletionBanner } from '../components/TrainerProfileCompletionBanner';
 
 /** /trainer (KD9): KPI tiles, the oldest-first review queue and the trainer's assignments. */
 export function TrainerDashboardPage() {
@@ -25,6 +26,8 @@ export function TrainerDashboardPage() {
           </Button>
         }
       />
+
+      <TrainerProfileCompletionBanner user={user} />
 
       <TrainerStatCards />
 

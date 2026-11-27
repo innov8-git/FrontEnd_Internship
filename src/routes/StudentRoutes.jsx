@@ -2,9 +2,8 @@ import StudentLayout from '@/shared/components/layout/StudentLayout';
 import FocusLayout from '@/shared/components/layout/FocusLayout';
 import { ROLES } from '@/shared/constants';
 import ProtectedRoute from './ProtectedRoute';
+import AssessmentRedirect from './AssessmentRedirect';
 import {
-  AssessmentPage,
-  AssessmentResultPage,
   CertificatePage,
   EnrollPage,
   GithubCallbackPage,
@@ -43,8 +42,8 @@ export const studentRoutes = {
     {
       element: <FocusLayout />,
       children: [
-        { path: 'assessment/:designationId', element: <AssessmentPage /> },
-        { path: 'assessment/:designationId/result', element: <AssessmentResultPage /> },
+        { path: 'assessment/:designationId', element: <AssessmentRedirect /> },
+        { path: 'assessment/:designationId/result', element: <AssessmentRedirect /> },
         { path: 'enroll', element: <EnrollPage /> },
         { path: 'payment/status', element: <PaymentStatusPage /> },
         { path: 'payment/:enrollmentId', element: <PaymentPage /> },

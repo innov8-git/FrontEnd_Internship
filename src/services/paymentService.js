@@ -23,3 +23,10 @@ export const createOrder = (enrollmentIdOrParams) => {
  */
 export const completeMockPayment = ({ orderId, outcome }) =>
   api.post('/payments/mock/complete', { orderId, outcome });
+
+/**
+ * Demo payment directly from the application modal without external gateways.
+ * Creates an active enrollment and successful payment visible in admin analytics.
+ */
+export const completeDemoCheckout = (payload) =>
+  api.post('/payments/demo-checkout', payload);

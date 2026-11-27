@@ -4,12 +4,11 @@ import {
   FormField,
   Input,
   Modal,
-  PasswordInput,
   Select,
   Textarea,
   toast,
 } from '@/shared/components/ui';
-import { Mail, KeyRound, User, Phone, Sparkles, AlertCircle } from '@/shared/icons';
+import { Mail, User, Phone, AlertCircle } from '@/shared/icons';
 import { useCreateTrainer } from '../hooks/useAdminTrainers';
 
 const DOMAIN_OPTIONS = [
@@ -37,7 +36,6 @@ export function CreateTrainerModal({ open, onClose }) {
     phone: '',
     domain: 'Full Stack Web Development',
     experience: '3-5 years',
-    password: '',
     bio: '',
   });
 
@@ -52,19 +50,6 @@ export function CreateTrainerModal({ open, onClose }) {
     }
   };
 
-  const handleGeneratePassword = () => {
-    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%';
-    let generated = '';
-    for (let i = 0; i < 10; i++) {
-      generated += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    // Ensure letters and numbers are present
-    if (!/[A-Z]/.test(generated)) generated += 'A';
-    if (!/\d/.test(generated)) generated += '9';
-    handleChange('password', generated);
-    toast.info('Generated strong temporary password');
-  };
-
   const validate = () => {
     const errors = {};
     if (!formData.name.trim()) errors.name = 'Full name is required.';
@@ -72,9 +57,6 @@ export function CreateTrainerModal({ open, onClose }) {
       errors.email = 'Email address is required.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       errors.email = 'Enter a valid email address.';
-    }
-    if (formData.password && formData.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters if provided.';
     }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -91,11 +73,12 @@ export function CreateTrainerModal({ open, onClose }) {
         phone: formData.phone.trim() || undefined,
         domain: formData.domain,
         experience: formData.experience,
-        password: formData.password ? formData.password.trim() : undefined,
         bio: formData.bio.trim() || undefined,
       });
 
-      toast.success(`Trainer ${formData.name} created! Welcome email dispatched with credentials.`);
+      toast.success(
+        `Trainer ${formData.name} added! An invitation email with a link to set their password has been sent to ${formData.email}.`
+      );
       handleClose();
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to create trainer.';
@@ -110,7 +93,6 @@ export function CreateTrainerModal({ open, onClose }) {
       phone: '',
       domain: 'Full Stack Web Development',
       experience: '3-5 years',
-      password: '',
       bio: '',
     });
     setFormErrors({});
@@ -123,7 +105,7 @@ export function CreateTrainerModal({ open, onClose }) {
       onClose={handleClose}
       size="lg"
       title="Create Trainer Account"
-      description="Add a new trainer or mentor. An automated welcome email containing their login credentials will be dispatched immediately."
+      description="Add a new trainer or mentor. An automated welcome email containing a link to set their password will be dispatched immediately."
       footer={
         <>
           <Button variant="outline" onClick={handleClose} disabled={createTrainerMutation.isPending}>
@@ -141,8 +123,9 @@ export function CreateTrainerModal({ open, onClose }) {
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Full Name" required error={formErrors.name}>
+          <FormField label="Full Name" htmlFor="trainer-name" required error={formErrors.name}>
             <Input
+              id="trainer-name"
               placeholder="e.g. Dr. Alex Morgan"
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
@@ -151,8 +134,9 @@ export function CreateTrainerModal({ open, onClose }) {
             />
           </FormField>
 
-          <FormField label="Email Address" required error={formErrors.email}>
+          <FormField label="Email Address" htmlFor="trainer-email" required error={formErrors.email}>
             <Input
+              id="trainer-email"
               type="email"
               placeholder="alex.morgan@example.com"
               value={formData.email}
@@ -164,68 +148,41 @@ export function CreateTrainerModal({ open, onClose }) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Phone Number (Optional)">
-            <Input
-              placeholder="+1 (555) 000-0000"
-              value={formData.phone}
-              onChange={(e) => handleChange('phone', e.target.value)}
-              disabled={createTrainerMutation.isPending}
-              leftIcon={Phone}
-            />
-          </FormField>
-
-          <FormField label="Mentorship Domain">
+          <FormField label="Mentorship Domain" htmlFor="trainer-domain">
             <Select
+              id="trainer-domain"
               options={DOMAIN_OPTIONS}
               value={formData.domain}
               onChange={(e) => handleChange('domain', e.target.value)}
               disabled={createTrainerMutation.isPending}
             />
           </FormField>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Experience Level">
+          <FormField label="Experience Level" htmlFor="trainer-experience">
             <Select
+              id="trainer-experience"
               options={EXPERIENCE_OPTIONS}
               value={formData.experience}
               onChange={(e) => handleChange('experience', e.target.value)}
               disabled={createTrainerMutation.isPending}
             />
           </FormField>
-
-          <FormField
-            label="Temporary Password"
-            hint="Leave blank to automatically generate a secure password."
-            error={formErrors.password}
-          >
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <PasswordInput
-                  placeholder="Auto-generated if left blank"
-                  value={formData.password}
-                  onChange={(e) => handleChange('password', e.target.value)}
-                  disabled={createTrainerMutation.isPending}
-                  leftIcon={KeyRound}
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="md"
-                onClick={handleGeneratePassword}
-                disabled={createTrainerMutation.isPending}
-                title="Generate secure password"
-                leftIcon={Sparkles}
-              >
-                Generate
-              </Button>
-            </div>
-          </FormField>
         </div>
 
-        <FormField label="Short Bio or Specialization Notes (Optional)">
+        <FormField label="Phone Number (Optional)" htmlFor="trainer-phone">
+          <Input
+            id="trainer-phone"
+            placeholder="+1 (555) 000-0000"
+            value={formData.phone}
+            onChange={(e) => handleChange('phone', e.target.value)}
+            disabled={createTrainerMutation.isPending}
+            leftIcon={Phone}
+          />
+        </FormField>
+
+        <FormField label="Short Bio or Specialization Notes (Optional)" htmlFor="trainer-bio">
           <Textarea
+            id="trainer-bio"
             rows={2}
             placeholder="Brief background or notes regarding projects and domains this trainer specializes in..."
             value={formData.bio}
@@ -237,7 +194,7 @@ export function CreateTrainerModal({ open, onClose }) {
         <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 p-3 flex items-start gap-3">
           <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-            <span className="font-semibold">Notice:</span> A welcome email will be sent to the trainer with their login email and initial credentials. The email includes a notice advising them to log in and reset their password immediately.
+            <span className="font-semibold">Notice:</span> An invitation link will be sent to the trainer's email to set their password. Once set, the trainer can log in and complete their profile.
           </div>
         </div>
       </form>

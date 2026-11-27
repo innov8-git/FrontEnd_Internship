@@ -4,6 +4,7 @@ import {
   Briefcase,
   Building2,
   CalendarDays,
+  ClipboardCheck,
   ClipboardList,
   CreditCard,
   FolderGit2,
@@ -11,6 +12,8 @@ import {
   Inbox,
   IndianRupee,
   LayoutDashboard,
+  School,
+  Sparkles,
   User,
   UserCheck,
   UserCog,
@@ -124,7 +127,13 @@ export function getAdminNavigation() {
       title: 'People',
       items: [
         { label: 'Users', to: ROUTES.ADMIN_USERS, icon: Users },
-        { label: 'Trainers', to: ROUTES.ADMIN_TRAINERS, icon: UserCog },
+        {
+          label: 'Trainers',
+          to: ROUTES.ADMIN_TRAINERS,
+          icon: UserCog,
+          activePaths: [ROUTES.ADMIN_ASSIGNMENTS, ROUTES.ADMIN_TRAINER_REPORTS],
+        },
+        { label: 'TPOs', to: ROUTES.ADMIN_TPOS, icon: School },
       ],
     },
     {
@@ -133,13 +142,15 @@ export function getAdminNavigation() {
         { label: 'Domains', to: ROUTES.ADMIN_DOMAINS, icon: Building2 },
         { label: 'Projects', to: ROUTES.ADMIN_PROJECTS, icon: FolderGit2 },
         { label: 'Project assignments', to: ROUTES.ADMIN_PROJECT_ASSIGNMENTS, icon: UserCheck },
+        { label: 'Internships', to: ROUTES.ADMIN_INTERNSHIPS, icon: Sparkles },
         { label: 'Designations', to: ROUTES.ADMIN_DESIGNATIONS, icon: Briefcase },
-        { label: 'Plans & pricing', to: ROUTES.ADMIN_PLANS, icon: IndianRupee },
+        { label: 'Revenue', to: ROUTES.ADMIN_REVENUE, icon: IndianRupee },
       ],
     },
     {
       title: 'Operations',
       items: [
+        { label: 'Submissions', to: ROUTES.ADMIN_SUBMISSIONS, icon: ClipboardCheck },
         { label: 'Payments', to: ROUTES.ADMIN_PAYMENTS, icon: CreditCard },
         { label: 'Certificates', to: ROUTES.ADMIN_CERTIFICATES, icon: Award },
         { label: 'Audit log', to: ROUTES.ADMIN_AUDIT, icon: History },

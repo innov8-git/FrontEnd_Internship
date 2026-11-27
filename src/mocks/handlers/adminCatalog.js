@@ -351,6 +351,7 @@ const planRoutes = [
       domainId: domain._id,
       durationMonths: body.durationMonths,
       basePrice: body.basePrice,
+      discountPercent: Number(body.discountPercent) || 0,
       currency: CURRENCY,
       status,
       createdBy: auth.user._id,
@@ -403,6 +404,7 @@ const planRoutes = [
     // Existing quotes and enrollments keep their own price snapshot: only new quotes see this.
     const before = planAuditSnapshot(plan);
     plan.basePrice = body.basePrice;
+    if (body.discountPercent !== undefined) plan.discountPercent = Number(body.discountPercent) || 0;
     plan.domainId = nextDomainId;
     plan.durationMonths = nextDuration;
     plan.updatedBy = auth.user._id;

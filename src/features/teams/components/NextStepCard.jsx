@@ -1,8 +1,8 @@
 import { useId } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Skeleton } from '@/shared/components/ui';
-import { ArrowRight, CheckCircle2, ClipboardCheck, CreditCard, Hourglass, Mail } from '@/shared/icons';
-import { ASSESSMENT_QUESTION_COUNT, MEMBER_STATUS, paths } from '@/shared/constants';
+import { ArrowRight, CheckCircle2, CreditCard, Hourglass, Mail } from '@/shared/icons';
+import { MEMBER_STATUS, paths } from '@/shared/constants';
 import { cn } from '@/shared/utils/cn';
 import {
   isMemberReady,
@@ -28,19 +28,7 @@ function getStep(team, me, members) {
       tone: 'warning',
       icon: Mail,
       title: 'Accept your invitation',
-      description: `Open the invite link we emailed to ${me.email} to join ${team.name}. Then you can take the assessment and pay for your seat.`,
-    };
-  }
-
-  if (!me.assessed) {
-    return {
-      tone: 'brand',
-      icon: ClipboardCheck,
-      title: 'Take the assessment',
-      description: `Every member takes the ${ASSESSMENT_QUESTION_COUNT}-question assessment before paying for their seat.`,
-      action: designationId
-        ? { label: 'Take the assessment', to: paths.assessment(designationId) }
-        : null,
+      description: `Open the invite link we emailed to ${me.email} to join ${team.name}. Then you can confirm and pay for your seat.`,
     };
   }
 
@@ -74,7 +62,7 @@ function getStep(team, me, members) {
     title: "You're all set — waiting for teammates",
     description:
       waiting.length > 0
-        ? 'Your team starts as soon as everyone has joined, taken the assessment and paid.'
+        ? 'Your team starts as soon as everyone has joined and paid.'
         : 'Everyone is ready. Your team will start shortly.',
     waiting,
   };

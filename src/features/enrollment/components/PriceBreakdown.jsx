@@ -1,13 +1,11 @@
 import { Badge, Button, Card, CardBody, CardHeader, ErrorState, Skeleton } from '@/shared/components/ui';
-import { ASSESSMENT_MAX_SCORE, ENROLLMENT_TYPE } from '@/shared/constants';
+import { ENROLLMENT_TYPE } from '@/shared/constants';
 import { Clock, Lock, Receipt, RefreshCw, Tag, Users } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 import { formatDate, formatDateTime, formatMoney, formatRelativeTime } from '@/shared/utils/helpers';
 
-const hasValue = (value) => value !== undefined && value !== null;
-
 /**
- * The price lines of a server quote or an enrollment's price snapshot: base price, the merit
+ * The price lines of a server quote or an enrollment's price snapshot: base price, the platform
  * discount (individual enrollments only) and the payable amount. Display only — every amount,
  * including the payable total, comes from the server.
  */
@@ -17,8 +15,6 @@ export function PriceLines({
   payableAmount,
   currency = 'INR',
   enrollmentType,
-  score,
-  totalQuestions = ASSESSMENT_MAX_SCORE,
   payableLabel = 'You pay',
   className,
 }) {
@@ -36,12 +32,7 @@ export function PriceLines({
         {!isTeam ? (
           <div className="flex items-start justify-between gap-4">
             <dt className="text-slate-600">
-              Merit discount
-              {hasValue(score) ? (
-                <span className="block text-xs text-slate-500">
-                  Assessment score {score} / {totalQuestions}
-                </span>
-              ) : null}
+              Platform discount
             </dt>
             <dd
               className={cn(
@@ -108,7 +99,6 @@ export function PriceBreakdown({
   quote = null,
   snapshot = null,
   enrollmentType,
-  score,
   title = 'Your price',
   isLoading = false,
   isRefreshing = false,
@@ -123,7 +113,6 @@ export function PriceBreakdown({
 }) {
   const price = quote ?? snapshot;
   const type = quote?.enrollmentType ?? enrollmentType;
-  const lineScore = quote ? quote.score : score;
 
   let headerAction = null;
   if (quote && isExpired) {
@@ -153,7 +142,6 @@ export function PriceBreakdown({
           payableAmount={price.payableAmount}
           currency={price.currency}
           enrollmentType={type}
-          score={lineScore}
         />
 
         {quote && !isExpired ? (

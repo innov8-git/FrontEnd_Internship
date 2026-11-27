@@ -81,13 +81,41 @@ export function PlansTable({ onCreate, onEdit, onChangeStatus }) {
       },
       {
         key: 'basePrice',
-        header: 'Base price',
+        header: 'Platform charges',
         sortable: true,
         align: 'right',
         className: 'whitespace-nowrap',
         cell: (row) => (
           <span className="tabular font-medium text-slate-900">{formatMoney(row.basePrice, row.currency)}</span>
         ),
+      },
+      {
+        key: 'discountPercent',
+        header: 'Discount',
+        sortable: true,
+        align: 'right',
+        className: 'whitespace-nowrap',
+        cell: (row) => {
+          const discount = Number(row.discountPercent) || 0;
+          return discount > 0 ? (
+            <span className="tabular font-medium text-emerald-700">−{discount}%</span>
+          ) : (
+            <span className="tabular text-slate-400">0%</span>
+          );
+        },
+      },
+      {
+        key: 'studentPrice',
+        header: 'Student pays',
+        align: 'right',
+        className: 'whitespace-nowrap',
+        cell: (row) => {
+          const discount = Number(row.discountPercent) || 0;
+          const payable = Math.round(Number(row.basePrice) * (1 - Math.min(100, Math.max(0, discount)) / 100));
+          return (
+            <span className="tabular font-semibold text-slate-900">{formatMoney(payable, row.currency)}</span>
+          );
+        },
       },
       {
         key: 'status',

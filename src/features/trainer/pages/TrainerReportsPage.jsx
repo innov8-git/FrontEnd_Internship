@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Button, PageHeader, StatCard } from '@/shared/components/ui';
 import { ROUTES } from '@/shared/constants';
 import { useDocumentTitle } from '@/shared/hooks';
-import { AlertTriangle, Gauge, Inbox, Users } from '@/shared/icons';
+import { AlertTriangle, ArrowLeft, Gauge, Inbox, Users } from '@/shared/icons';
 import { formatNumber, formatPercent, pluralize } from '@/shared/utils/helpers';
 import { ProgressReportTable } from '../components/ProgressReportTable';
-import { useTrainerAssignments } from '../hooks/useTrainerAssignments';
+import { useAdminTrainerReports, useTrainerAssignments } from '../hooks/useTrainerAssignments';
 import { INACTIVE_AFTER_DAYS, isTeamItem, toReportRow } from '../utils/reviewHelpers';
 
 function summarise(rows) {
@@ -25,10 +25,22 @@ function summarise(rows) {
   };
 }
 
-/** /trainer/reports (KD13): how every assigned student and team is progressing. */
+/**
+ * /trainer/reports (KD13) and /admin/trainers/:trainerId/reports:
+ * how every assigned student and team is progressing for the active trainer (or selected trainer in admin view).
+ */
 export function TrainerReportsPage() {
-  useDocumentTitle('Reports');
-  const { data, isLoading, isError, error, refetch, isFetching } = useTrainerAssignments();
+  const { trainerId } = useParams();
+  const isAdminView = Boolean(trainerId);
+
+  const trainerQuery = useTrainerAssignments({ enabled: !isAdminView });
+  const adminQuery = useAdminTrainerReports(trainerId);
+  const activeQuery = isAdminView ? adminQuery : trainerQuery;
+
+  const trainerName = adminQuery.trainer?.name || 'Trainer';
+  useDocumentTitle(isAdminView ? `${trainerName} — Reports` : 'Reports');
+
+  const { data, isLoading, isError, error, refetch, isFetching } = activeQuery;
   const rows = useMemo(() => (data ? data.map(toReportRow) : undefined), [data]);
   const summary = useMemo(() => summarise(rows ?? []), [rows]);
   const tilesLoading = isLoading || (!rows && isFetching);
@@ -37,19 +49,30 @@ export function TrainerReportsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Reports"
-        description="Progress of the students and teams assigned to you. Inactive ones are listed first."
+        eyebrow={isAdminView ? 'Trainer reports' : undefined}
+        title={isAdminView ? `${trainerName} — Reports` : 'Reports'}
+        description={
+          isAdminView
+            ? `Progress of the students and teams assigned to ${trainerName}. Inactive ones are listed first.`
+            : 'Progress of the students and teams assigned to you. Inactive ones are listed first.'
+        }
         actions={
-          <Button as={Link} to={ROUTES.TRAINER} variant="outline" leftIcon={Inbox}>
-            Review queue
-          </Button>
+          isAdminView ? (
+            <Button as={Link} to={ROUTES.ADMIN_ASSIGNMENTS} variant="outline" leftIcon={ArrowLeft}>
+              Back to assignments
+            </Button>
+          ) : (
+            <Button as={Link} to={ROUTES.TRAINER} variant="outline" leftIcon={Inbox}>
+              Review queue
+            </Button>
+          )
         }
       />
 
       {showTiles ? (
         <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
-            label="Assigned to you"
+            label={isAdminView ? 'Assigned to trainer' : 'Assigned to you'}
             value={formatNumber(summary.assigned)}
             hint={`${pluralize(summary.students, 'student')} · ${pluralize(summary.teams, 'team')}`}
             icon={Users}
@@ -74,9 +97,9 @@ export function TrainerReportsPage() {
           <StatCard
             label="Waiting for review"
             value={formatNumber(summary.pending)}
-            hint="Submissions in your queue"
+            hint={isAdminView ? 'Submissions in trainer queue' : 'Submissions in your queue'}
             icon={Inbox}
-            to={ROUTES.TRAINER}
+            to={isAdminView ? undefined : ROUTES.TRAINER}
             loading={tilesLoading}
           />
         </section>

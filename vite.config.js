@@ -15,9 +15,13 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5173,
-      // Proxy /api to backend so cookies stay first-party.
+      // Proxy /api and /uploads to backend so cookies stay first-party and local uploads load.
       proxy: {
         '/api': {
+          target: proxyTarget,
+          changeOrigin: true,
+        },
+        '/uploads': {
           target: proxyTarget,
           changeOrigin: true,
         },

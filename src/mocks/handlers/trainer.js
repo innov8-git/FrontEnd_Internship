@@ -165,6 +165,56 @@ export const trainerHandlers = [
   // Admin (role ADMIN): teams lookup and trainer assignments (KD11)
   // ---------------------------------------------------------------------------
 
+  // Admin submission oversight queue & escalation resolution
+  mock.get('/admin/submissions', ({ request }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const query = getQuery(request);
+    const status = query.get('status') || undefined;
+    const search = query.get('search');
+    const unassignedOnly = query.get('unassignedOnly') === 'true';
+
+    let items = db.submissions
+      .filter((s) => !status || s.reviewStatus === status)
+      .map((s) => {
+        const dto = trainerSubmissionListItemDto(s);
+        if (!dto) return null;
+        const assigned = db.trainerAssignments.find(
+          (a) => a.active && ((s.teamId && a.teamId === s.teamId) || a.enrollmentId === s.enrollmentId),
+        );
+        const trainerUser = assigned ? findUser(assigned.trainerId) : null;
+        return {
+          ...dto,
+          trainer: trainerUser ? { _id: trainerUser._id, name: trainerUser.name, email: trainerUser.email } : null,
+          isUnassigned: !assigned,
+        };
+      })
+      .filter(Boolean);
+
+    if (unassignedOnly) items = items.filter((item) => item.isUnassigned);
+    if (search) {
+      items = items.filter((row) =>
+        matchesSearch(search, row.student?.name, row.student?.email, row.team?.name, row.task?.title),
+      );
+    }
+    return json(paginate(applySort(items, request, 'submittedAt:asc'), request, 20));
+  }),
+
+  mock.post('/admin/submissions/:id/review', async ({ request, params }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const submission = findSubmission(params.id);
+    if (!submission) return notFound('Submission');
+    const body = await readJson(request);
+    const result = applyReview({
+      trainer: auth.user,
+      submission,
+      decision: body.decision,
+      feedback: typeof body.feedback === 'string' ? body.feedback : '',
+    });
+    return json(reviewResultDto(result));
+  }),
+
   // Frontend addition: team picker for assignments. ?search (team or leader), ?status.
   mock.get('/admin/teams', ({ request }) => {
     const auth = requireAuth(request, ADMIN_ONLY);
@@ -172,9 +222,14 @@ export const trainerHandlers = [
     const query = getQuery(request);
     const search = query.get('search');
     const statuses = listParam(query, 'status');
+    const unassigned = query.get('unassigned') === 'true';
+    const assignedTeamIds = unassigned
+      ? new Set(db.trainerAssignments.filter((a) => a.active && a.teamId).map((a) => a.teamId))
+      : null;
 
     const items = db.teams
       .filter((team) => statuses.length === 0 || statuses.includes(team.status))
+      .filter((team) => !unassigned || !assignedTeamIds.has(team._id))
       .filter((team) => {
         if (!search) return true;
         const leader = findUser(team.leaderId);
@@ -184,6 +239,48 @@ export const trainerHandlers = [
       .map(adminTeamDto)
       .filter(Boolean);
     return json(paginate(items, request, 20));
+  }),
+
+  // Admin view of one trainer's progress report (same shape as GET /trainer/assignments).
+  mock.get('/admin/trainers/:id/reports', ({ request, params }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const trainer = findUser(params.id);
+    if (!trainer) return notFound('Trainer');
+    const search = getQuery(request).get('search');
+
+    const items = assignmentsForTrainer(trainer._id)
+      .map(trainerAssignmentViewDto)
+      .filter(Boolean)
+      .filter((row) =>
+        matchesSearch(search, row.student?.name, row.student?.email, row.team?.name),
+      )
+      .sort((a, b) => time(a.lastActivityAt) - time(b.lastActivityAt));
+    return json({
+      ...paginate(items, request, 100),
+      trainer: { _id: trainer._id, name: trainer.name, email: trainer.email },
+    });
+  }),
+
+  // Overall trainer count, tasks, reviewed tasks and pending tasks for /admin/assignments.
+  mock.get('/admin/trainer-assignments/summary', ({ request }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+    const totalTrainers = db.users.filter(
+      (u) => Array.isArray(u.roles) && u.roles.includes(ROLES.TRAINER),
+    ).length;
+    const activeAssignments = db.trainerAssignments.filter((a) => Boolean(a.active));
+    const assignedTrainers = new Set(activeAssignments.map((a) => a.trainerId)).size;
+    return json({
+      totalTrainers,
+      assignedTrainers,
+      activeAssignments: activeAssignments.length,
+      totalTasks: db.taskProgress?.length || 0,
+      approvedTasks: (db.taskProgress || []).filter((p) => p.status === 'APPROVED').length,
+      totalSubmissions: db.submissions?.length || 0,
+      reviewedTasks: (db.submissions || []).filter((s) => s.reviewStatus !== 'PENDING').length,
+      pendingTasks: (db.submissions || []).filter((s) => s.reviewStatus === 'PENDING').length,
+    });
   }),
 
   // ?search (trainer, student or team), ?active=true|false|all (default all), newest first.

@@ -19,6 +19,7 @@ export const DesignationDetailPage = lazy(
 // Auth (SN3, SN4)
 export const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
 export const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'));
+export const TrainerRegisterPage = lazy(() => import('@/features/auth/pages/TrainerRegisterPage'));
 export const CheckEmailPage = lazy(() => import('@/features/auth/pages/CheckEmailPage'));
 export const VerifyEmailPage = lazy(() => import('@/features/auth/pages/VerifyEmailPage'));
 export const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
@@ -71,6 +72,9 @@ export const TrainerReportsPage = lazy(() => import('@/features/trainer/pages/Tr
 export const AdminDashboardPage = lazy(() => import('@/features/admin/pages/AdminDashboardPage'));
 export const UsersPage = lazy(() => import('@/features/admin/pages/UsersPage'));
 export const AdminEnrollmentsPage = lazy(() => import('@/features/admin/pages/EnrollmentsPage'));
+export const AdminSubmissionsPage = lazy(
+  () => import('@/features/admin/pages/AdminSubmissionsPage'),
+);
 export const AdminPaymentsPage = lazy(() => import('@/features/admin/pages/PaymentsPage'));
 export const AdminCertificatesPage = lazy(() => import('@/features/admin/pages/CertificatesPage'));
 export const AuditLogPage = lazy(() => import('@/features/admin/pages/AuditLogPage'));
@@ -78,10 +82,12 @@ export const DesignationsPage = lazy(() => import('@/features/catalog/pages/Desi
 export const DomainsPage = lazy(() => import('@/features/catalog/pages/DomainsPage'));
 export const ProjectsPage = lazy(() => import('@/features/catalog/pages/ProjectsPage'));
 export const ProjectAssignmentsPage = lazy(() => import('@/features/catalog/pages/ProjectAssignmentsPage'));
+export const AdminInternshipsPage = lazy(() => import('@/features/catalog/pages/AdminInternshipsPage'));
 export const DomainQuestionsPage = lazy(
   () => import('@/features/catalog/pages/DomainQuestionsPage'),
 );
 export const PlansPage = lazy(() => import('@/features/catalog/pages/PlansPage'));
+export const AdminRevenuePage = lazy(() => import('@/features/admin/pages/RevenuePage'));
 export const AssessmentConfigListPage = lazy(
   () => import('@/features/assessment-builder/pages/AssessmentConfigListPage'),
 );
@@ -98,3 +104,5 @@ export const TaskEditorPage = lazy(() => import('@/features/schedule-builder/pag
 export const TasksIndexPage = lazy(() => import('@/features/schedule-builder/pages/TasksIndexPage'));
 export const AssignmentsPage = lazy(() => import('@/features/assignments/pages/AssignmentsPage'));
 export const TrainersPage = lazy(() => import('@/features/admin/pages/TrainersPage'));
+export const AdminTrainerReportsPage = lazy(() => import('@/features/trainer/pages/TrainerReportsPage'));
+export const TposPage = lazy(() => import('@/features/admin/pages/TposPage'));

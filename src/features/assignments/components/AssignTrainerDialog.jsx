@@ -42,12 +42,12 @@ function SelectedTarget({ target, onChange, disabled }) {
   );
 }
 
-function AssignTrainerDialogContent({ onClose, initialTarget }) {
+function AssignTrainerDialogContent({ onClose, initialTarget, initialTrainer }) {
   const formId = useId();
   const [targetType, setTargetType] = useState(initialTarget?.type ?? TARGET_TYPE.ENROLLMENT);
   const [target, setTarget] = useState(initialTarget ?? null);
   const [pickerOpen, setPickerOpen] = useState(!initialTarget);
-  const [trainerId, setTrainerId] = useState('');
+  const [trainerId, setTrainerId] = useState(initialTrainer?._id ?? initialTrainer?.id ?? '');
   const [errors, setErrors] = useState({});
 
   const trainersQuery = useTrainerOptions();
@@ -189,7 +189,13 @@ function AssignTrainerDialogContent({ onClose, initialTarget }) {
       open
       onClose={close}
       size="lg"
-      title={initialTarget ? 'Reassign trainer' : 'Assign a trainer'}
+      title={
+        initialTarget
+          ? 'Reassign trainer'
+          : initialTrainer?.name
+            ? `Assign to ${initialTrainer.name}`
+            : 'Assign a trainer'
+      }
       description="The trainer reviews this student's or team's submissions. Reassigning keeps the history."
       footer={
         <>
@@ -219,6 +225,7 @@ function AssignTrainerDialogContent({ onClose, initialTarget }) {
               onSelect={selectTarget}
               error={errors.target}
               initialSearch={target?.type === targetType ? (target.searchText ?? '') : ''}
+              unassignedOnly={!initialTarget}
             />
           </>
         ) : (
@@ -265,9 +272,15 @@ function AssignTrainerDialogContent({ onClose, initialTarget }) {
  * history → Assign. `initialTarget` (from a table row) opens it as "Reassign" for that target.
  * The content only mounts while open, so every opening starts fresh.
  */
-export function AssignTrainerDialog({ open, onClose, initialTarget = null }) {
+export function AssignTrainerDialog({ open, onClose, initialTarget = null, initialTrainer = null }) {
   if (!open) return null;
-  return <AssignTrainerDialogContent onClose={onClose} initialTarget={initialTarget} />;
+  return (
+    <AssignTrainerDialogContent
+      onClose={onClose}
+      initialTarget={initialTarget}
+      initialTrainer={initialTrainer}
+    />
+  );
 }
 
 export default AssignTrainerDialog;

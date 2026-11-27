@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { cn } from '@/shared/utils/cn';
 import { GREETING_MESSAGE } from '../data/chatbotIntents';
 import { matchIntent, getChatbotResponse, getRelatedQuestions } from '../utils/intentMatcher';
@@ -10,6 +11,15 @@ function formatTime() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function useCurrentPath() {
+  try {
+    const loc = useLocation();
+    return loc?.pathname || '';
+  } catch {
+    return '';
+  }
+}
+
 const BOT_TYPING_DELAY_MS = 380;
 
 /**
@@ -17,6 +27,7 @@ const BOT_TYPING_DELAY_MS = 380;
  * smooth animations, categorized topic suggestions, and zero-hallucination answers.
  */
 export function ChatBot() {
+  const pathname = useCurrentPath();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -147,12 +158,16 @@ export function ChatBot() {
     sendMessage(question);
   };
 
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <>
       {/* ── Floating Action Launcher Button ─────────────────────────────── */}
-      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+      <div className="group fixed bottom-6 right-6 z-50 flex items-center gap-2.5">
         {!open ? (
-          <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-md backdrop-blur-md transition-all dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-200 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="pointer-events-none opacity-0 translate-x-2 transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-x-0 hidden sm:flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-md backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-200">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Need help? Ask AI</span>
           </div>

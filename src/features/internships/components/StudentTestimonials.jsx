@@ -16,16 +16,16 @@ const TESTIMONIALS = [
     role: 'Full Stack Engineer @ ScaleWave',
     track: 'Full Stack React & Node',
     avatarInitials: 'PP',
-    score: '15/15 (20% merit discount)',
+    score: 'Direct 20% platform discount',
     quote:
-      'I loved that my tuition discount was based on my assessment score. Having a verified ALFRE certificate linked directly to my GitHub repository gave recruiters undeniable proof of my capabilities.',
+      'I loved the transparent platform pricing and direct scholarship discounts. Having a verified ALFRE certificate linked directly to my GitHub repository gave recruiters undeniable proof of my capabilities.',
   },
   {
     name: 'Vikram Desai',
     role: 'Cloud Associate @ InfraCloud',
     track: 'DevOps & Kubernetes',
     avatarInitials: 'VD',
-    score: '13/15 (10% merit discount)',
+    score: 'Direct 10% platform discount',
     quote:
       'No other platform gives you actual senior engineer feedback on your Dockerfiles, CI/CD pipelines, and Kubernetes manifests. ALFRE bridges the gap between college theory and real engineering.',
   },

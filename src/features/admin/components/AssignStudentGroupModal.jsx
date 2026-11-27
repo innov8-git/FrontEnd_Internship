@@ -21,7 +21,7 @@ export function AssignStudentGroupModal({ trainer, open, onClose }) {
 
     try {
       await assignMutation.mutateAsync({
-        trainerId: trainer._id,
+        trainerId: trainer._id || trainer.id,
         enrollmentId: targetType === TARGET_TYPE.ENROLLMENT ? selectedTarget.id : undefined,
         teamId: targetType === TARGET_TYPE.TEAM ? selectedTarget.id : undefined,
       });

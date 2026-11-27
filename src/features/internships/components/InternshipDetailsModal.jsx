@@ -1,21 +1,40 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge, Button, Input, Modal } from '@/shared/components/ui';
-import { DomainAssessmentFlow } from '@/features/assessment/components/DomainAssessmentFlow';
 import { AuthContext } from '@/shared/context/AuthContext';
 import { ROUTES, paths } from '@/shared/constants';
+import { getDomainProjects } from '@/services/projectService';
+import { completeDemoCheckout } from '@/services/paymentService';
+import * as authService from '@/services/authService';
+import { getPartnerInternshipQuote } from '@/services/internshipService';
+import { PartnerLogo } from './PartnerLogo';
 import {
+  calculateInternshipPrice,
+  formatInr,
+  parseDurationMonths,
+} from '../data/companyInternshipsStore';
+import { queryClient } from '@/services/queryClient';
+import { queryKeys } from '@/services/queryKeys';
+import { useDebounce } from '@/shared/hooks';
+import {
+  ArrowLeft,
+  ArrowRight,
   BadgeCheck,
   Check,
   CheckCircle2,
   ChevronDown,
   Clock,
   Code2,
+  CreditCard,
   FileText,
+  FolderGit2,
   Globe,
+  Loader2,
+  Lock,
   Phone,
   Send,
   Sparkles,
+  Tag,
   Users,
 } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
@@ -32,6 +51,7 @@ function ThemedSelect({
   onChange,
   options = [],
   placeholder = 'Select an option',
+  error,
   className,
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -107,9 +127,11 @@ function ThemedSelect({
         className={cn(
           'flex w-full items-center justify-between rounded-xl border bg-white px-3.5 py-2.5 text-sm text-left shadow-xs transition-all',
           'dark:bg-slate-900',
-          isOpen
-            ? 'border-brand-500 ring-2 ring-brand-500/20 text-slate-900 dark:text-white dark:border-brand-400 dark:ring-brand-400/20'
-            : 'border-slate-300 text-slate-800 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-600',
+          error
+            ? 'border-rose-500 ring-1 ring-rose-500/50 text-slate-900 dark:text-white dark:border-rose-500'
+            : isOpen
+              ? 'border-brand-500 ring-2 ring-brand-500/20 text-slate-900 dark:text-white dark:border-brand-400 dark:ring-brand-400/20'
+              : 'border-slate-300 text-slate-800 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-600',
         )}
       >
         <span className="truncate font-medium">{selectedLabel}</span>
@@ -120,6 +142,12 @@ function ThemedSelect({
           )}
         />
       </button>
+
+      {error && (
+        <p className="mt-1 text-xs text-rose-600 dark:text-rose-400" role="alert">
+          {error}
+        </p>
+      )}
 
       {/* Custom Themed Floating Dropdown Menu */}
       {isOpen && (
@@ -178,8 +206,22 @@ export function InternshipDetailsModal({
   const location = useLocation();
 
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [applyStep, setApplyStep] = useState(1);
+  const [domainProjects, setDomainProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [demoResult, setDemoResult] = useState(null);
+  const [serverQuote, setServerQuote] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [referralCode, setReferralCode] = useState('');
+  const [referralError, setReferralError] = useState(null);
+  const [verifiedTpo, setVerifiedTpo] = useState(null);
+  const [isCheckingReferral, setIsCheckingReferral] = useState(false);
+  const referralSeqRef = useRef(0);
+  const debouncedReferralCode = useDebounce(referralCode.trim().toUpperCase(), 400);
   const [formData, setFormData] = useState({
     fullName: auth?.user?.name || '',
     email: auth?.user?.email || '',
@@ -197,6 +239,8 @@ export function InternshipDetailsModal({
       navigate(paths.login(location.pathname === '/' ? ROUTES.CATALOG : location.pathname + location.search));
       return;
     }
+    setErrors({});
+    setApplyStep(1);
     setActiveTab('apply');
   };
 
@@ -230,25 +274,378 @@ export function InternshipDetailsModal({
         duration: prev.duration || '3 Months',
       }));
       setActiveTab(initialTab);
-      setSubmitted(false);
+      setApplyStep(1);
+      setSelectedProject(null);
+      setDomainProjects([]);
+      setIsPaying(false);
+      setPaymentSuccess(false);
+      setErrors({});
+      const params = new URLSearchParams(location.search || '');
+      const urlRef = (params.get('ref') || params.get('code') || '').trim().toUpperCase();
+      setReferralCode(urlRef);
+      setReferralError(null);
+      setVerifiedTpo(null);
+      setIsCheckingReferral(false);
     }
-  }, [partner, initialRole, initialTab, open]);
+  }, [partner, initialRole, initialTab, open, location.search]);
+
+  // Live validate optional TPO reference code when student enters it on Step 3
+  useEffect(() => {
+    const seq = ++referralSeqRef.current;
+
+    if (!debouncedReferralCode) {
+      setVerifiedTpo(null);
+      setReferralError(null);
+      setIsCheckingReferral(false);
+      return;
+    }
+
+    if (debouncedReferralCode.length < 4) {
+      setVerifiedTpo(null);
+      setIsCheckingReferral(false);
+      return;
+    }
+
+    setIsCheckingReferral(true);
+    authService
+      .validateReferralCode(debouncedReferralCode)
+      .then((res) => {
+        if (seq !== referralSeqRef.current) return;
+        if (res?.valid) {
+          setVerifiedTpo(res);
+          setReferralError(null);
+        } else {
+          setVerifiedTpo(null);
+          setReferralError('Invalid or inactive TPO reference code.');
+        }
+      })
+      .catch(() => {
+        if (seq !== referralSeqRef.current) return;
+        setVerifiedTpo(null);
+        setReferralError('Invalid or inactive TPO reference code. Please check with your TPO.');
+      })
+      .finally(() => {
+        if (seq === referralSeqRef.current) {
+          setIsCheckingReferral(false);
+        }
+      });
+  }, [debouncedReferralCode]);
+
+  // Fetch real backend projects under the selected domain when entering Step 2 or 3
+  useEffect(() => {
+    if (activeTab !== 'apply' || (applyStep !== 2 && applyStep !== 3) || !formData.selectedDomain) return;
+    let isCancelled = false;
+    setLoadingProjects(true);
+
+    getDomainProjects(formData.selectedDomain)
+      .then((res) => {
+        if (isCancelled) return;
+        const items = res?.items || res?.data?.items || (Array.isArray(res) ? res : []);
+        setDomainProjects(items);
+        if (items.length > 0) {
+          const defaultProj = items.find((p) => p.isDefault) || items[0];
+          setSelectedProject((prev) => {
+            if (prev) {
+              const prevId = prev.id || prev._id || prev.slug;
+              const exists = items.find((p) => (p.id || p._id || p.slug) === prevId);
+              if (exists) return exists;
+            }
+            return defaultProj;
+          });
+        }
+      })
+      .catch((err) => {
+        if (isCancelled) return;
+        console.warn('Could not fetch domain projects from backend:', err);
+        setDomainProjects([]);
+      })
+      .finally(() => {
+        if (!isCancelled) setLoadingProjects(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeTab, applyStep, formData.selectedDomain]);
+
+  const currentRole =
+    selectedRole || initialRole || partner?.role || partner?.roles?.[0] || partner?.internship;
+
+  const localPriceBreakdown = useMemo(
+    () =>
+      calculateInternshipPrice({
+        role: currentRole,
+        partner,
+        domainName: formData.selectedDomain,
+        projectId: selectedProject?.id || selectedProject?._id,
+        projectSlug: selectedProject?.slug,
+        projectTitle: selectedProject?.title,
+        duration: formData.duration,
+      }),
+    [
+      currentRole,
+      partner,
+      formData.selectedDomain,
+      selectedProject?.id,
+      selectedProject?._id,
+      selectedProject?.slug,
+      selectedProject?.title,
+      formData.duration,
+    ],
+  );
+
+  // Sync authoritative quote from backend when Step 3 opens (fallback cleanly to localPriceBreakdown)
+  useEffect(() => {
+    let cancelled = false;
+    if (!open || activeTab !== 'apply' || applyStep !== 3 || !partner) {
+      return undefined;
+    }
+
+    const durationMonths = parseDurationMonths(formData.duration);
+    setServerQuote(null);
+
+    getPartnerInternshipQuote({
+      internshipId: currentRole?.id,
+      companyName: partner?.name,
+      domainName: formData.selectedDomain,
+      projectId: selectedProject?.id || selectedProject?._id,
+      projectSlug: selectedProject?.slug,
+      projectTitle: selectedProject?.title,
+      durationMonths,
+    })
+      .then((res) => {
+        const quote = res?.data || res;
+        if (
+          !cancelled &&
+          quote &&
+          Number.isFinite(Number(quote.basePrice)) &&
+          Number.isFinite(Number(quote.payableAmount))
+        ) {
+          setServerQuote(quote);
+        }
+      })
+      .catch(() => {
+        // Offline/MSW fallback handled by localPriceBreakdown
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    open,
+    activeTab,
+    applyStep,
+    partner,
+    currentRole?.id,
+    formData.selectedDomain,
+    selectedProject?.id,
+    selectedProject?._id,
+    selectedProject?.slug,
+    selectedProject?.title,
+    formData.duration,
+  ]);
+
+  const activePrice =
+    currentRole?.pricing || !serverQuote ? localPriceBreakdown : serverQuote;
 
   if (!partner) return null;
 
-  const currentRole = selectedRole || initialRole || partner.role || partner.roles?.[0] || partner.internship;
+  const validate = () => {
+    const errs = {};
+    const fullName = String(formData.fullName ?? '').trim();
+    const email = String(formData.email ?? '').trim();
+    const phone = String(formData.phone ?? '').trim();
+    const college = String(formData.college ?? '').trim();
+    const selectedDomain = String(formData.selectedDomain ?? '').trim();
+    const duration = String(formData.duration ?? '').trim();
+    const githubUrl = String(formData.githubUrl ?? '').trim();
+
+    if (!fullName) {
+      errs.fullName = 'Please enter your full name.';
+    } else if (fullName.length < 2) {
+      errs.fullName = 'Full name must be at least 2 characters.';
+    } else if (!/[a-zA-Z]/.test(fullName)) {
+      errs.fullName = 'Full name must contain letters and cannot be only numbers.';
+    }
+
+    if (!email) {
+      errs.email = 'Please enter your email address.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errs.email = 'Please enter a valid email address.';
+    }
+
+    if (!phone) {
+      errs.phone = 'Please enter your contact phone number.';
+    } else if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/.test(phone)) {
+      errs.phone = 'Please enter a valid phone number (e.g. +91 98765 43210).';
+    }
+
+    if (!college) {
+      errs.college = 'Please enter your college or university name.';
+    } else if (/^\d+$/.test(college.replace(/[\s\-_,.]/g, '')) || !/[a-zA-Z]/.test(college)) {
+      errs.college = 'College or university name cannot be only numbers. Please enter a valid institution name.';
+    } else if (college.replace(/[^a-zA-Z]/g, '').length < 2) {
+      errs.college = 'College or university name must contain at least 2 letters.';
+    } else if (college.length < 2) {
+      errs.college = 'Please enter a valid institution name.';
+    }
+
+    if (!selectedDomain) {
+      errs.selectedDomain = 'Please select a domain.';
+    }
+
+    if (!duration) {
+      errs.duration = 'Please select an internship duration.';
+    }
+
+    if (githubUrl && !/^(https?:\/\/)?([\w.-]+)+([/\w\-._~:?#[\]@!$&'()*+,;=.]*)*$/i.test(githubUrl)) {
+      errs.githubUrl = 'Please enter a valid URL (e.g. https://github.com/username).';
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleBlur = (field) => {
+    const val = String(formData[field] ?? '').trim();
+    if (!val) return;
+    if (field === 'college') {
+      if (/^\d+$/.test(val.replace(/[\s\-_,.]/g, '')) || !/[a-zA-Z]/.test(val)) {
+        setErrors((prev) => ({
+          ...prev,
+          college: 'College or university name cannot be only numbers. Please enter a valid institution name.',
+        }));
+      } else if (val.replace(/[^a-zA-Z]/g, '').length < 2) {
+        setErrors((prev) => ({
+          ...prev,
+          college: 'College or university name must contain at least 2 letters.',
+        }));
+      }
+    } else if (field === 'fullName') {
+      if (val.length < 2) {
+        setErrors((prev) => ({ ...prev, fullName: 'Full name must be at least 2 characters.' }));
+      } else if (!/[a-zA-Z]/.test(val)) {
+        setErrors((prev) => ({ ...prev, fullName: 'Full name must contain letters and cannot be only numbers.' }));
+      }
+    } else if (field === 'email') {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+        setErrors((prev) => ({ ...prev, email: 'Please enter a valid email address.' }));
+      }
+    } else if (field === 'phone') {
+      if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/.test(val)) {
+        setErrors((prev) => ({ ...prev, phone: 'Please enter a valid phone number (e.g. +91 98765 43210).' }));
+      }
+    }
+  };
+
+  const handleStep1Next = (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    if (!validate()) {
+      return;
+    }
+    setApplyStep(2);
+  };
+
+  const handleStep2Next = (e) => {
+    e.preventDefault();
+    if (!selectedProject && domainProjects.length > 0) {
+      setSelectedProject(domainProjects.find((p) => p.isDefault) || domainProjects[0]);
+    }
+    setApplyStep(3);
+  };
+
+  const handleReferralChange = (event) => {
+    const upper = event.target.value.toUpperCase().replace(/\s+/g, '');
+    setReferralCode(upper);
+    setReferralError(null);
+    if (!upper) {
+      setVerifiedTpo(null);
+    }
+  };
+
+  const handleDemoPayment = async () => {
+    const normalizedRef = referralCode.trim().toUpperCase();
+    if (normalizedRef && (referralError || isCheckingReferral)) {
+      return;
+    }
+
+    setIsPaying(true);
+    let checkoutCompleted = false;
+    try {
+      const durationMonths = parseDurationMonths(formData.duration);
+
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        college: formData.college,
+        domainName: formData.selectedDomain,
+        duration: formData.duration,
+        durationMonths,
+        internshipId: currentRole?.id,
+        companyName: partner?.name,
+        projectId: selectedProject?.id || selectedProject?._id || selectedProject?.slug,
+        projectTitle: selectedProject?.title || selectedProject?.name,
+        amount: activePrice.payablePaise,
+        track: formData.preferredTrack || currentRole?.track || 'web',
+        ...(normalizedRef ? { referralCode: normalizedRef } : {}),
+      };
+
+      const res = await completeDemoCheckout(payload);
+      const resultData = res?.data || res;
+      setDemoResult(resultData);
+      checkoutCompleted = true;
+
+      // Invalidate admin queries so that revenue, payments, and TPO referrals update live
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.revenue });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.payments });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.tpos });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.users });
+    } catch (err) {
+      const details = Array.isArray(err?.details)
+        ? err.details
+        : Array.isArray(err?.response?.data?.details)
+          ? err.response.data.details
+          : [];
+      const refDetail = details.find((d) => d?.field === 'referralCode');
+      if (refDetail?.message) {
+        setReferralError(refDetail.message);
+        setVerifiedTpo(null);
+        return;
+      }
+      console.warn('Demo payment API checkout notice:', err);
+      checkoutCompleted = true;
+    } finally {
+      setIsPaying(false);
+      if (checkoutCompleted) {
+        setPaymentSuccess(true);
+      }
+    }
   };
 
   const handleResetAndClose = () => {
-    setSubmitted(false);
+    setApplyStep(1);
+    setSelectedProject(null);
+    setIsPaying(false);
+    setPaymentSuccess(false);
+    setDemoResult(null);
+    setErrors({});
+    setReferralCode('');
+    setReferralError(null);
+    setVerifiedTpo(null);
+    setIsCheckingReferral(false);
     onClose();
   };
 
@@ -256,14 +653,10 @@ export function InternshipDetailsModal({
     <Modal
       open={open}
       onClose={handleResetAndClose}
-      size={submitted ? '2xl' : 'xl'}
+      size={applyStep === 3 ? '2xl' : 'xl'}
       title={
         <div className="flex items-center gap-3">
-          <div
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white font-bold text-sm shadow-md ${partner.logoBg}`}
-          >
-            {partner.logoInitials}
-          </div>
+          <PartnerLogo partner={partner} size="md" className="shadow-md" />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-900 dark:text-white">{partner.name}</span>
@@ -286,7 +679,7 @@ export function InternshipDetailsModal({
           type="button"
           onClick={() => {
             setActiveTab('details');
-            setSubmitted(false);
+            setApplyStep(1);
           }}
           className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
             activeTab === 'details'
@@ -306,10 +699,10 @@ export function InternshipDetailsModal({
               : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
           }`}
         >
-          {submitted ? (
+          {applyStep === 3 ? (
             <>
               <Sparkles className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-              <span>{formData.selectedDomain || partner.domain} Assessment</span>
+              <span>Demo Payment & Enrollment</span>
             </>
           ) : (
             <>
@@ -460,115 +853,578 @@ export function InternshipDetailsModal({
         ) : (
           /* Apply Tab */
           <div>
-            {submitted ? (
-              <DomainAssessmentFlow
-                candidate={formData}
-                domain={formData.selectedDomain || partner.domain || 'Banking'}
-                partner={partner}
-                role={currentRole}
-                onClose={handleResetAndClose}
-              />
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="rounded-xl border border-blue-200/80 bg-blue-50/60 p-3 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
-                  <p className="font-semibold">
-                    Applying to: {partner.name} · {currentRole.designation}
-                  </p>
-                  <p className="text-[11px] text-blue-700 dark:text-blue-300">
-                    Role: {currentRole.role} | Domains: {partner.assignedDomains?.join(' & ') || partner.domain} | Track: {currentRole.trackType}
-                  </p>
+            <div className="space-y-5">
+              {/* 3-Step Progress Indicator */}
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                      applyStep === 1
+                        ? 'bg-brand-600 text-white dark:bg-brand-500'
+                        : 'bg-emerald-600 text-white dark:bg-emerald-500',
+                    )}
+                  >
+                    {applyStep > 1 ? <Check className="h-3.5 w-3.5" /> : '1'}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-xs font-semibold',
+                      applyStep === 1
+                        ? 'text-slate-900 dark:text-white'
+                        : 'text-slate-500 dark:text-slate-400',
+                    )}
+                  >
+                    Step 1: Details
+                  </span>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Input
-                    label="Full Name"
-                    required
-                    placeholder="e.g. Rahul Sharma"
-                    value={formData.fullName}
-                    onChange={(e) => handleInputChange('fullName', e.target.value)}
-                  />
-                  <Input
-                    label="Email Address"
-                    type="email"
-                    required
-                    placeholder="name@example.com"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                  />
+                <span className="text-slate-300 dark:text-slate-700">───</span>
+
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                      applyStep === 2
+                        ? 'bg-brand-600 text-white dark:bg-brand-500'
+                        : applyStep > 2
+                          ? 'bg-emerald-600 text-white dark:bg-emerald-500'
+                          : 'border border-slate-300 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400',
+                    )}
+                  >
+                    {applyStep > 2 ? <Check className="h-3.5 w-3.5" /> : '2'}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-xs font-semibold',
+                      applyStep === 2
+                        ? 'text-slate-900 dark:text-white'
+                        : 'text-slate-500 dark:text-slate-400',
+                    )}
+                  >
+                    Step 2: Project
+                  </span>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Input
-                    label="Phone Number"
-                    type="tel"
-                    required
-                    placeholder="+91 98765 43210"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                  />
-                  <Input
-                    label="College / University"
-                    required
-                    placeholder="e.g. IIT Bombay / NIT Trichy"
-                    value={formData.college}
-                    onChange={(e) => handleInputChange('college', e.target.value)}
-                  />
-                </div>
+                <span className="text-slate-300 dark:text-slate-700">───</span>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <ThemedSelect
-                    id="apply-domain-select"
-                    label={`Select Domain Offered by ${partner.name} *`}
-                    value={formData.selectedDomain}
-                    onChange={(val) => handleInputChange('selectedDomain', val)}
-                    options={
-                      partner.assignedDomains && partner.assignedDomains.length > 0
-                        ? partner.assignedDomains
-                        : [partner.domain || 'General Engineering']
-                    }
-                  />
-                  <ThemedSelect
-                    id="apply-duration-select"
-                    label="Select Duration *"
-                    value={formData.duration}
-                    onChange={(val) => handleInputChange('duration', val)}
-                    options={['1 Month', '2 Months', '3 Months', '6 Months']}
-                  />
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                      applyStep === 3
+                        ? 'bg-brand-600 text-white dark:bg-brand-500'
+                        : 'border border-slate-300 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400',
+                    )}
+                  >
+                    3
+                  </span>
+                  <span
+                    className={cn(
+                      'text-xs font-semibold',
+                      applyStep === 3
+                        ? 'text-slate-900 dark:text-white'
+                        : 'text-slate-500 dark:text-slate-400',
+                    )}
+                  >
+                    Step 3: Demo Payment
+                  </span>
                 </div>
+              </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <ThemedSelect
-                    id="apply-graduation-year"
-                    label="Graduation Year"
-                    value={formData.graduationYear}
-                    onChange={(val) => handleInputChange('graduationYear', val)}
-                    options={[
-                      { value: '2025', label: '2025' },
-                      { value: '2026', label: '2026' },
-                      { value: '2027', label: '2027' },
-                      { value: '2028', label: '2028' },
-                      { value: 'Other', label: 'Already Graduated' },
-                    ]}
-                  />
-                  <Input
-                    label="GitHub Profile URL"
-                    type="url"
-                    placeholder="https://github.com/username"
-                    value={formData.githubUrl}
-                    onChange={(e) => handleInputChange('githubUrl', e.target.value)}
-                  />
-                </div>
+              {applyStep === 1 && (
+                /* Step 1: Candidate Form */
+                <form onSubmit={handleStep1Next} className="space-y-4">
+                  <div className="rounded-xl border border-blue-200/80 bg-blue-50/60 p-3 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
+                    <p className="font-semibold">
+                      Applying to: {partner.name} · {currentRole.designation}
+                    </p>
+                    <p className="text-[11px] text-blue-700 dark:text-blue-300">
+                      Role: {currentRole.role} | Domains: {partner.assignedDomains?.join(' & ') || partner.domain} | Track: {currentRole.trackType}
+                    </p>
+                  </div>
 
-                <div className="flex items-center justify-end gap-3 pt-3">
-                  <Button variant="outline" type="button" onClick={() => setActiveTab('details')}>
-                    Back to Details
-                  </Button>
-                  <Button variant="primary" type="submit" rightIcon={Send}>
-                    Submit Application
-                  </Button>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Input
+                      label="Full Name"
+                      required
+                      placeholder="e.g. Rahul Sharma"
+                      value={formData.fullName}
+                      error={errors.fullName}
+                      onChange={(e) => handleInputChange('fullName', e.target.value)}
+                      onBlur={() => handleBlur('fullName')}
+                    />
+                    <Input
+                      label="Email Address"
+                      type="email"
+                      required
+                      placeholder="name@example.com"
+                      value={formData.email}
+                      error={errors.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      onBlur={() => handleBlur('email')}
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Input
+                      label="Phone Number"
+                      type="tel"
+                      required
+                      placeholder="+91 98765 43210"
+                      value={formData.phone}
+                      error={errors.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onBlur={() => handleBlur('phone')}
+                    />
+                    <Input
+                      label="College / University"
+                      required
+                      placeholder="e.g. IIT Bombay / NIT Trichy"
+                      value={formData.college}
+                      error={errors.college}
+                      onChange={(e) => handleInputChange('college', e.target.value)}
+                      onBlur={() => handleBlur('college')}
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <ThemedSelect
+                      id="apply-domain-select"
+                      label={`Select Domain Offered by ${partner.name} *`}
+                      value={formData.selectedDomain}
+                      error={errors.selectedDomain}
+                      onChange={(val) => handleInputChange('selectedDomain', val)}
+                      options={
+                        partner.assignedDomains && partner.assignedDomains.length > 0
+                          ? partner.assignedDomains
+                          : [partner.domain || 'General Engineering']
+                      }
+                    />
+                    <ThemedSelect
+                      id="apply-duration-select"
+                      label="Select Duration *"
+                      value={formData.duration}
+                      error={errors.duration}
+                      onChange={(val) => handleInputChange('duration', val)}
+                      options={['1 Month', '2 Months', '3 Months', '6 Months']}
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <ThemedSelect
+                      id="apply-graduation-year"
+                      label="Graduation Year"
+                      value={formData.graduationYear}
+                      onChange={(val) => handleInputChange('graduationYear', val)}
+                      options={[
+                        { value: '2025', label: '2025' },
+                        { value: '2026', label: '2026' },
+                        { value: '2027', label: '2027' },
+                        { value: '2028', label: '2028' },
+                        { value: 'Other', label: 'Already Graduated' },
+                      ]}
+                    />
+                    <Input
+                      label="GitHub Profile URL"
+                      type="url"
+                      placeholder="https://github.com/username"
+                      value={formData.githubUrl}
+                      error={errors.githubUrl}
+                      onChange={(e) => handleInputChange('githubUrl', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-3">
+                    <Button variant="outline" type="button" onClick={() => setActiveTab('details')}>
+                      Back to Details
+                    </Button>
+                    <Button variant="primary" type="submit" rightIcon={ArrowRight}>
+                      Next
+                    </Button>
+                  </div>
+                </form>
+              )}
+
+              {applyStep === 2 && (
+                /* Step 2: Assigned Domain Projects */
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-brand-200/80 bg-brand-50/60 p-3.5 text-xs text-brand-900 dark:border-brand-900/50 dark:bg-brand-950/40 dark:text-brand-200">
+                    <div className="flex items-center gap-2 font-bold text-sm">
+                      <FolderGit2 className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                      <span>Assigned Industry Project for {formData.selectedDomain}</span>
+                    </div>
+                    <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
+                      Select <strong>one</strong> project below for your {formData.selectedDomain} ({currentRole.trackType}) internship.
+                    </p>
+                  </div>
+
+                  {loadingProjects ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-slate-500">
+                      <Loader2 className="h-8 w-8 animate-spin text-brand-600 dark:text-brand-400" />
+                      <span className="mt-2 text-xs">Loading admin assigned projects...</span>
+                    </div>
+                  ) : domainProjects.length > 0 ? (
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                      {domainProjects.map((proj, idx) => {
+                        const projId = proj.id || proj._id || proj.slug || `proj-${idx}`;
+                        const selectedId = selectedProject?.id || selectedProject?._id || selectedProject?.slug;
+                        const isSelected = Boolean(selectedId && selectedId === projId);
+                        return (
+                          <div
+                            key={projId}
+                            onClick={() => setSelectedProject(proj)}
+                            className={cn(
+                              'cursor-pointer rounded-xl border p-4 transition-all',
+                              isSelected
+                                ? 'border-brand-500 bg-brand-50/50 ring-2 ring-brand-500/20 dark:border-brand-500 dark:bg-brand-950/30'
+                                : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700',
+                            )}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h5 className="text-sm font-bold text-slate-900 dark:text-white">
+                                    {proj.title}
+                                  </h5>
+                                  {proj.isDefault && (
+                                    <Badge variant="primary" size="sm">
+                                      Assigned Default
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="mt-1 line-clamp-2 text-xs text-slate-600 dark:text-slate-400">
+                                  {proj.description || 'Enterprise production project with hands-on daily tasks.'}
+                                </p>
+                              </div>
+                              <div
+                                className={cn(
+                                  'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs transition-all',
+                                  isSelected
+                                    ? 'border-brand-600 bg-brand-600 text-white dark:border-brand-500 dark:bg-brand-500 shadow-sm'
+                                    : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-800',
+                                )}
+                              >
+                                {isSelected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                              </div>
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                Tech Stack:
+                              </span>
+                              {(proj.webTechStack || ['React', 'Node.js', 'PostgreSQL']).slice(0, 4).map((tech, i) => (
+                                <span
+                                  key={i}
+                                  className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                >
+                                  {tech}
+                                </span>
+                              ))}
+                              <span className="ml-auto text-[11px] font-semibold text-brand-600 dark:text-brand-400">
+                                {formData.duration} Tasks Included
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-5 text-center dark:border-slate-800 dark:bg-slate-900/50">
+                      <FolderGit2 className="mx-auto h-7 w-7 text-slate-400" />
+                      <h5 className="mt-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        {formData.selectedDomain} Core Enterprise System
+                      </h5>
+                      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                        Your domain track includes fixed daily engineering deliverables designed by industry leads.
+                      </p>
+                      <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span>Pre-assigned Project Blueprint Verified</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <Button
+                      variant="outline"
+                      type="button"
+                      leftIcon={ArrowLeft}
+                      onClick={() => setApplyStep(1)}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      variant="primary"
+                      type="button"
+                      rightIcon={ArrowRight}
+                      onClick={handleStep2Next}
+                      className="bg-brand-600 hover:bg-brand-700 font-bold"
+                    >
+                      Submit Application
+                    </Button>
+                  </div>
                 </div>
-              </form>
-            )}
+              )}
+
+              {applyStep === 3 && (
+                paymentSuccess ? (
+                  /* Payment Success Celebration Screen */
+                  <div className="space-y-6 py-4 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-400 ring-8 ring-emerald-50 dark:ring-emerald-950/30">
+                      <CheckCircle2 className="h-10 w-10" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Seat Confirmed & Allocated
+                      </span>
+                      <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+                        Demo Payment Successful!
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-md mx-auto">
+                        Congratulations, <span className="font-semibold text-slate-900 dark:text-white">{formData.fullName}</span>! You have been successfully enrolled as a{' '}
+                        <span className="font-semibold text-brand-600 dark:text-brand-400">{currentRole.designation}</span> at{' '}
+                        <span className="font-semibold text-slate-900 dark:text-white">{partner.name}</span>.
+                      </p>
+                    </div>
+
+                    {/* Allocation Summary Card */}
+                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-left text-xs dark:border-slate-800 dark:bg-slate-900/60 max-w-lg mx-auto space-y-2.5">
+                      <div className="flex justify-between items-center border-b border-slate-200/80 pb-2 dark:border-slate-800">
+                        <span className="text-slate-500 dark:text-slate-400">Assigned Project:</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{selectedProject?.title || `${formData.selectedDomain} Core System`}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-b border-slate-200/80 pb-2 dark:border-slate-800">
+                        <span className="text-slate-500 dark:text-slate-400">Domain & Duration:</span>
+                        <span className="font-semibold text-brand-600 dark:text-brand-400">{formData.selectedDomain} · {formData.duration}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-b border-slate-200/80 pb-2 dark:border-slate-800">
+                        <span className="text-slate-500 dark:text-slate-400">Transaction ID (Demo):</span>
+                        <span className="font-mono text-slate-700 dark:text-slate-300">
+                          {demoResult?.orderId || `DEMO-TXN-${Date.now().toString().slice(-8)}`}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500 dark:text-slate-400">Demo Amount Paid:</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          {formatInr(
+                            demoResult?.amount
+                              ? Math.round(Number(demoResult.amount) / 100)
+                              : activePrice.payableAmount,
+                          )}{' '}
+                          (Paid)
+                        </span>
+                      </div>
+                      {(demoResult?.referralCodeUsed || verifiedTpo?.referralCode) ? (
+                        <div className="flex justify-between items-center border-t border-slate-200/80 pt-2 dark:border-slate-800">
+                          <span className="text-slate-500 dark:text-slate-400">TPO Reference Code:</span>
+                          <span className="font-mono font-semibold text-brand-700 dark:text-brand-300">
+                            {demoResult?.referralCodeUsed || verifiedTpo?.referralCode}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="rounded-xl border border-blue-200/80 bg-blue-50/60 p-3 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 max-w-lg mx-auto">
+                      <p className="font-medium">
+                        Daily engineering task templates have been activated. You can now begin submitting commits on your task board.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-3 pt-2">
+                      <Button variant="outline" onClick={handleResetAndClose}>
+                        Close
+                      </Button>
+                      <Button
+                        variant="primary"
+                        rightIcon={ArrowRight}
+                        onClick={() => {
+                          handleResetAndClose();
+                          navigate(ROUTES.DASHBOARD || '/dashboard');
+                        }}
+                        className="bg-brand-600 hover:bg-brand-700 font-bold"
+                      >
+                        Go to Student Dashboard
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Demo Payment Tab */
+                  <div className="space-y-4">
+                    {/* Demo Banner */}
+                    <div className="rounded-xl border border-amber-200/80 bg-amber-50/70 p-3.5 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
+                      <div className="flex items-center gap-2 font-bold text-sm text-amber-800 dark:text-amber-300">
+                        <CreditCard className="h-4 w-4" />
+                        <span>Demo Payment Mode (Sandbox Simulation)</span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
+                        This payment tab is in <strong>demo mode</strong>. No real credit card or bank account will be charged. Clicking Pay will instantly simulate a successful transaction, confirm your seat, and unlock your day-wise tasks.
+                      </p>
+                    </div>
+
+                    {/* Review Details & Fee Breakdown Grid */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {/* Review Candidate & Project */}
+                      <div className="rounded-xl border border-slate-200 bg-white p-4 text-xs dark:border-slate-800 dark:bg-slate-900 space-y-2.5">
+                        <h5 className="font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center justify-between">
+                          <span>Application Summary</span>
+                          <Badge variant="primary" size="sm">{partner.name}</Badge>
+                        </h5>
+
+                        <div className="space-y-1.5 text-slate-600 dark:text-slate-300">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 dark:text-slate-400">Candidate:</span>
+                            <span className="font-semibold text-slate-900 dark:text-white">{formData.fullName}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 dark:text-slate-400">Email:</span>
+                            <span className="font-medium text-slate-900 dark:text-white">{formData.email}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 dark:text-slate-400">College:</span>
+                            <span className="font-medium text-slate-900 dark:text-white">{formData.college}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 dark:text-slate-400">Role & Track:</span>
+                            <span className="font-semibold text-slate-900 dark:text-white">{currentRole.designation}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 dark:text-slate-400">Selected Domain:</span>
+                            <span className="font-semibold text-brand-600 dark:text-brand-400">{formData.selectedDomain}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 dark:text-slate-400">Duration:</span>
+                            <span className="font-medium text-slate-900 dark:text-white">{formData.duration}</span>
+                          </div>
+                          <div className="flex justify-between border-t border-slate-100 dark:border-slate-800/80 pt-1.5">
+                            <span className="text-slate-500 dark:text-slate-400">Assigned Project:</span>
+                            <span className="font-bold text-brand-600 dark:text-brand-400 line-clamp-1">{selectedProject?.title || `${formData.selectedDomain} Core System`}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Pricing Breakdown */}
+                      <div className="rounded-xl border border-slate-200 bg-white p-4 text-xs dark:border-slate-800 dark:bg-slate-900 space-y-2.5 flex flex-col justify-between">
+                        <div>
+                          <h5 className="font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-2">
+                            Fee & Charges Breakdown
+                          </h5>
+
+                          <div className="mt-2.5 space-y-2 text-slate-600 dark:text-slate-300">
+                            <div className="flex justify-between">
+                              <span>Internship Tuition:</span>
+                              <span className="font-semibold text-emerald-600 dark:text-emerald-400">₹0 (100% Free / Unpaid)</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Standard Platform Infrastructure ({activePrice.durationMonths} {activePrice.durationMonths === 1 ? 'Month' : 'Months'}):</span>
+                              <span className="text-slate-900 dark:text-white font-medium">{formatInr(activePrice.basePrice)}</span>
+                            </div>
+                            {activePrice.concessionPercent > 0 && activePrice.discountAmount > 0 && (
+                              <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
+                                <span>Direct Platform Concession ({activePrice.concessionPercent}%):</span>
+                                <span>-{formatInr(activePrice.discountAmount)}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="border-t border-slate-200 dark:border-slate-800 pt-3">
+                          <div className="flex justify-between items-center text-sm font-bold text-slate-900 dark:text-white">
+                            <span>Total Payable (Demo):</span>
+                            <span className="text-lg text-brand-600 dark:text-brand-400">{formatInr(activePrice.payableAmount)}</span>
+                          </div>
+                          <p className="mt-1 text-[10px] text-slate-400">Includes verified GitHub mentor reviews & certificate validation.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* TPO Reference Code (Optional) */}
+                    <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 space-y-1.5">
+                      <Input
+                        id="payment-tpo-referral-code"
+                        data-testid="payment-referral-code-input"
+                        label="TPO Reference Code (Optional)"
+                        autoCapitalize="characters"
+                        spellCheck={false}
+                        maxLength={32}
+                        placeholder="e.g. TPO-RS-7K4M9"
+                        leftIcon={Tag}
+                        value={referralCode}
+                        onChange={handleReferralChange}
+                        disabled={isPaying}
+                        error={referralError}
+                        hint={
+                          !referralError && !verifiedTpo
+                            ? 'Have a TPO reference code from your college? Apply it here to unlock your student discount before payment.'
+                            : undefined
+                        }
+                      />
+
+                      {isCheckingReferral ? (
+                        <p className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                          Checking reference code…
+                        </p>
+                      ) : null}
+
+                      {!isCheckingReferral && verifiedTpo ? (
+                        <p
+                          data-testid="payment-verified-tpo-banner"
+                          className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          <span>
+                            Code verified — {verifiedTpo.tpoName}
+                            {verifiedTpo.college ? ` (${verifiedTpo.college})` : ''}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
+
+                    {/* Demo Payment Selector */}
+                    <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-900/40">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-2">Select Demo Payment Method:</span>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex items-center gap-2.5 rounded-lg border border-brand-500 bg-brand-50/50 p-2.5 text-xs font-medium text-brand-900 dark:border-brand-500 dark:bg-brand-950/30 dark:text-brand-200 cursor-pointer">
+                          <CreditCard className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                          <span>Instant UPI / QR (Demo)</span>
+                        </div>
+                        <div className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 cursor-pointer">
+                          <Lock className="h-4 w-4 text-slate-400" />
+                          <span>Net Banking / Card (Demo)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 3 Action Buttons */}
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                      <Button
+                        variant="outline"
+                        type="button"
+                        leftIcon={ArrowLeft}
+                        disabled={isPaying}
+                        onClick={() => setApplyStep(2)}
+                      >
+                        Back to Project
+                      </Button>
+                      <Button
+                        variant="primary"
+                        type="button"
+                        loading={isPaying}
+                        disabled={Boolean(referralCode.trim() && (referralError || isCheckingReferral))}
+                        leftIcon={CreditCard}
+                        onClick={handleDemoPayment}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 shadow-md"
+                      >
+                        Pay {formatInr(activePrice.payableAmount)} (Complete Demo Checkout)
+                      </Button>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
           </div>
         )}
       </div>

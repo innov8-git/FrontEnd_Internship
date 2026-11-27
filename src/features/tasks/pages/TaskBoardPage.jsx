@@ -127,7 +127,7 @@ export default function TaskBoardPage() {
     content = isTeamEnrollment(enrollment) ? (
       <TeamNotStartedState teamId={enrollment.teamId ?? enrollment.team?._id} />
     ) : (
-      <NoTasksState />
+      <NoTasksState enrollment={enrollment} />
     );
   } else {
     const showBoard = canShowBoard && view === TASK_VIEWS.BOARD;

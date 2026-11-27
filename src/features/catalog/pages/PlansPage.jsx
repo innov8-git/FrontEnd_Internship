@@ -65,7 +65,7 @@ export default function PlansPage() {
       <PageHeader
         eyebrow="Catalog"
         title="Plans & pricing"
-        description="Each plan is a designation, a domain and a duration with a base price. Assessment discounts are applied by the server when a student gets a quote; price changes only affect new quotes."
+        description="Each plan is a designation, a domain and a duration with platform charges and a direct discount. Platform charges and discounts apply directly to student quotes; price changes only affect new quotes."
         actions={
           <Button leftIcon={Plus} onClick={openCreate}>
             Create plan

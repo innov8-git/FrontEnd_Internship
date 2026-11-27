@@ -80,6 +80,8 @@ export function Sidebar({
 }) {
   const baseId = useId();
   const isDrawer = variant === 'drawer';
+  const { pathname } = useLocation();
+  const isAdmin = roleLabel === 'Admin' || pathname.startsWith('/admin');
 
   return (
     <div
@@ -133,15 +135,17 @@ export function Sidebar({
             isDrawer ? 'border-t border-slate-200 pt-5 dark:border-slate-800' : 'px-4 pb-4',
           )}
         >
-          <div className="rounded-xl bg-slate-50 p-4 text-sm dark:bg-slate-800/60">
-            <p className="font-medium text-slate-900 dark:text-slate-100">Need help?</p>
-            <p className="mt-1 text-slate-500 dark:text-slate-400">
-              Email{' '}
-              <a href={`mailto:${SUPPORT_EMAIL}`} className="link break-words">
-                {SUPPORT_EMAIL}
-              </a>
-            </p>
-          </div>
+          {!isAdmin ? (
+            <div className="rounded-xl bg-slate-50 p-4 text-sm dark:bg-slate-800/60">
+              <p className="font-medium text-slate-900 dark:text-slate-100">Need help?</p>
+              <p className="mt-1 text-slate-500 dark:text-slate-400">
+                Email{' '}
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="link break-words">
+                  {SUPPORT_EMAIL}
+                </a>
+              </p>
+            </div>
+          ) : null}
           {roleLabel ? (
             <div className="flex items-center justify-between gap-2 px-1">
               <span className="text-xs text-slate-500 dark:text-slate-400">Workspace</span>

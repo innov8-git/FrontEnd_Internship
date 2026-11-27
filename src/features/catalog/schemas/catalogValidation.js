@@ -14,6 +14,14 @@ export const CATALOG_DESCRIPTION_MAX = 500;
 /** Highest base price an admin can set, in rupees (₹10,00,000). */
 export const PLAN_PRICE_MAX_RUPEES = 1000000;
 
+export const designationItemSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(CATALOG_NAME_MIN, `Enter at least ${CATALOG_NAME_MIN} characters.`)
+    .max(CATALOG_NAME_MAX, `Keep the name to ${CATALOG_NAME_MAX} characters or fewer.`),
+});
+
 export const catalogItemSchema = z.object({
   name: z
     .string()
@@ -82,18 +90,28 @@ const basePriceField = z.string().superRefine((raw, ctx) => {
   if (amount > PLAN_PRICE_MAX_RUPEES) issue('The price can be at most ₹10,00,000.');
 });
 
-/** Create a plan: designation + domain + duration + base price (rupees, sent to the API as paise). */
+const discountPercentField = z
+  .union([z.string(), z.number()])
+  .optional()
+  .transform((val) => (val === '' || val === undefined || val === null ? 0 : Number(val)))
+  .refine((val) => !Number.isNaN(val) && val >= 0 && val <= 100, {
+    message: 'Discount must be between 0% and 100%.',
+  });
+
+/** Create a plan: designation + domain + duration + base price + discount. */
 export const planCreateSchema = z.object({
   designationId: z.string().min(1, 'Choose a designation.'),
   domainId: z.string().min(1, 'Choose a domain.'),
   durationMonths: durationField,
   basePrice: basePriceField,
+  discountPercent: discountPercentField,
   publishNow: z.boolean().optional().default(false),
 });
 
-/** Edit a plan: the designation is fixed; domain, duration and price can change. */
+/** Edit a plan: domain, duration, price, and discount can change. */
 export const planUpdateSchema = z.object({
   domainId: z.string().min(1, 'Choose a domain.'),
   durationMonths: durationField,
   basePrice: basePriceField,
+  discountPercent: discountPercentField,
 });

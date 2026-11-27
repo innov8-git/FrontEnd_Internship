@@ -4,6 +4,7 @@ import { getAdminEnrollments, getUsers } from '@/services/adminService';
 import {
   createAssignment,
   getAdminAssignments,
+  getAdminAssignmentsSummary,
   getAdminTeams,
   removeAssignment,
 } from '@/services/adminAssignmentService';
@@ -29,6 +30,14 @@ export function useAssignmentsTable() {
   );
 }
 
+/** Overall trainer count + task/review/pending metrics for /admin/assignments. */
+export function useAssignmentsSummary() {
+  return useQuery({
+    queryKey: queryKeys.admin.assignmentsSummary,
+    queryFn: () => getAdminAssignmentsSummary(),
+  });
+}
+
 /** Active users with the TRAINER role, for the trainer picker. */
 export function useTrainerOptions() {
   const params = { role: ROLES.TRAINER, status: USER_STATUS.ACTIVE, limit: 100 };
@@ -49,19 +58,23 @@ function selectActiveTrainers(data) {
   );
 }
 
-function selectAssignableEnrollments(data) {
+function selectAssignableEnrollments(data, unassignedOnly = false) {
   // Team members are reviewed through their team, so only individual enrollments are offered.
   return toItems(data)
     .filter(
       (enrollment) =>
         ASSIGNABLE_ENROLLMENT_STATUSES.includes(enrollment.status) &&
-        enrollment.enrollmentType !== ENROLLMENT_TYPE.TEAM,
+        enrollment.enrollmentType !== ENROLLMENT_TYPE.TEAM &&
+        !enrollment.teamId &&
+        (!unassignedOnly || (!enrollment.hasTrainer && !enrollment.trainerId && !enrollment.trainer)),
     )
     .map(targetFromEnrollment);
 }
 
-function selectTeams(data) {
-  return toItems(data).map(targetFromTeam);
+function selectTeams(data, unassignedOnly = false) {
+  return toItems(data)
+    .filter((team) => !unassignedOnly || (!team.hasTrainer && !team.trainerId && !team.trainer))
+    .map(targetFromTeam);
 }
 
 /**
@@ -69,13 +82,19 @@ function selectTeams(data) {
  * `data` is a list of target summaries ({ type, id, name, detail, status, disabled }).
  * Mount one picker per type (key it by type) so previous data never crosses types.
  */
-export function useAssignmentTargets({ type, search }) {
+export function useAssignmentTargets({ type, search, unassignedOnly = false }) {
   const isTeam = type === TARGET_TYPE.TEAM;
   const params = isTeam
-    ? { search: search || undefined, limit: PICKER_LIMIT }
+    ? {
+        search: search || undefined,
+        unassigned: unassignedOnly ? 'true' : undefined,
+        limit: PICKER_LIMIT,
+      }
     : {
         search: search || undefined,
-        status: ASSIGNABLE_ENROLLMENT_STATUSES.join(','),
+        status: unassignedOnly ? ASSIGNABLE_ENROLLMENT_STATUSES.join(',') : undefined,
+        enrollmentType: unassignedOnly ? ENROLLMENT_TYPE.INDIVIDUAL : undefined,
+        unassigned: unassignedOnly ? 'true' : undefined,
         limit: PICKER_LIMIT,
       };
   return useQuery({
@@ -83,7 +102,7 @@ export function useAssignmentTargets({ type, search }) {
       ? [...queryKeys.admin.teams, 'assign-picker', params]
       : [...queryKeys.admin.enrollments, 'assign-picker', params],
     queryFn: () => (isTeam ? getAdminTeams(params) : getAdminEnrollments(params)),
-    select: isTeam ? selectTeams : selectAssignableEnrollments,
+    select: (data) => (isTeam ? selectTeams(data, unassignedOnly) : selectAssignableEnrollments(data, unassignedOnly)),
     placeholderData: keepPreviousData,
   });
 }

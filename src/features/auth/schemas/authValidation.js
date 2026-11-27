@@ -112,6 +112,12 @@ export const studentRegisterSchema = z
     confirmPassword: z
       .string({ required_error: 'Confirm your password.' })
       .min(1, 'Confirm your password.'),
+    referralCode: z
+      .string()
+      .trim()
+      .max(32, 'Reference code cannot exceed 32 characters.')
+      .optional()
+      .or(z.literal('')),
   })
   .refine((values) => !values.confirmPassword || values.password === values.confirmPassword, {
     path: ['confirmPassword'],
@@ -266,6 +272,7 @@ export const STUDENT_REGISTER_DEFAULTS = Object.freeze({
   email: '',
   password: '',
   confirmPassword: '',
+  referralCode: '',
 });
 
 export const TRAINER_REGISTER_DEFAULTS = Object.freeze({

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Badge, Button, DataTable, Select, StatusBadge } from '@/shared/components/ui';
+import { Button, DataTable, Select, StatusBadge } from '@/shared/components/ui';
 import { Briefcase, Building2, Plus } from '@/shared/icons';
 import { PUBLISH_STATUS } from '@/shared/constants';
 import { formatDate, formatDateTime } from '@/shared/utils/helpers';
@@ -24,7 +23,7 @@ const EMPTY_DESCRIPTIONS = {
  * KD3 list of designations or domains (server-paginated DataTable): name, slug, description,
  * status and last update, with Edit and Publish / Unpublish row actions.
  */
-export function CatalogTable({ kind, onCreate, onEdit, onChangeStatus }) {
+export function CatalogTable({ kind, onCreate, onEdit, onChangeStatus, onDelete }) {
   const config = getCatalogKind(kind);
   const [status, setStatus] = useState('');
 
@@ -37,60 +36,28 @@ export function CatalogTable({ kind, onCreate, onEdit, onChangeStatus }) {
         className: 'min-w-[10rem]',
         cell: (row) => <span className="font-medium text-slate-900">{row.name}</span>,
       },
-      {
-        key: 'slug',
-        header: 'Slug',
-        cell: (row) => (
-          <code className="whitespace-nowrap rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700">
-            {row.slug}
-          </code>
-        ),
-      },
-      {
-        key: 'description',
-        header: 'Description',
-        className: 'min-w-[16rem] max-w-md',
-        cell: (row) =>
-          row.description ? (
-            <p className="line-clamp-2 text-slate-600" title={row.description}>
-              {row.description}
-            </p>
-          ) : (
-            <span className="text-slate-500">—</span>
-          ),
-      },
+      ...(config.kind !== 'designation'
+        ? [
+          {
+            key: 'description',
+            header: 'Description',
+            className: 'min-w-[16rem] max-w-md',
+            cell: (row) =>
+              row.description ? (
+                <p className="line-clamp-2 text-slate-600" title={row.description}>
+                  {row.description}
+                </p>
+              ) : (
+                <span className="text-slate-500">—</span>
+              ),
+          },
+        ]
+        : []),
       {
         key: 'status',
         header: 'Status',
         cell: (row) => <StatusBadge status={row.status} />,
       },
-      ...(kind === 'domain'
-        ? [
-            {
-              key: 'questions',
-              header: 'Questions',
-              className: 'whitespace-nowrap',
-              cell: (row) => {
-                const count = Number(row.questionCount) || 0;
-                const isReady = count >= 15;
-                return (
-                  <Link
-                    to={`/admin/domains/${row._id}/questions`}
-                    className="inline-flex items-center gap-2 group"
-                    title={`Manage question pool for ${row.name}`}
-                  >
-                    <Badge variant={isReady ? 'success' : 'neutral'}>
-                      {count} / 100
-                    </Badge>
-                    <span className="text-xs font-semibold text-brand-600 group-hover:text-brand-700 group-hover:underline">
-                      Manage &rarr;
-                    </span>
-                  </Link>
-                );
-              },
-            },
-          ]
-        : []),
       {
         key: 'updatedAt',
         header: 'Updated',
@@ -116,11 +83,12 @@ export function CatalogTable({ kind, onCreate, onEdit, onChangeStatus }) {
             status={row.status}
             onEdit={() => onEdit(row)}
             onChangeStatus={(nextStatus) => onChangeStatus(row, nextStatus)}
+            onDelete={onDelete ? () => onDelete(row) : undefined}
           />
         ),
       },
     ],
-    [kind, onEdit, onChangeStatus],
+    [config.kind, onEdit, onChangeStatus, onDelete],
   );
 
   return (

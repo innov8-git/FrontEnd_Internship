@@ -2,11 +2,10 @@ import { Link } from 'react-router-dom';
 import { Button, Tooltip } from '@/shared/components/ui';
 import { useAuth } from '@/shared/hooks';
 import { ROLES, paths } from '@/shared/constants';
-import { ArrowRight, ClipboardCheck, ListChecks, Users } from '@/shared/icons';
+import { ArrowRight, GraduationCap, Users } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
-import { useMyAttempt } from '@/features/assessment/hooks/useMyAttempt';
 
-const STUDENTS_ONLY_MESSAGE = 'Only student accounts can take assessments and enroll.';
+const STUDENTS_ONLY_MESSAGE = 'Only student accounts can enroll in internships.';
 
 /** A focusable, visibly disabled button whose reason is available on hover and focus. */
 function UnavailableButton({ children, size, variant = 'primary', leftIcon, className }) {
@@ -27,10 +26,9 @@ function UnavailableButton({ children, size, variant = 'primary', leftIcon, clas
 }
 
 /**
- * Primary CTA of a designation (SN5 -> SN6):
- * - signed out: "Start assessment" -> register (then back to the assessment) + "I already have an account";
- * - student without an attempt: "Start assessment";
- * - student with an attempt: "View your result" (+ "Choose your plan");
+ * Primary CTA of a designation:
+ * - signed out: "Enroll now" -> register/login (then directly to enrollment);
+ * - student: "Enroll now" -> opens enrollment page for the designation;
  * - trainer/admin: disabled with an explanation.
  */
 export function StartAssessmentButton({
@@ -42,16 +40,15 @@ export function StartAssessmentButton({
 }) {
   const { isAuthenticated, isLoading: authLoading, hasRole } = useAuth();
   const isStudent = isAuthenticated && hasRole(ROLES.STUDENT);
-  const attemptQuery = useMyAttempt(designationId, { enabled: isStudent });
-  const assessmentPath = paths.assessment(designationId);
+  const enrollPath = paths.enroll({ designationId });
 
   const wrapperClass = cn('flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center', className);
 
-  if (authLoading || (isStudent && attemptQuery.isLoading)) {
+  if (authLoading) {
     return (
       <div className={wrapperClass}>
         <Button size={size} loading>
-          Checking your progress…
+          Loading…
         </Button>
       </div>
     );
@@ -62,16 +59,16 @@ export function StartAssessmentButton({
       <div className={wrapperClass}>
         <Button
           as={Link}
-          to={paths.login(assessmentPath)}
+          to={paths.login(enrollPath)}
           size={size}
           rightIcon={ArrowRight}
         >
-          Start assessment
+          Enroll now
         </Button>
         {showSecondary ? (
           <Button
             as={Link}
-            to={paths.register(assessmentPath)}
+            to={paths.register(enrollPath)}
             size={size}
             variant="outline"
           >
@@ -86,38 +83,11 @@ export function StartAssessmentButton({
     return (
       <div className={cn('flex flex-col gap-2', className)}>
         <div className="flex flex-wrap items-center gap-3">
-          <UnavailableButton size={size} leftIcon={ListChecks}>
-            Start assessment
+          <UnavailableButton size={size} leftIcon={GraduationCap}>
+            Enroll now
           </UnavailableButton>
         </div>
         <p className="text-sm text-slate-500">{STUDENTS_ONLY_MESSAGE}</p>
-      </div>
-    );
-  }
-
-  const attempt = attemptQuery.data;
-  if (attempt) {
-    return (
-      <div className={wrapperClass}>
-        <Button
-          as={Link}
-          to={paths.assessmentResult(designationId)}
-          size={size}
-          leftIcon={ClipboardCheck}
-        >
-          View your result
-        </Button>
-        {showSecondary ? (
-          <Button
-            as={Link}
-            to={paths.enroll({ designationId })}
-            size={size}
-            variant="outline"
-            rightIcon={ArrowRight}
-          >
-            Choose your plan
-          </Button>
-        ) : null}
       </div>
     );
   }
@@ -126,7 +96,7 @@ export function StartAssessmentButton({
     return (
       <div className={wrapperClass}>
         <Button onClick={onStartAssessment} size={size} rightIcon={ArrowRight}>
-          Start assessment
+          Enroll now
         </Button>
       </div>
     );
@@ -134,8 +104,8 @@ export function StartAssessmentButton({
 
   return (
     <div className={wrapperClass}>
-      <Button as={Link} to={assessmentPath} size={size} rightIcon={ArrowRight}>
-        Start assessment
+      <Button as={Link} to={enrollPath} size={size} rightIcon={ArrowRight}>
+        Enroll now
       </Button>
     </div>
   );
