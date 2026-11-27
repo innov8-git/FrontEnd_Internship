@@ -222,9 +222,14 @@ export const trainerHandlers = [
     const query = getQuery(request);
     const search = query.get('search');
     const statuses = listParam(query, 'status');
+    const unassigned = query.get('unassigned') === 'true';
+    const assignedTeamIds = unassigned
+      ? new Set(db.trainerAssignments.filter((a) => a.active && a.teamId).map((a) => a.teamId))
+      : null;
 
     const items = db.teams
       .filter((team) => statuses.length === 0 || statuses.includes(team.status))
+      .filter((team) => !unassigned || !assignedTeamIds.has(team._id))
       .filter((team) => {
         if (!search) return true;
         const leader = findUser(team.leaderId);

@@ -10,11 +10,11 @@ import { TARGET_TYPE } from '../utils/assignmentHelpers';
  * Searchable single-choice list of assignment targets (KD11): active individual enrollments or
  * teams. Native radios, so it is keyboard and screen-reader friendly. Key it by `type`.
  */
-export function TargetPicker({ type, selected, onSelect, error, initialSearch = '' }) {
+export function TargetPicker({ type, selected, onSelect, error, initialSearch = '', unassignedOnly = false }) {
   const isTeam = type === TARGET_TYPE.TEAM;
   const [search, setSearch] = useState(initialSearch);
   const debouncedSearch = useDebounce(search.trim(), 300);
-  const query = useAssignmentTargets({ type, search: debouncedSearch });
+  const query = useAssignmentTargets({ type, search: debouncedSearch, unassignedOnly });
   const groupName = useId();
   const errorId = useId();
   const hintId = useId();
@@ -38,8 +38,10 @@ export function TargetPicker({ type, selected, onSelect, error, initialSearch = 
         <Search className="h-5 w-5 text-slate-400" aria-hidden="true" />
         <p className="text-sm text-slate-600">
           {debouncedSearch
-            ? `No ${isTeam ? 'teams' : 'active enrollments'} match “${debouncedSearch}”.`
-            : `No ${isTeam ? 'teams' : 'active enrollments'} yet.`}
+            ? `No ${unassignedOnly ? 'unassigned ' : ''}${isTeam ? 'teams' : 'active enrollments'} match “${debouncedSearch}”.`
+            : unassignedOnly
+              ? `No unassigned ${isTeam ? 'teams' : 'enrolled students'} right now.`
+              : `No ${isTeam ? 'teams' : 'active enrollments'} yet.`}
         </p>
       </div>
     );
@@ -117,8 +119,12 @@ export function TargetPicker({ type, selected, onSelect, error, initialSearch = 
       </div>
       <p id={hintId} className="mt-1.5 text-xs text-slate-500">
         {isTeam
-          ? "Pick the team; its shared tasks go to this trainer. Disbanded teams can't be assigned."
-          : 'Only active individual enrollments are listed. Team members are reviewed through their team.'}
+          ? unassignedOnly
+            ? "Only unassigned teams are listed; disbanded teams can't be assigned."
+            : "Pick the team; its shared tasks go to this trainer. Disbanded teams can't be assigned."
+          : unassignedOnly
+            ? 'Only active, unassigned student enrollments are listed. Team members are reviewed through their team.'
+            : 'Only active individual enrollments are listed. Team members are reviewed through their team.'}
       </p>
       {error ? (
         <p id={errorId} role="alert" className="mt-1 text-xs text-rose-600">

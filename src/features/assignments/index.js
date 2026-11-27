@@ -6,8 +6,11 @@ export { AssignTrainerDialog } from './components/AssignTrainerDialog';
 export { AssignmentHistory } from './components/AssignmentHistory';
 export { TargetPicker } from './components/TargetPicker';
 export { TargetTypeToggle } from './components/TargetTypeToggle';
+export { TrainerAssignmentsPanel } from './components/TrainerAssignmentsPanel';
+export { TrainerSummaryCards } from './components/TrainerSummaryCards';
 export {
   useAssignmentTargets,
+  useAssignmentsSummary,
   useAssignmentsTable,
   useCreateAssignment,
   useRemoveAssignment,

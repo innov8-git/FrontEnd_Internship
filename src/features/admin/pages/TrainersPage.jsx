@@ -6,7 +6,6 @@ import {
   DataTable,
   DropdownMenu,
   PageHeader,
-  StatusBadge,
   Switch,
   Tabs,
   toast,
@@ -30,8 +29,13 @@ import {
   UserX,
   RefreshCw,
 } from '@/shared/icons';
-import { PAGE_SIZE_OPTIONS } from '@/shared/constants';
+import { PAGE_SIZE_OPTIONS, paths } from '@/shared/constants';
 import { queryKeys } from '@/services/queryKeys';
+import {
+  AssignTrainerDialog,
+  TrainerAssignmentsPanel,
+  TrainerSummaryCards,
+} from '@/features/assignments';
 import { useAuth, useDocumentTitle } from '@/shared/hooks';
 import { formatDateTime, formatRelativeTime } from '@/shared/utils/helpers';
 import { ClearFiltersButton } from '../components/ClearFiltersButton';
@@ -39,7 +43,6 @@ import { FilterSelect } from '../components/FilterSelect';
 import { PersonCell } from '../components/PersonCell';
 import { TrainerResumeModal } from '../components/TrainerResumeModal';
 import { TrainerAssignmentsDrawer } from '../components/TrainerAssignmentsDrawer';
-import { AssignStudentGroupModal } from '../components/AssignStudentGroupModal';
 import { CreateTrainerModal } from '../components/CreateTrainerModal';
 import {
   TrainerApplicationDrawer,
@@ -76,17 +79,19 @@ export function TrainersPage() {
 
   const { values, setValue, clear, activeCount } = useUrlFilters(FILTER_KEYS);
   const activeTab =
-    values.tab === 'requests'
-      ? 'requests'
-      : values.tab === 'change-requests'
-        ? 'change-requests'
-        : 'trainers';
+    values.tab === 'assignments'
+      ? 'assignments'
+      : values.tab === 'requests'
+        ? 'requests'
+        : values.tab === 'change-requests'
+          ? 'change-requests'
+          : 'trainers';
 
   // Active trainers modal / drawer states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [assignDialog, setAssignDialog] = useState({ open: false, trainer: null, target: null });
   const [resumeTarget, setResumeTarget] = useState(null);
   const [assignmentsTarget, setAssignmentsTarget] = useState(null);
-  const [assignTarget, setAssignTarget] = useState(null);
   const [privilegeTarget, setPrivilegeTarget] = useState(null);
   const [deleteTrainerTarget, setDeleteTrainerTarget] = useState(null);
 
@@ -175,7 +180,11 @@ export function TrainersPage() {
         header: 'Trainer',
         sortable: true,
         cell: (trainer) => (
-          <PersonCell person={trainer} isYou={trainer._id === currentUserId} />
+          <PersonCell
+            person={trainer}
+            isYou={trainer._id === currentUserId}
+            to={trainer._id ? paths.adminTrainerReports(trainer._id) : undefined}
+          />
         ),
       },
       {
@@ -269,11 +278,6 @@ export function TrainersPage() {
         },
       },
       {
-        key: 'status',
-        header: 'Account Status',
-        cell: (trainer) => <StatusBadge status={trainer.status} />,
-      },
-      {
         key: 'actions',
         header: <span className="sr-only">Actions</span>,
         align: 'right',
@@ -304,7 +308,7 @@ export function TrainersPage() {
                 label: 'Assign student or group',
                 icon: UserPlus,
                 disabled: !trainer.isTrainer,
-                onClick: () => setAssignTarget(trainer),
+                onClick: () => setAssignDialog({ open: true, trainer, target: null }),
               },
               { divider: true },
               {
@@ -507,6 +511,19 @@ export function TrainersPage() {
       ),
     },
     {
+      value: 'assignments',
+      label: 'Trainer Assignments',
+      icon: UserCheck,
+      content: (
+        <div className="pt-4">
+          <TrainerAssignmentsPanel
+            renderDialog={false}
+            onOpenAssign={(target = null) => setAssignDialog({ open: true, trainer: null, target })}
+          />
+        </div>
+      ),
+    },
+    {
       value: 'requests',
       label: 'Join Requests',
       icon: Inbox,
@@ -549,11 +566,22 @@ export function TrainersPage() {
         title="Trainers"
         description="Manage active trainers, review incoming trainer join requests, inspect resumes, and provision trainer login credentials."
         actions={
-          <Button leftIcon={UserPlus} onClick={() => setIsCreateModalOpen(true)}>
-            Create Trainer
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              leftIcon={UserCheck}
+              onClick={() => setAssignDialog({ open: true, trainer: null, target: null })}
+            >
+              Assign trainer
+            </Button>
+            <Button leftIcon={UserPlus} onClick={() => setIsCreateModalOpen(true)}>
+              Create Trainer
+            </Button>
+          </div>
         }
       />
+
+      <TrainerSummaryCards />
 
       <Tabs
         aria-label="Trainer management sections"
@@ -568,6 +596,14 @@ export function TrainersPage() {
       <CreateTrainerModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      {/* Global / Per-Trainer Assign Student Flow Dialog */}
+      <AssignTrainerDialog
+        open={assignDialog.open}
+        onClose={() => setAssignDialog({ open: false, trainer: null, target: null })}
+        initialTarget={assignDialog.target}
+        initialTrainer={assignDialog.trainer}
       />
 
       {/* Active Trainer Resume & Profile Modal */}
@@ -585,15 +621,8 @@ export function TrainersPage() {
         onClose={() => setAssignmentsTarget(null)}
         onOpenAssign={(tr) => {
           setAssignmentsTarget(null);
-          setAssignTarget(tr);
+          setAssignDialog({ open: true, trainer: tr, target: null });
         }}
-      />
-
-      {/* Assign Student or Group Dialog */}
-      <AssignStudentGroupModal
-        trainer={assignTarget}
-        open={Boolean(assignTarget)}
-        onClose={() => setAssignTarget(null)}
       />
 
       {/* Toggle Privilege Confirmation Dialog */}
