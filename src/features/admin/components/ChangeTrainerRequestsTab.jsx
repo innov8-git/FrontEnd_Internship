@@ -43,7 +43,7 @@ export function ChangeTrainerRequestsTab() {
   const trainersQuery = useQuery({
     queryKey: [...queryKeys.admin.trainers, 'active-list'],
     queryFn: () => getTrainers({ limit: 200, privilege: 'active' }),
-    select: (data) => data?.data || data?.results || [],
+    select: (data) => data?.items || data?.data || data?.results || [],
     staleTime: 30_000,
   });
   const trainerOptions = useMemo(

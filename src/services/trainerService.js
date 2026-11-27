@@ -20,7 +20,7 @@ export const reviewSubmission = (id, { decision, feedback }) =>
 
 /** Student submits a change-trainer request. */
 export const submitChangeTrainerRequest = (payload) =>
-  api.post('/trainer/change-requests', payload);
+  api.post('/enrollments/change-trainer-request', payload);
 
 /** Admin fetches all change-trainer requests (supports pagination / search). */
 export const getChangeTrainerRequests = (params = {}) =>
