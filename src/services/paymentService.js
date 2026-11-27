@@ -25,6 +25,13 @@ export const completeMockPayment = ({ orderId, outcome }) =>
   api.post('/payments/mock/complete', { orderId, outcome });
 
 /**
+ * Initiates an HDFC SmartGateway checkout directly from the internship application modal.
+ * Creates a PENDING_PAYMENT enrollment and returns the HDFC payment_url for redirection.
+ */
+export const initiateHdfcCheckout = (payload) =>
+  api.post('/payments/hdfc-checkout', payload);
+
+/**
  * Demo payment directly from the application modal without external gateways.
  * Creates an active enrollment and successful payment visible in admin analytics.
  */

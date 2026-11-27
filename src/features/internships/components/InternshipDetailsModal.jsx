@@ -4,7 +4,8 @@ import { Badge, Button, Input, Modal } from '@/shared/components/ui';
 import { AuthContext } from '@/shared/context/AuthContext';
 import { ROUTES, paths } from '@/shared/constants';
 import { getDomainProjects } from '@/services/projectService';
-import { completeDemoCheckout } from '@/services/paymentService';
+import { initiateHdfcCheckout } from '@/services/paymentService';
+import { HdfcCheckout } from '@/features/enrollment/components/gateways/HdfcCheckout';
 import * as authService from '@/services/authService';
 import { getPartnerInternshipQuote } from '@/services/internshipService';
 import { PartnerLogo } from './PartnerLogo';
@@ -214,6 +215,8 @@ export function InternshipDetailsModal({
   const [isPaying, setIsPaying] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [demoResult, setDemoResult] = useState(null);
+  const [hdfcOrder, setHdfcOrder] = useState(null);
+  const [checkoutError, setCheckoutError] = useState(null);
   const [serverQuote, setServerQuote] = useState(null);
   const [errors, setErrors] = useState({});
   const [referralCode, setReferralCode] = useState('');
@@ -574,14 +577,14 @@ export function InternshipDetailsModal({
     }
   };
 
-  const handleDemoPayment = async () => {
+  const handleHdfcPayment = async () => {
     const normalizedRef = referralCode.trim().toUpperCase();
     if (normalizedRef && (referralError || isCheckingReferral)) {
       return;
     }
 
     setIsPaying(true);
-    let checkoutCompleted = false;
+    setCheckoutError(null);
     try {
       const durationMonths = parseDurationMonths(formData.duration);
 
@@ -602,17 +605,27 @@ export function InternshipDetailsModal({
         ...(normalizedRef ? { referralCode: normalizedRef } : {}),
       };
 
-      const res = await completeDemoCheckout(payload);
+      const res = await initiateHdfcCheckout(payload);
       const resultData = res?.data || res;
-      setDemoResult(resultData);
-      checkoutCompleted = true;
+      const paymentUrl =
+        resultData?.payment_url ||
+        resultData?.paymentUrl ||
+        resultData?.checkoutData?.paymentUrl;
 
-      // Invalidate admin queries so that revenue, payments, and TPO referrals update live
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.revenue });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.payments });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.tpos });
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.users });
+      queryClient.invalidateQueries({ queryKey: queryKeys.enrollments.all });
+
+      if (paymentUrl) {
+        setHdfcOrder(resultData);
+        return;
+      }
+
+      if (resultData?.enrollmentId) {
+        handleResetAndClose();
+        navigate(paths.payment(resultData.enrollmentId));
+        return;
+      }
+
+      setCheckoutError('Payment session URL was not received from the server. Please try again.');
     } catch (err) {
       const details = Array.isArray(err?.details)
         ? err.details
@@ -625,13 +638,13 @@ export function InternshipDetailsModal({
         setVerifiedTpo(null);
         return;
       }
-      console.warn('Demo payment API checkout notice:', err);
-      checkoutCompleted = true;
+      setCheckoutError(
+        err?.response?.data?.message ||
+          err?.message ||
+          'Unable to initiate HDFC SmartGateway checkout. Please try again.',
+      );
     } finally {
       setIsPaying(false);
-      if (checkoutCompleted) {
-        setPaymentSuccess(true);
-      }
     }
   };
 
@@ -641,6 +654,8 @@ export function InternshipDetailsModal({
     setIsPaying(false);
     setPaymentSuccess(false);
     setDemoResult(null);
+    setHdfcOrder(null);
+    setCheckoutError(null);
     setErrors({});
     setReferralCode('');
     setReferralError(null);
@@ -702,7 +717,7 @@ export function InternshipDetailsModal({
           {applyStep === 3 ? (
             <>
               <Sparkles className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-              <span>Demo Payment & Enrollment</span>
+              <span>Review & Payment</span>
             </>
           ) : (
             <>
@@ -927,7 +942,7 @@ export function InternshipDetailsModal({
                         : 'text-slate-500 dark:text-slate-400',
                     )}
                   >
-                    Step 3: Demo Payment
+                    Step 3: Payment
                   </span>
                 </div>
               </div>
@@ -1251,19 +1266,8 @@ export function InternshipDetailsModal({
                     </div>
                   </div>
                 ) : (
-                  /* Demo Payment Tab */
+                  /* Payment & Checkout Tab */
                   <div className="space-y-4">
-                    {/* Demo Banner */}
-                    <div className="rounded-xl border border-amber-200/80 bg-amber-50/70 p-3.5 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-                      <div className="flex items-center gap-2 font-bold text-sm text-amber-800 dark:text-amber-300">
-                        <CreditCard className="h-4 w-4" />
-                        <span>Demo Payment Mode (Sandbox Simulation)</span>
-                      </div>
-                      <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
-                        This payment tab is in <strong>demo mode</strong>. No real credit card or bank account will be charged. Clicking Pay will instantly simulate a successful transaction, confirm your seat, and unlock your day-wise tasks.
-                      </p>
-                    </div>
-
                     {/* Review Details & Fee Breakdown Grid */}
                     <div className="grid gap-4 sm:grid-cols-2">
                       {/* Review Candidate & Project */}
@@ -1332,7 +1336,7 @@ export function InternshipDetailsModal({
 
                         <div className="border-t border-slate-200 dark:border-slate-800 pt-3">
                           <div className="flex justify-between items-center text-sm font-bold text-slate-900 dark:text-white">
-                            <span>Total Payable (Demo):</span>
+                            <span>Total Payable:</span>
                             <span className="text-lg text-brand-600 dark:text-brand-400">{formatInr(activePrice.payableAmount)}</span>
                           </div>
                           <p className="mt-1 text-[10px] text-slate-400">Includes verified GitHub mentor reviews & certificate validation.</p>
@@ -1383,20 +1387,14 @@ export function InternshipDetailsModal({
                       ) : null}
                     </div>
 
-                    {/* Demo Payment Selector */}
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-900/40">
-                      <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-2">Select Demo Payment Method:</span>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="flex items-center gap-2.5 rounded-lg border border-brand-500 bg-brand-50/50 p-2.5 text-xs font-medium text-brand-900 dark:border-brand-500 dark:bg-brand-950/30 dark:text-brand-200 cursor-pointer">
-                          <CreditCard className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-                          <span>Instant UPI / QR (Demo)</span>
-                        </div>
-                        <div className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 cursor-pointer">
-                          <Lock className="h-4 w-4 text-slate-400" />
-                          <span>Net Banking / Card (Demo)</span>
-                        </div>
+                    {checkoutError ? (
+                      <div
+                        role="alert"
+                        className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
+                      >
+                        {checkoutError}
                       </div>
-                    </div>
+                    ) : null}
 
                     {/* Step 3 Action Buttons */}
                     <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -1414,11 +1412,11 @@ export function InternshipDetailsModal({
                         type="button"
                         loading={isPaying}
                         disabled={Boolean(referralCode.trim() && (referralError || isCheckingReferral))}
-                        leftIcon={CreditCard}
-                        onClick={handleDemoPayment}
+                        leftIcon={Lock}
+                        onClick={handleHdfcPayment}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 shadow-md"
                       >
-                        Pay {formatInr(activePrice.payableAmount)} (Complete Demo Checkout)
+                        Pay {formatInr(activePrice.payableAmount)}
                       </Button>
                     </div>
                   </div>
@@ -1428,6 +1426,20 @@ export function InternshipDetailsModal({
           </div>
         )}
       </div>
+      <HdfcCheckout
+        order={hdfcOrder}
+        enrollment={{
+          _id: hdfcOrder?.enrollmentId,
+          plan: {
+            designation: { name: currentRole?.designation },
+            domain: { name: formData.selectedDomain },
+            durationMonths: parseDurationMonths(formData.duration),
+          },
+        }}
+        user={auth?.user}
+        open={Boolean(hdfcOrder)}
+        onClose={() => setHdfcOrder(null)}
+      />
     </Modal>
   );
 }
