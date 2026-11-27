@@ -432,15 +432,22 @@ export const adminHandlers = [
     const query = getQuery(request);
     const search = query.get('search');
     const statuses = listParam(query, 'status');
+    const enrollmentType = query.get('enrollmentType');
+    const unassigned = query.get('unassigned') === 'true';
     const designationId = query.get('designationId');
     const from = query.get('from');
     const to = query.get('to');
     const users = usersById();
     const plans = new Map(db.internshipPlans.map((plan) => [plan._id, plan]));
     const teams = new Map(db.teams.map((team) => [team._id, team]));
+    const assignedEnrollmentIds = unassigned
+      ? new Set(db.trainerAssignments.filter((a) => a.active && a.enrollmentId).map((a) => a.enrollmentId))
+      : null;
 
     const filtered = db.enrollments.filter((enrollment) => {
       if (statuses.length > 0 && !statuses.includes(enrollment.status)) return false;
+      if (enrollmentType && enrollment.enrollmentType !== enrollmentType) return false;
+      if (unassigned && (enrollment.teamId || assignedEnrollmentIds.has(enrollment._id))) return false;
       if (designationId && plans.get(enrollment.planId)?.designationId !== designationId) return false;
       if ((from || to) && !inDateRange(enrollment.createdAt, from, to)) return false;
       if (search) {

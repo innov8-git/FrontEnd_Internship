@@ -127,8 +127,12 @@ export function getAdminNavigation() {
       title: 'People',
       items: [
         { label: 'Users', to: ROUTES.ADMIN_USERS, icon: Users },
-        { label: 'Trainers', to: ROUTES.ADMIN_TRAINERS, icon: UserCog },
-        { label: 'Trainer assignments', to: ROUTES.ADMIN_ASSIGNMENTS, icon: UserCheck },
+        {
+          label: 'Trainers',
+          to: ROUTES.ADMIN_TRAINERS,
+          icon: UserCog,
+          activePaths: [ROUTES.ADMIN_ASSIGNMENTS, ROUTES.ADMIN_TRAINER_REPORTS],
+        },
         { label: 'TPOs', to: ROUTES.ADMIN_TPOS, icon: School },
       ],
     },

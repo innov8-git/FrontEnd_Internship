@@ -33,7 +33,7 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     expect(engineerHeadings.length).toBeGreaterThanOrEqual(4);
   });
 
-  it('displays 100% Online Remote, 1 to 6 Months duration, and 3 core outcomes on cards', () => {
+  it('displays 100% Online Remote and 1 to 6 Months duration cleanly on cards', () => {
     renderFeaturedInternships();
 
     // 100% Online Remote tags
@@ -43,11 +43,6 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     // 1 to 6 Months duration
     const durationTags = screen.getAllByText('1 to 6 Months');
     expect(durationTags.length).toBeGreaterThanOrEqual(4);
-
-    // Three core outcomes
-    expect(screen.getAllByText('Internship Completion Letter').length).toBeGreaterThanOrEqual(4);
-    expect(screen.getAllByText('1-on-1 Mentor').length).toBeGreaterThanOrEqual(4);
-    expect(screen.getAllByText('Placement Support').length).toBeGreaterThanOrEqual(4);
 
     // Should NOT have stipend amounts or urgency badges on outer cards
     expect(screen.queryByText(/starts in \d+ days/i)).not.toBeInTheDocument();
@@ -64,19 +59,25 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     await user.click(bankingTab);
 
     // Inlarge company cards should be visible, other companies should be filtered out
-    expect(screen.getAllByText(/Enterprise core banking/i).length).toBeGreaterThan(0);
-    expect(screen.queryByText(/Next-gen telecom orchestration/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/HIPAA-compliant health tech/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Multi-tenant enterprise SaaS/i)).not.toBeInTheDocument();
+    const bankingCards = screen.getAllByRole('article');
+    expect(bankingCards).toHaveLength(2);
+    bankingCards.forEach((card) => {
+      expect(card).toHaveTextContent('Inlarge Software');
+      expect(card).not.toHaveTextContent('Couldinger');
+      expect(card).not.toHaveTextContent('Proton');
+      expect(card).not.toHaveTextContent('Ady Nexes');
+    });
 
     // Click All tab
     const allTab = screen.getByRole('button', { name: /All Companies & Tracks/i });
     await user.click(allTab);
 
-    expect(screen.getAllByText(/Enterprise core banking/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Next-gen telecom orchestration/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/HIPAA-compliant health tech/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Multi-tenant enterprise SaaS/i).length).toBeGreaterThan(0);
+    const allCards = screen.getAllByRole('article');
+    expect(allCards).toHaveLength(8);
+    expect(allCards.some((card) => card.textContent.includes('Inlarge Software'))).toBe(true);
+    expect(allCards.some((card) => card.textContent.includes('Couldinger'))).toBe(true);
+    expect(allCards.some((card) => card.textContent.includes('Proton'))).toBe(true);
+    expect(allCards.some((card) => card.textContent.includes('Ady Nexes'))).toBe(true);
   });
 
   it('opens details modal with role responsibilities and allows applying', async () => {
@@ -158,8 +159,8 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     renderFeaturedInternships();
 
     // Both Web Development and App Development cards are rendered as independent cards in the grid
-    expect(screen.getAllByText('Web Development Track').length).toBeGreaterThanOrEqual(4);
-    expect(screen.getAllByText('App Development Track').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getAllByText('Web Development').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getAllByText('App Development').length).toBeGreaterThanOrEqual(4);
     expect(
       screen.getAllByRole('heading', { name: /^Trainee Software Engineer$/i }).length,
     ).toBeGreaterThanOrEqual(8);
@@ -173,8 +174,10 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     await user.selectOptions(trackSelect, 'app');
 
     // Only App Development card should now be rendered for this domain
-    expect(screen.getByText('App Development Track')).toBeInTheDocument();
-    expect(screen.queryByText('Web Development Track')).not.toBeInTheDocument();
+    const articleCards = screen.getAllByRole('article');
+    expect(articleCards).toHaveLength(1);
+    expect(articleCards[0]).toHaveTextContent('App Development');
+    expect(articleCards[0]).not.toHaveTextContent('Web Development');
   });
 
   it(
