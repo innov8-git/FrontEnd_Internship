@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Badge,
   Button,
@@ -15,7 +16,9 @@ import {
 import {
   Building2,
   CheckCircle2,
+  Eye,
   GraduationCap,
+  IndianRupee,
   Link2Icon,
   Mail,
   MessageCircle,
@@ -28,11 +31,12 @@ import {
   ShieldCheck,
   Trash2,
   Users,
+  Wallet,
 } from '@/shared/icons';
-import { PAGE_SIZE_OPTIONS } from '@/shared/constants';
+import { PAGE_SIZE_OPTIONS, paths } from '@/shared/constants';
 import { queryKeys } from '@/services/queryKeys';
 import { useDocumentTitle } from '@/shared/hooks';
-import { copyToClipboard, formatDate } from '@/shared/utils/helpers';
+import { copyToClipboard, formatDate, formatMoney } from '@/shared/utils/helpers';
 import { ClearFiltersButton } from '../components/ClearFiltersButton';
 import { CreateTpoModal } from '../components/CreateTpoModal';
 import { EditTpoModal } from '../components/EditTpoModal';
@@ -45,7 +49,11 @@ import {
   useUpdateTpo,
 } from '../hooks/useAdminTpos';
 import { useUrlFilters } from '../hooks/useUrlFilters';
-import { buildTpoRegistrationLink, buildWhatsAppShareUrl } from '../utils/tpoShare';
+import {
+  buildTpoRegistrationLink,
+  buildWhatsAppShareUrl,
+  formatTpoCommission,
+} from '../utils/tpoShare';
 
 const FILTER_KEYS = ['status'];
 
@@ -57,6 +65,7 @@ const STATUS_OPTIONS = [
 export function TposPage() {
   useDocumentTitle('TPOs');
 
+  const navigate = useNavigate();
   const { values, setValue, clear, activeCount } = useUrlFilters(FILTER_KEYS);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -125,8 +134,8 @@ export function TposPage() {
         key: 'name',
         header: 'TPO',
         sortable: true,
-        headerClassName: 'min-w-[210px]',
-        className: 'min-w-[210px]',
+        headerClassName: 'min-w-[200px]',
+        className: 'min-w-[200px]',
         cell: (tpo) => (
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
@@ -145,24 +154,29 @@ export function TposPage() {
       },
       {
         key: 'college',
-        header: 'College / Institution',
+        header: 'College / Rate',
         sortable: true,
         headerClassName: 'min-w-[180px]',
         className: 'min-w-[180px]',
         cell: (tpo) => (
-          <div className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300">
-            <Building2 className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-            <span className="max-w-[220px] truncate" title={tpo.college}>
-              {tpo.college}
-            </span>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300">
+              <Building2 className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
+              <span className="max-w-[200px] truncate" title={tpo.college}>
+                {tpo.college}
+              </span>
+            </div>
+            <p className="text-xs font-medium text-brand-700 dark:text-brand-300">
+              {formatTpoCommission(tpo.commissionType, tpo.commissionValue)}
+            </p>
           </div>
         ),
       },
       {
         key: 'referralCode',
         header: 'Reference Code',
-        headerClassName: 'min-w-[220px]',
-        className: 'min-w-[220px]',
+        headerClassName: 'min-w-[215px]',
+        className: 'min-w-[215px]',
         cell: (tpo) => (
           <div
             className="flex items-center gap-1.5"
@@ -195,38 +209,57 @@ export function TposPage() {
       },
       {
         key: 'totalReferences',
-        header: 'Total References',
+        header: 'Referrals',
         sortable: true,
-        headerClassName: 'min-w-[155px]',
-        className: 'min-w-[155px]',
+        headerClassName: 'min-w-[145px]',
+        className: 'min-w-[145px]',
         cell: (tpo) => {
           const verified = tpo.totalReferences ?? 0;
-          const pending = tpo.pendingReferences ?? 0;
+          const paid = tpo.paidConversions ?? 0;
           return (
             <div onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={() => setDrawerTarget(tpo)}
                 className="inline-flex items-center transition-transform hover:scale-105 focus-visible:outline-none"
-                title="View referred students"
+                title="View referred students & earnings"
               >
                 <Badge variant={verified > 0 ? 'info' : 'neutral'}>
                   <GraduationCap className="mr-1 h-3 w-3" />
                   {verified} {verified === 1 ? 'Student' : 'Students'}
                 </Badge>
               </button>
-              {pending > 0 ? (
-                <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
-                  +{pending} awaiting email verify
-                </p>
-              ) : null}
+              <p className="mt-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                {paid} paid conversion{paid === 1 ? '' : 's'}
+              </p>
+            </div>
+          );
+        },
+      },
+      {
+        key: 'totalEarnedPaise',
+        header: 'Earnings',
+        sortable: true,
+        headerClassName: 'min-w-[140px]',
+        className: 'min-w-[140px]',
+        cell: (tpo) => {
+          const earned = tpo.totalEarnedPaise ?? 0;
+          const pending = tpo.pendingPayoutPaise ?? 0;
+          return (
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                {formatMoney(earned)}
+              </p>
+              <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                {pending > 0 ? `${formatMoney(pending)} pending` : 'Settled'}
+              </p>
             </div>
           );
         },
       },
       {
         key: 'isActive',
-        header: 'Code Status',
+        header: 'Status',
         cell: (tpo) => (
           <div
             className="flex items-center gap-2"
@@ -281,12 +314,17 @@ export function TposPage() {
               }
               items={[
                 {
-                  label: 'View referred students',
+                  label: 'View referrals & payouts',
                   icon: Users,
                   onClick: () => setDrawerTarget(tpo),
                 },
                 {
-                  label: 'Share via WhatsApp',
+                  label: 'Preview private TPO view',
+                  icon: Eye,
+                  onClick: () => navigate(paths.tpoPortal(tpo._id)),
+                },
+                {
+                  label: 'Share code via WhatsApp',
                   icon: MessageCircle,
                   onClick: () => {
                     window.open(buildWhatsAppShareUrl(tpo), '_blank', 'noopener,noreferrer');
@@ -304,7 +342,7 @@ export function TposPage() {
                 },
                 { divider: true },
                 {
-                  label: 'Edit TPO details',
+                  label: 'Edit TPO & commission',
                   icon: Pencil,
                   onClick: () => setEditTarget(tpo),
                 },
@@ -326,7 +364,7 @@ export function TposPage() {
         ),
       },
     ],
-    [],
+    [navigate],
   );
 
   const summary = summaryQuery.data;
@@ -335,7 +373,7 @@ export function TposPage() {
     <div className="space-y-6">
       <PageHeader
         title="TPOs"
-        description="Generate unique reference codes for Training & Placement Officers, share them via WhatsApp, and track email-verified student referrals."
+        description="Manage Training & Placement Officer reference codes, private portal credentials, referral counts, earnings, and payouts."
         actions={
           <Button leftIcon={Plus} onClick={() => setIsCreateOpen(true)}>
             Add TPO &amp; Generate Code
@@ -348,30 +386,41 @@ export function TposPage() {
         <StatCard
           label="Total TPOs"
           value={summary ? String(summary.totalTpos) : '—'}
+          hint={summary ? `${summary.activeTpos} active · ${summary.inactiveTpos} inactive` : undefined}
           icon={School}
           tone="brand"
           loading={summaryQuery.isPending}
         />
         <StatCard
-          label="Active Codes"
-          value={summary ? String(summary.activeTpos) : '—'}
-          icon={ShieldCheck}
+          label="Referred / Paid"
+          value={
+            summary
+              ? `${summary.totalReferences} / ${summary.totalPaidConversions ?? 0}`
+              : '—'
+          }
+          hint="Verified signups / Paid conversions"
+          icon={GraduationCap}
           tone="success"
           loading={summaryQuery.isPending}
         />
         <StatCard
-          label="Inactive Codes"
-          value={summary ? String(summary.inactiveTpos) : '—'}
-          icon={ShieldAlert}
-          tone="default"
+          label="Total TPO Earnings"
+          value={summary ? formatMoney(summary.totalEarnedPaise ?? 0) : '—'}
+          hint="Cumulative earned across all TPOs"
+          icon={IndianRupee}
+          tone="brand"
           loading={summaryQuery.isPending}
         />
         <StatCard
-          label="Verified Referrals"
-          value={summary ? String(summary.totalReferences) : '—'}
-          hint="Email-verified students"
-          icon={GraduationCap}
-          tone="brand"
+          label="Pending Payouts"
+          value={summary ? formatMoney(summary.totalPendingPayoutPaise ?? 0) : '—'}
+          hint={
+            summary
+              ? `Paid out: ${formatMoney(summary.totalPaidOutPaise ?? 0)}`
+              : undefined
+          }
+          icon={Wallet}
+          tone="warning"
           loading={summaryQuery.isPending}
         />
       </div>
@@ -384,7 +433,7 @@ export function TposPage() {
         initialSort={{ key: 'createdAt', direction: 'desc' }}
         searchPlaceholder="Search by TPO name, college, email, phone, or code…"
         pageSizeOptions={PAGE_SIZE_OPTIONS}
-        caption="TPO referral codes"
+        caption="TPO referral codes and earnings"
         onRowClick={(tpo) => setDrawerTarget(tpo)}
         rowClassName={(tpo) =>
           drawerTarget && tpo._id === drawerTarget._id
@@ -413,7 +462,7 @@ export function TposPage() {
           icon: School,
           title: 'No TPOs added yet',
           description:
-            'Click "Add TPO & Generate Code" to create a unique reference code and start tracking student referrals.',
+            'Click "Add TPO & Generate Code" to create a unique reference code, configure commission, and start tracking referrals.',
         }}
       />
 
@@ -443,8 +492,8 @@ export function TposPage() {
         }
         message={
           statusTarget?.isActive
-            ? `New students will no longer be able to register with ${statusTarget?.referralCode}. All ${statusTarget?.totalReferences ?? 0} existing verified referrals will remain intact.`
-            : `Students will be able to use ${statusTarget?.referralCode} during registration again.`
+            ? `New students will no longer be able to apply ${statusTarget?.referralCode}. All ${statusTarget?.totalReferences ?? 0} existing referrals and earnings remain intact.`
+            : `Students will be able to use ${statusTarget?.referralCode} during checkout again.`
         }
         confirmLabel={statusTarget?.isActive ? 'Deactivate Code' : 'Activate Code'}
         variant={statusTarget?.isActive ? 'danger' : 'primary'}
@@ -457,9 +506,11 @@ export function TposPage() {
         loading={deleteTpoMutation.isPending}
         title={`Delete TPO ${deleteTarget?.name}?`}
         message={
-          deleteTarget?.totalReferences > 0
-            ? `This TPO has ${deleteTarget.totalReferences} verified referred student(s). Consider deactivating the code instead to preserve reporting. Deleting will remove this TPO record while keeping student accounts intact.`
-            : 'This will permanently remove the TPO record and deactivate their reference code. This action is recorded in the audit log.'
+          (deleteTarget?.totalEarnedPaise ?? 0) > 0
+            ? `This TPO has recorded referral earnings (${formatMoney(deleteTarget.totalEarnedPaise)}) and cannot be hard-deleted. Deactivate their code and disable portal access instead.`
+            : deleteTarget?.totalReferences > 0
+              ? `This TPO has ${deleteTarget.totalReferences} verified referred student(s). Consider deactivating the code instead to preserve reporting.`
+              : 'This will permanently remove the TPO record and suspend their private portal login. This action is recorded in the audit log.'
         }
         confirmLabel="Delete TPO"
         variant="danger"

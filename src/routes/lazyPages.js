@@ -68,6 +68,9 @@ export const TrainerDashboardPage = lazy(
 export const ReviewPage = lazy(() => import('@/features/trainer/pages/ReviewPage'));
 export const TrainerReportsPage = lazy(() => import('@/features/trainer/pages/TrainerReportsPage'));
 
+// Private TPO Portal (unlisted, lazy-loaded only for TPO/ADMIN sessions)
+export const TpoPortalPage = lazy(() => import('@/features/tpo/pages/TpoPortalPage'));
+
 // Admin (KD1-KD8, KD11, KD12, GP7, GP13)
 export const AdminDashboardPage = lazy(() => import('@/features/admin/pages/AdminDashboardPage'));
 export const UsersPage = lazy(() => import('@/features/admin/pages/UsersPage'));
