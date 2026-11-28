@@ -1,4 +1,4 @@
-import { BadgeCheck, CalendarDays, Clock, UserCheck } from '@/shared/icons';
+import { CalendarDays, Clock, UserCheck } from '@/shared/icons';
 import { cn } from '@/shared/utils/cn';
 import { formatEffort } from '../utils/taskActions';
 
@@ -28,17 +28,8 @@ export function TaskMeta({ task, className }) {
         </li>
       ) : null}
       <li className="inline-flex items-center gap-1.5">
-        {task.requiresTrainerReview ? (
-          <>
-            <UserCheck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-            Trainer review required
-          </>
-        ) : (
-          <>
-            <BadgeCheck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-            No trainer review needed
-          </>
-        )}
+        <UserCheck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+        Trainer review required
       </li>
     </ul>
   );

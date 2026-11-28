@@ -140,11 +140,9 @@ export function TaskCard({ progress, variant = 'list', className }) {
               {taskLabel(task.sequence)}
             </span>
             <StatusBadge status={progress.status} />
-            {task.requiresTrainerReview ? (
-              <Badge variant="neutral" icon={UserCheck}>
-                Trainer review
-              </Badge>
-            ) : null}
+            <Badge variant="neutral" icon={UserCheck}>
+              Trainer review
+            </Badge>
           </div>
           {heading}
           {details}
