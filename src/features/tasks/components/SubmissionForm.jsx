@@ -95,11 +95,7 @@ export function SubmissionForm({ content, latestSubmission = null, draftRef, onS
       const submission = await submitTask.mutateAsync(data);
       submittedRef.current = true;
       if (draftRef) draftRef.current = null;
-      if (submission?.autoApproved) {
-        toast.success('Task completed & approved', {
-          description: 'This task did not require manual review. Your next task is now unlocked.',
-        });
-      } else if (submission?.assignedTrainer?.name) {
+      if (submission?.assignedTrainer?.name) {
         toast.success('Submitted for review', {
           description: `${submission.assignedTrainer.name} has been notified. You can follow the review in History.`,
         });
