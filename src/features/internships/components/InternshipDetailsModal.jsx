@@ -476,8 +476,8 @@ export function InternshipDetailsModal({
 
     if (!phone) {
       errs.phone = 'Please enter your contact phone number.';
-    } else if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/.test(phone)) {
-      errs.phone = 'Please enter a valid phone number (e.g. +91 98765 43210).';
+    } else if (!/^\d{10}$/.test(phone)) {
+      errs.phone = 'Please enter a valid 10-digit phone number.';
     }
 
     if (!college) {
@@ -543,8 +543,8 @@ export function InternshipDetailsModal({
         setErrors((prev) => ({ ...prev, email: 'Please enter a valid email address.' }));
       }
     } else if (field === 'phone') {
-      if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/.test(val)) {
-        setErrors((prev) => ({ ...prev, phone: 'Please enter a valid phone number (e.g. +91 98765 43210).' }));
+      if (!/^\d{10}$/.test(val)) {
+        setErrors((prev) => ({ ...prev, phone: 'Please enter a valid 10-digit phone number.' }));
       }
     }
   };
@@ -988,11 +988,15 @@ export function InternshipDetailsModal({
                     <Input
                       label="Phone Number"
                       type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
                       required
-                      placeholder="+91 98765 43210"
+                      placeholder="e.g. 9876543210"
                       value={formData.phone}
                       error={errors.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))
+                      }
                       onBlur={() => handleBlur('phone')}
                     />
                     <Input
