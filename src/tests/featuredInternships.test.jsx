@@ -111,7 +111,7 @@ describe('FeaturedInternships Section & Partner Companies', () => {
     // Fill application form
     const nameInput = screen.getByPlaceholderText(/rahul sharma/i);
     const emailInput = screen.getByPlaceholderText(/name@example.com/i);
-    const phoneInput = screen.getByPlaceholderText(/\+91 98765 43210/i);
+    const phoneInput = screen.getByPlaceholderText(/9876543210/i);
     const collegeInput = screen.getByPlaceholderText(/IIT Bombay/i);
 
     await user.type(nameInput, 'Amit Patel');
@@ -235,7 +235,7 @@ describe('FeaturedInternships Section & Partner Companies', () => {
 
     const nameInput = screen.getByPlaceholderText(/rahul sharma/i);
     const emailInput = screen.getByPlaceholderText(/name@example.com/i);
-    const phoneInput = screen.getByPlaceholderText(/\+91 98765 43210/i);
+    const phoneInput = screen.getByPlaceholderText(/9876543210/i);
     const collegeInput = screen.getByPlaceholderText(/IIT Bombay/i);
 
     await user.type(nameInput, 'Sanika Waske');
