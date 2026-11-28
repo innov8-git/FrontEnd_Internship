@@ -17,7 +17,11 @@ const toStatusOption = (value) => ({ value, label: getStatusMeta(value).label })
 export const ROLE_OPTIONS = ROLE_LIST.map((role) => ({ value: role, label: ROLE_LABELS[role] }));
 export const USER_STATUS_OPTIONS = Object.values(USER_STATUS).map(toStatusOption);
 export const ENROLLMENT_STATUS_OPTIONS = Object.values(ENROLLMENT_STATUS).map(toStatusOption);
-export const PAYMENT_STATUS_OPTIONS = Object.values(PAYMENT_STATUS).map(toStatusOption);
+export const PAYMENT_STATUS_OPTIONS = [
+  { value: PAYMENT_STATUS.SUCCESS, label: 'Success' },
+  { value: PAYMENT_STATUS.FAILED, label: 'Failed' },
+  { value: PAYMENT_STATUS.REFUNDED, label: 'Refund' },
+];
 export const CERTIFICATE_STATUS_OPTIONS = Object.values(CERTIFICATE_STATUS).map(toStatusOption);
 export const EMAIL_STATUS_TABS = [
   { value: '', label: 'All' },

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Badge,
@@ -17,13 +18,16 @@ import {
   Award,
   Briefcase,
   ClipboardCheck,
+  Download,
   ExternalLink,
   Percent,
+  Receipt,
 } from '@/shared/icons';
 import { useEnrollments } from '@/features/applications/hooks/useApplications';
 import { useMyCertificates } from '@/features/certificates/hooks/useMyCertificates';
 import { ASSESSMENT_MAX_SCORE, ENROLLMENT_TYPE, ROUTES, paths } from '@/shared/constants';
-import { formatDate, formatDuration } from '@/shared/utils/helpers';
+import { formatDate, formatDuration, formatMoney } from '@/shared/utils/helpers';
+import { downloadReceiptPdf } from '@/services/paymentService';
 import { useMyAttempts } from '../hooks/useProfile';
 
 function joinParts(parts) {
@@ -68,13 +72,26 @@ function RecordCard({ icon, title, description, query, count, emptyState, footer
 }
 
 function EnrollmentRow({ enrollment }) {
+  const [downloading, setDownloading] = useState(false);
   const plan = enrollment.plan;
   const approved = Number(enrollment.progress?.approved ?? 0);
   const total = Number(enrollment.progress?.total ?? 0);
+  const isPaid = enrollment.paymentStatus === 'SUCCESS' || enrollment.status === 'ACTIVE' || enrollment.status === 'COMPLETED';
   const typeLabel =
     enrollment.enrollmentType === ENROLLMENT_TYPE.TEAM
       ? joinParts(['Team', enrollment.team?.name])
       : 'Individual';
+
+  const handleDownloadReceipt = async () => {
+    try {
+      setDownloading(true);
+      await downloadReceiptPdf(enrollment.paymentId || enrollment._id, `receipt-${enrollment._id}.pdf`);
+    } catch (err) {
+      console.error('Failed to download receipt', err);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <li className="py-4 first:pt-0 last:pb-0">
@@ -89,7 +106,20 @@ function EnrollmentRow({ enrollment }) {
             ])}
           </p>
         </div>
-        <StatusBadge status={enrollment.status} className="self-start" />
+        <div className="flex flex-wrap items-center gap-2 self-start">
+          <StatusBadge status={enrollment.status} />
+          {isPaid ? (
+            <Button
+              size="xs"
+              variant="outline"
+              leftIcon={Receipt}
+              loading={downloading}
+              onClick={handleDownloadReceipt}
+            >
+              Receipt
+            </Button>
+          ) : null}
+        </div>
       </div>
       {total > 0 ? (
         <ProgressBar
@@ -105,6 +135,51 @@ function EnrollmentRow({ enrollment }) {
           }
         />
       ) : null}
+    </li>
+  );
+}
+
+function ReceiptRow({ enrollment }) {
+  const [downloading, setDownloading] = useState(false);
+  const plan = enrollment.plan;
+  const payment = enrollment.payment;
+  const targetId = enrollment.paymentId || payment?.id || enrollment._id;
+
+  const handleDownload = async () => {
+    try {
+      setDownloading(true);
+      await downloadReceiptPdf(targetId, `receipt-${targetId}.pdf`);
+    } catch (err) {
+      console.error('Failed to download receipt', err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <li className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div className="min-w-0">
+        <p className="break-words text-sm font-medium text-slate-900">{planTitle(plan)}</p>
+        <p className="mt-0.5 text-xs text-slate-500">
+          {joinParts([
+            payment?.orderId ? `Order: ${payment.orderId}` : null,
+            payment?.amount ? formatMoney(payment.amount) : null,
+            `Enrolled ${formatDate(enrollment.createdAt)}`,
+          ])}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Badge variant="success">Paid</Badge>
+        <Button
+          size="sm"
+          variant="outline"
+          leftIcon={Download}
+          loading={downloading}
+          onClick={handleDownload}
+        >
+          Download PDF
+        </Button>
+      </div>
     </li>
   );
 }
@@ -182,6 +257,9 @@ export function ResumeSection({ className }) {
   const enrollments = Array.isArray(enrollmentsQuery.data) ? enrollmentsQuery.data : [];
   const attempts = Array.isArray(attemptsQuery.data) ? attemptsQuery.data : [];
   const certificates = Array.isArray(certificatesQuery.data) ? certificatesQuery.data : [];
+  const paidEnrollments = enrollments.filter(
+    (e) => e.paymentStatus === 'SUCCESS' || e.status === 'ACTIVE' || e.status === 'COMPLETED'
+  );
 
   return (
     <section aria-labelledby="internship-record-heading" className={className}>
@@ -193,11 +271,31 @@ export function ResumeSection({ className }) {
           Internship record
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Your assessments, internships and certificates in one place.
+          Your assessments, internships, receipts and certificates in one place.
         </p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
+        <RecordCard
+          className="xl:col-span-2"
+          icon={Receipt}
+          title="Payment Receipts & Tax Invoices"
+          description="Download official tax invoices and payment receipts for your confirmed enrollments."
+          query={enrollmentsQuery}
+          count={paidEnrollments.length}
+          emptyState={{
+            icon: Receipt,
+            title: 'No payment receipts yet',
+            description: 'Receipts will appear here once an internship payment is confirmed.',
+          }}
+        >
+          <ul className="divide-y divide-slate-100">
+            {paidEnrollments.map((enrollment) => (
+              <ReceiptRow key={enrollment._id} enrollment={enrollment} />
+            ))}
+          </ul>
+        </RecordCard>
+
         <RecordCard
           className="xl:col-span-2"
           icon={Briefcase}

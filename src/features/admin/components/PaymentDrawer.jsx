@@ -49,17 +49,40 @@ function PaymentDetails({ payment }) {
         <DescriptionList
           items={[
             { label: 'Order ID', value: <MonoValue value={payment.orderId} copyLabel="Copy order ID" />, span: 2 },
+            payment.hdfcOrderId && payment.hdfcOrderId !== payment.orderId
+              ? {
+                  label: 'HDFC Order ID',
+                  value: <MonoValue value={payment.hdfcOrderId} copyLabel="Copy HDFC order ID" />,
+                  span: 2,
+                }
+              : null,
             {
               label: 'Gateway reference',
               value: <MonoValue value={payment.gatewayReference} copyLabel="Copy gateway reference" />,
               span: 2,
             },
-            { label: 'Student', value: <PersonCell person={payment.user} avatarSize="xs" />, span: 2 },
+            { label: 'Student', value: <PersonCell person={payment.student || payment.user} avatarSize="xs" />, span: 2 },
             { label: 'Provider', value: payment.provider ? humanize(payment.provider) : null },
+            { label: 'Payment method', value: payment.method ? humanize(payment.method) : 'HDFC SmartGateway' },
             { label: 'Currency', value: payment.currency },
+            payment.receiptId
+              ? { label: 'Receipt ID', value: <MonoValue value={payment.receiptId} copyLabel="Copy receipt ID" /> }
+              : null,
+            payment.paidAt
+              ? { label: 'Paid at', value: formatDateTime(payment.paidAt) }
+              : null,
+            payment.failureReason
+              ? { label: 'Failure reason', value: <span className="text-rose-600 font-medium">{payment.failureReason}</span>, span: 2 }
+              : null,
+            payment.refundId
+              ? { label: 'Refund ID', value: <MonoValue value={payment.refundId} copyLabel="Copy refund ID" /> }
+              : null,
+            payment.refundAmount
+              ? { label: 'Refund amount', value: formatMoney(payment.refundAmount, payment.currency) }
+              : null,
             { label: 'Created', value: formatDateTime(payment.createdAt) },
             { label: 'Last updated', value: payment.updatedAt ? formatDateTime(payment.updatedAt) : null },
-          ]}
+          ].filter(Boolean)}
         />
       </DetailSection>
 

@@ -43,7 +43,7 @@ const COLUMNS = [
   {
     key: 'user',
     header: 'Student',
-    cell: (payment) => <PersonCell person={payment.user} avatarSize="xs" />,
+    cell: (payment) => <PersonCell person={payment.student || payment.user} avatarSize="xs" />,
   },
   {
     key: 'amount',
