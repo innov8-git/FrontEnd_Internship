@@ -86,6 +86,7 @@ export const queryKeys = {
     tpos: ['admin', 'tpos'],
     tpoDetail: (id) => ['admin', 'tpos', 'detail', id],
     tpoReferrals: (id, params = {}) => ['admin', 'tpos', id, 'referrals', params],
+    tpoEarnings: (id, params = {}) => ['admin', 'tpos', id, 'earnings', params],
     certificates: ['admin', 'certificates'],
     audit: ['admin', 'audit'],
     trainerChangeRequests: ['admin', 'trainer-change-requests'],
@@ -96,6 +97,12 @@ export const queryKeys = {
     assignments: ['trainer', 'assignments'],
     submissions: (params = {}) => ['trainer', 'submissions', params],
     submission: (id) => ['trainer', 'submission', id],
+  },
+  tpo: {
+    all: ['tpo'],
+    summary: (tpoId = 'me') => ['tpo', 'summary', tpoId],
+    referrals: (tpoId = 'me', params = {}) => ['tpo', 'referrals', tpoId, params],
+    payouts: (tpoId = 'me', params = {}) => ['tpo', 'payouts', tpoId, params],
   },
   notifications: {
     all: ['notifications'],

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  deleteUser,
   getUsers,
   updateStudentTrainer,
   updateUserRoles,
@@ -49,6 +50,25 @@ export function useUpdateStudentTrainer() {
     mutationFn: ({ id, trainerId, unassign }) =>
       updateStudentTrainer(id, { trainerId, unassign }),
     onSuccess: () => invalidate(),
+  });
+}
+
+/** DELETE /admin/users/:id — permanently deletes a user and dependent records from the database. */
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+  const invalidateUserData = useInvalidateUserData();
+  return useMutation({
+    mutationFn: (id) => deleteUser(id),
+    onSuccess: () =>
+      Promise.all([
+        invalidateUserData(),
+        queryClient.invalidateQueries({ queryKey: queryKeys.admin.enrollments }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.admin.payments }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.admin.certificates }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.admin.submissions }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.admin.teams }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.admin.tpos }),
+      ]),
   });
 }
 

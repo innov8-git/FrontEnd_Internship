@@ -14,6 +14,7 @@ import {
   Clock,
   MoreHorizontal,
   RefreshCw,
+  Trash2,
   UserCheck,
   UserCog,
   UserPlus,
@@ -29,6 +30,7 @@ import { PersonCell } from '../components/PersonCell';
 import { RoleBadges } from '../components/RoleBadges';
 import { RoleChangeDialog } from '../components/RoleChangeDialog';
 import { UserStatusDialog } from '../components/UserStatusDialog';
+import { DeleteUserDialog } from '../components/DeleteUserDialog';
 import { ChangeTrainerDialog } from '../components/ChangeTrainerDialog';
 import { ROLE_OPTIONS, USER_STATUS_OPTIONS } from '../constants';
 import { fetchAdminUsers } from '../hooks/useAdminUsers';
@@ -75,6 +77,7 @@ export function UsersPage() {
   const [roleTarget, setRoleTarget] = useState(null);
   const [statusTarget, setStatusTarget] = useState(null);
   const [trainerTarget, setTrainerTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const queryClient = useQueryClient();
   const isFetching = useIsFetching({ queryKey: queryKeys.admin.users }) > 0;
@@ -249,6 +252,14 @@ export function UsersPage() {
                 { label: 'Change roles', icon: UserCog, onClick: () => setRoleTarget(user) },
                 { divider: true },
                 statusItem,
+                isSelf
+                  ? { label: "You can't delete yourself", icon: Trash2, disabled: true }
+                  : {
+                      label: 'Delete user',
+                      icon: Trash2,
+                      danger: true,
+                      onClick: () => setDeleteTarget(user),
+                    },
               ]}
             />
           );
@@ -346,6 +357,10 @@ export function UsersPage() {
           focusRowActions(statusTarget?.user?._id);
           setStatusTarget(null);
         }}
+      />
+      <DeleteUserDialog
+        user={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
       />
       <ChangeTrainerDialog
         student={trainerTarget}

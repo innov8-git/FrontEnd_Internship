@@ -277,11 +277,38 @@ export const adminHandlers = [
       return true;
     });
 
+    const getUserTeams = (userId) => {
+      const teamMap = new Map();
+      for (const team of db.teams ?? []) {
+        if (team.status === 'DISBANDED') continue;
+        if (team.leaderId === userId) {
+          teamMap.set(team._id, { _id: team._id, name: team.name, isLeader: true, status: 'JOINED' });
+        }
+        const member = (team.members ?? []).find(
+          (m) => m.userId === userId && ['JOINED', 'INVITED'].includes(m.status),
+        );
+        if (member) {
+          const existing = teamMap.get(team._id);
+          teamMap.set(team._id, {
+            _id: team._id,
+            name: team.name,
+            isLeader: Boolean(existing?.isLeader || member.isLeader),
+            status: member.status,
+          });
+        }
+      }
+      return Array.from(teamMap.values());
+    };
+
     const toUserDto = (user) => {
       const isStudent = (user.roles ?? []).includes(ROLES.STUDENT);
+      const teams = getUserTeams(user._id);
       return {
         ...publicUser(user),
         assignedTrainer: isStudent ? getStudentTrainerInfo(user._id) : null,
+        teams,
+        isTeamMember: teams.length > 0,
+        isTeamLeader: teams.some((t) => t.isLeader),
       };
     };
 
@@ -422,6 +449,71 @@ export const adminHandlers = [
       after: { status: nextStatus },
     });
     return json(publicUser(user));
+  }),
+
+  mock.delete('/admin/users/:id', ({ request, params }) => {
+    const auth = requireAuth(request, ADMIN_ONLY);
+    if (auth.error) return auth.error;
+
+    const userId = decodeParam(params.id);
+    if (userId === auth.user._id) {
+      return unprocessable('CANNOT_DELETE_SELF', 'You cannot delete your own account.');
+    }
+
+    const index = db.users.findIndex((candidate) => candidate._id === userId);
+    if (index === -1) return notFound('User');
+
+    const target = db.users[index];
+    if ((target.roles ?? []).includes(ROLES.ADMIN)) {
+      const adminCount = db.users.filter((u) => (u.roles ?? []).includes(ROLES.ADMIN)).length;
+      if (adminCount <= 1) {
+        return unprocessable('LAST_ADMIN', 'Cannot delete the only remaining administrator account.');
+      }
+    }
+
+    const userEnrollments = db.enrollments.filter((e) => e.userId === userId);
+    const enrollmentIds = new Set(userEnrollments.map((e) => e._id));
+    const wasTeamMember = (db.teams ?? []).some(
+      (t) => t.leaderId === userId || (t.members ?? []).some((m) => m.userId === userId),
+    );
+
+    // Clean up dependent collections in mock db
+    db.enrollments = db.enrollments.filter((e) => e.userId !== userId);
+    db.payments = db.payments.filter((p) => p.userId !== userId && !enrollmentIds.has(p.enrollmentId));
+    db.certificates = db.certificates.filter((c) => c.userId !== userId && !enrollmentIds.has(c.enrollmentId));
+    db.trainerAssignments = db.trainerAssignments.filter(
+      (a) => a.trainerId !== userId && !enrollmentIds.has(a.enrollmentId),
+    );
+    if (Array.isArray(db.teams)) {
+      db.teams = db.teams.filter((team) => {
+        if (Array.isArray(team.members)) {
+          team.members = team.members.filter((m) => m.userId !== userId);
+        }
+        if (team.leaderId === userId) {
+          const nextLeader = (team.members ?? []).find((m) => m.userId && m.status === 'JOINED');
+          if (nextLeader) {
+            team.leaderId = nextLeader.userId;
+            nextLeader.isLeader = true;
+            return true;
+          }
+          return false;
+        }
+        return true;
+      });
+    }
+    db.users.splice(index, 1);
+
+    addAudit({
+      actorId: auth.user._id,
+      action: 'USER_DELETED',
+      entityType: 'USER',
+      entityId: userId,
+      before: { name: target.name, email: target.email, roles: target.roles, status: target.status },
+      after: null,
+    });
+    persist();
+
+    return json({ _id: userId, deleted: true, wasTeamMember });
   }),
 
   // ----- Enrollments (KD8, MM18) -----

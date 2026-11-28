@@ -1,27 +1,47 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
+  buildTpoCredentialsWhatsAppUrl,
   buildTpoRegistrationLink,
   buildWhatsAppShareUrl,
+  formatTpoCommission,
 } from '@/features/admin/utils/tpoShare';
 import { CreateTpoModal } from '@/features/admin/components/CreateTpoModal';
 import { RegisterPage } from '@/features/auth/pages/RegisterPage';
 import { InternshipDetailsModal } from '@/features/internships/components/InternshipDetailsModal';
+import { TpoPortalPage } from '@/features/tpo/pages/TpoPortalPage';
+import { tpoRoutes } from '@/routes/TpoRoutes';
 import { AuthContext } from '@/shared/context/AuthContext';
+import { ThemeProvider } from '@/shared/context/ThemeContext';
+import { hasAnyRole, hasRole } from '@/shared/constants';
 import * as adminService from '@/services/adminService';
 import * as authService from '@/services/authService';
 import * as paymentService from '@/services/paymentService';
 import * as projectService from '@/services/projectService';
+import * as tpoService from '@/services/tpoService';
 
-vi.mock('@/shared/hooks/useAuth', () => ({
-  useAuth: () => ({
-    loginWithGoogle: vi.fn(),
-    user: null,
-  }),
-}));
+vi.mock('@/shared/hooks/useAuth', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useAuth: () => {
+      try {
+        return actual.useAuth();
+      } catch {
+        return {
+          loginWithGoogle: vi.fn(),
+          user: null,
+          status: 'unauthenticated',
+          hasRole: () => false,
+          hasAnyRole: () => false,
+        };
+      }
+    },
+  };
+});
 
 const MOCK_PARTNER = {
   id: 'inlarge-software',
@@ -205,5 +225,123 @@ describe('InternshipDetailsModal Step 3 Demo Payment TPO Reference Code', () => 
 
     expect(await screen.findByText(/demo payment successful/i)).toBeInTheDocument();
     expect(screen.getByText('TPO-RS-7K4M9')).toBeInTheDocument();
+  });
+});
+
+describe('TPO Commission & Private Portal Stealth Security', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('formats fixed and percentage commissions cleanly and builds separate confidential WhatsApp URL', () => {
+    expect(formatTpoCommission('FIXED', 20000)).toContain('200');
+    expect(formatTpoCommission('PERCENTAGE', 1250)).toBe('12.5% of fee');
+    expect(formatTpoCommission('FIXED', 0)).toBe('Not set (₹0)');
+
+    const url = buildTpoCredentialsWhatsAppUrl(
+      { name: 'Dr. Rahul Sharma', phone: '9876543210', referralCode: 'TPO-RS-7K4M9' },
+      { email: 'rahul@pit.edu', password: 'Tpo!Secret9A' },
+    );
+    expect(url).toMatch(/^https:\/\/wa\.me\/919876543210\?text=/);
+    expect(decodeURIComponent(url)).toContain('CONFIDENTIAL');
+    expect(decodeURIComponent(url)).toContain('Tpo!Secret9A');
+  });
+
+  it('returns 404 NotFound when a STUDENT tries to open /tpo/portal directly (stealth masking)', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const studentUser = { _id: 'stu-1', name: 'Student', email: 'stu@pit.edu', roles: ['STUDENT'] };
+    const authValue = {
+      status: 'authenticated',
+      isAuthenticated: true,
+      user: studentUser,
+      roles: ['STUDENT'],
+      hasRole: (r) => hasRole(studentUser, r),
+      hasAnyRole: (rs) => hasAnyRole(studentUser, rs),
+      logout: vi.fn(),
+    };
+
+    const router = createMemoryRouter([tpoRoutes], { initialEntries: ['/tpo/portal'] });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AuthContext.Provider value={authValue}>
+            <RouterProvider router={router} />
+          </AuthContext.Provider>
+        </ThemeProvider>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText(/404|not found/i)).toBeInTheDocument();
+    expect(screen.queryByText(/TPO Referral & Earnings Portal/i)).not.toBeInTheDocument();
+  });
+
+  it('renders private referral count, earnings, and masked student emails for authenticated TPO', async () => {
+    vi.spyOn(tpoService, 'getMyTpoSummary').mockResolvedValueOnce({
+      tpo: {
+        _id: 'tpo-1',
+        name: 'Dr. Rahul Sharma',
+        college: 'Pune Institute of Technology',
+        email: 'rahul@pit.edu',
+        referralCode: 'TPO-RS-7K4M9',
+        isActive: true,
+        portalEnabled: true,
+        commissionType: 'FIXED',
+        commissionValue: 20000,
+      },
+      stats: {
+        totalReferredStudents: 5,
+        pendingVerificationStudents: 1,
+        paidConversions: 3,
+        totalEarnedPaise: 60000,
+        paidOutPaise: 20000,
+        pendingPayoutPaise: 40000,
+        currency: 'INR',
+      },
+    });
+
+    vi.spyOn(tpoService, 'getMyTpoReferrals').mockResolvedValueOnce({
+      items: [
+        {
+          _id: 'stu-1',
+          name: 'Alex Morgan',
+          maskedEmail: 'al***@pit.edu',
+          college: 'Pune Institute of Technology',
+          emailVerified: true,
+          joinedAt: '2026-10-01T10:00:00.000Z',
+          enrollment: { status: 'ACTIVE', domain: 'Banking', durationMonths: 3 },
+          earnedAmountPaise: 20000,
+          earningStatus: 'CONFIRMED',
+          currency: 'INR',
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 10,
+      totalPages: 1,
+    });
+
+    const tpoUser = { _id: 'u-tpo', name: 'Dr. Rahul Sharma', email: 'rahul@pit.edu', roles: ['TPO'] };
+    const authValue = {
+      status: 'authenticated',
+      isAuthenticated: true,
+      user: tpoUser,
+      roles: ['TPO'],
+      hasRole: (r) => hasRole(tpoUser, r),
+      hasAnyRole: (rs) => hasAnyRole(tpoUser, rs),
+      logout: vi.fn(),
+    };
+
+    renderWithProviders(
+      <ThemeProvider>
+        <TpoPortalPage />
+      </ThemeProvider>,
+      { initialEntries: ['/tpo/portal'], authValue },
+    );
+
+    expect(await screen.findByTestId('tpo-portal-code')).toHaveTextContent('TPO-RS-7K4M9');
+    expect(await screen.findByText('Alex Morgan')).toBeInTheDocument();
+    expect(screen.getByText('al***@pit.edu')).toBeInTheDocument();
+    expect(screen.queryByText('alex.morgan@pit.edu')).not.toBeInTheDocument();
   });
 });

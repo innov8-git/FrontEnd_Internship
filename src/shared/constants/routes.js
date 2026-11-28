@@ -47,6 +47,9 @@ export const ROUTES = Object.freeze({
   TRAINER_REVIEW: '/trainer/review/:submissionId',
   TRAINER_REPORTS: '/trainer/reports',
 
+  // Private TPO Portal (unlisted, never linked from public/student/trainer UI)
+  TPO_PORTAL: '/tpo/portal',
+
   // Admin
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
@@ -117,6 +120,7 @@ export const paths = Object.freeze({
   sop: (day) => buildPath(ROUTES.SOP, { day }),
   task: (id, query) => buildPath(ROUTES.TASK, { id }, query),
   trainerReview: (submissionId) => buildPath(ROUTES.TRAINER_REVIEW, { submissionId }),
+  tpoPortal: (tpoId) => buildPath(ROUTES.TPO_PORTAL, {}, tpoId ? { tpoId } : undefined),
   adminInternships: () => ROUTES.ADMIN_INTERNSHIPS,
   adminAssessment: (designationId) => buildPath(ROUTES.ADMIN_ASSESSMENT, { designationId }),
   adminSchedule: (id) => buildPath(ROUTES.ADMIN_SCHEDULE, { id }),
@@ -129,6 +133,7 @@ export const paths = Object.freeze({
 export const ROLE_HOME = Object.freeze({
   [ROLES.ADMIN]: ROUTES.ADMIN,
   [ROLES.TRAINER]: ROUTES.TRAINER,
+  [ROLES.TPO]: ROUTES.TPO_PORTAL,
   [ROLES.STUDENT]: ROUTES.DASHBOARD,
 });
 

@@ -29,6 +29,7 @@ export function UserMenu({ className }) {
   };
 
   const userRoles = ROLE_PRIORITY.filter((role) => hasRole(role));
+  const isTpoOnly = userRoles.length === 1 && userRoles[0] === ROLES.TPO;
   const dashboardItems =
     userRoles.length > 1
       ? userRoles.map((role) => ({
@@ -38,24 +39,37 @@ export function UserMenu({ className }) {
         }))
       : [{ label: 'Dashboard', icon: LayoutDashboard, to: getHomeRoute(user) }];
 
-  const items = [
-    ...dashboardItems,
-    {
-      label: 'Profile',
-      icon: User,
-      to: hasRole(ROLES.ADMIN) ? ROUTES.ADMIN_PROFILE : ROUTES.PROFILE,
-    },
-    { label: 'Browse internships', icon: Briefcase, to: ROUTES.CATALOG },
-    { divider: true },
-    {
-      label: 'Log out',
-      icon: LogOut,
-      danger: true,
-      onClick: () => {
-        void handleLogout();
-      },
-    },
-  ];
+  const items = isTpoOnly
+    ? [
+        ...dashboardItems,
+        { divider: true },
+        {
+          label: 'Log out',
+          icon: LogOut,
+          danger: true,
+          onClick: () => {
+            void handleLogout();
+          },
+        },
+      ]
+    : [
+        ...dashboardItems,
+        {
+          label: 'Profile',
+          icon: User,
+          to: hasRole(ROLES.ADMIN) ? ROUTES.ADMIN_PROFILE : ROUTES.PROFILE,
+        },
+        { label: 'Browse internships', icon: Briefcase, to: ROUTES.CATALOG },
+        { divider: true },
+        {
+          label: 'Log out',
+          icon: LogOut,
+          danger: true,
+          onClick: () => {
+            void handleLogout();
+          },
+        },
+      ];
 
   const name = user.name || user.email || 'Account';
 

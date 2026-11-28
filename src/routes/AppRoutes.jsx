@@ -6,6 +6,7 @@ import { authRoutes } from './AuthRoutes';
 import { profileRoute } from './ProfileRoute';
 import { studentRoutes } from './StudentRoutes';
 import { trainerRoutes } from './TrainerRoutes';
+import { tpoRoutes } from './TpoRoutes';
 import { adminRoutes } from './AdminRoutes';
 
 /**
@@ -17,7 +18,7 @@ export const routes = [
   {
     element: <RootLayout />,
     errorElement: <RouteErrorPage />,
-    children: [publicRoutes, ...authRoutes, profileRoute, studentRoutes, trainerRoutes, adminRoutes],
+    children: [publicRoutes, ...authRoutes, profileRoute, studentRoutes, trainerRoutes, tpoRoutes, adminRoutes],
   },
 ];
 

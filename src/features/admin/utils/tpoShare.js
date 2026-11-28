@@ -1,13 +1,39 @@
 import { ROUTES } from '@/shared/constants';
+import { formatMoney } from '@/shared/utils/helpers';
 
 /**
- * Builds the internship portal URL pre-populated with a TPO reference code.
+ * Formats TPO commission configuration cleanly for display.
+ * - FIXED: value is integer paise (e.g. 20000 -> "₹200 / paid student")
+ * - PERCENTAGE: value is basis points (e.g. 1000 -> "10% of fee", 1250 -> "12.5% of fee")
+ */
+export function formatTpoCommission(commissionType, commissionValue) {
+  const value = Number(commissionValue || 0);
+  if (!value) return 'Not set (₹0)';
+  if (commissionType === 'PERCENTAGE') {
+    const pct = value / 100;
+    const formatted = Number.isInteger(pct) ? String(pct) : pct.toFixed(2).replace(/\.?0+$/, '');
+    return `${formatted}% of fee`;
+  }
+  return `${formatMoney(value)} / paid student`;
+}
+
+/**
+ * Builds the internship portal URL pre-populated with a TPO reference code (for students).
  */
 export function buildTpoRegistrationLink(referralCode) {
   const code = String(referralCode ?? '').trim().toUpperCase();
   const origin =
     typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '';
   return `${origin}${ROUTES.CATALOG}?ref=${encodeURIComponent(code)}`;
+}
+
+/**
+ * Builds the login URL for private TPO portal access.
+ */
+export function buildTpoLoginLink() {
+  const origin =
+    typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '';
+  return `${origin}${ROUTES.LOGIN}`;
 }
 
 /**
@@ -23,7 +49,7 @@ function sanitizeWhatsAppPhone(phone) {
 }
 
 /**
- * Builds a clean WhatsApp message ready for the admin to send to the TPO.
+ * Builds a clean WhatsApp message ready for the admin to send to the TPO (student-shareable code).
  */
 export function buildTpoWhatsAppMessage(tpo) {
   const name = tpo?.name || 'Sir/Madam';
@@ -52,5 +78,29 @@ export function buildTpoWhatsAppMessage(tpo) {
 export function buildWhatsAppShareUrl(tpo) {
   const phone = sanitizeWhatsAppPhone(tpo?.phone);
   const message = encodeURIComponent(buildTpoWhatsAppMessage(tpo));
+  return phone ? `https://wa.me/${phone}?text=${message}` : `https://wa.me/?text=${message}`;
+}
+
+/**
+ * Builds a SEPARATE confidential WhatsApp message containing the TPO's private login credentials.
+ * Kept strictly separate from the student-shareable referral code message.
+ */
+export function buildTpoCredentialsWhatsAppUrl(tpo, credentials) {
+  const phone = sanitizeWhatsAppPhone(tpo?.phone);
+  const name = tpo?.name || 'Sir/Madam';
+  const loginUrl = buildTpoLoginLink();
+  const message = encodeURIComponent(
+    [
+      `Hello ${name},`,
+      '',
+      `Here is your *CONFIDENTIAL* private login to check your student referral count and reference earnings:`,
+      '',
+      `Login URL: ${loginUrl}`,
+      `Email: ${credentials?.email || tpo?.email || ''}`,
+      `Password: ${credentials?.password || ''}`,
+      '',
+      `Please keep these credentials strictly private (do not forward to students). Share only your reference code (*${tpo?.referralCode || ''}*) with students.`,
+    ].join('\n'),
+  );
   return phone ? `https://wa.me/${phone}?text=${message}` : `https://wa.me/?text=${message}`;
 }

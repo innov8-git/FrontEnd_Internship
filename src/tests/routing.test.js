@@ -18,6 +18,7 @@ describe('route helpers', () => {
   it('sends each role to its own home (SN3)', () => {
     expect(getHomeRoute({ roles: ['STUDENT'] })).toBe('/dashboard');
     expect(getHomeRoute({ roles: ['TRAINER'] })).toBe('/trainer');
+    expect(getHomeRoute({ roles: ['TPO'] })).toBe('/tpo/portal');
     expect(getHomeRoute({ roles: ['ADMIN'] })).toBe('/admin');
     expect(getHomeRoute({ roles: ['STUDENT', 'ADMIN'] })).toBe('/admin');
   });

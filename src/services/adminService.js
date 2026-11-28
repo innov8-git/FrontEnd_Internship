@@ -11,6 +11,8 @@ export const updateUserStatus = (id, status) =>
   api.patch(`/admin/users/${encodeURIComponent(id)}/status`, { status });
 export const updateStudentTrainer = (id, payload) =>
   api.patch(`/admin/users/${encodeURIComponent(id)}/trainer`, payload);
+export const deleteUser = (id) =>
+  api.delete(`/admin/users/${encodeURIComponent(id)}`);
 
 // Enrollments and payments monitoring
 export const getAdminEnrollments = (params = {}) => api.get('/admin/enrollments', params);
@@ -75,7 +77,7 @@ export const fetchTrainerApplicationResumeBlob = async (id, { download = false }
   return res.data;
 };
 
-// TPOs (referral code generation & student attribution)
+// TPOs (referral code generation, student attribution, earnings & payouts)
 export const getTpos = (params = {}) => api.get('/admin/tpos', params);
 export const getTpo = (id) => api.get(`/admin/tpos/${encodeURIComponent(id)}`);
 export const createTpo = (payload) => api.post('/admin/tpos', payload);
@@ -84,3 +86,9 @@ export const updateTpo = (id, payload) =>
 export const deleteTpo = (id) => api.delete(`/admin/tpos/${encodeURIComponent(id)}`);
 export const getTpoReferrals = (id, params = {}) =>
   api.get(`/admin/tpos/${encodeURIComponent(id)}/referrals`, params);
+export const provisionTpoPortalAccess = (id, payload = {}) =>
+  api.post(`/admin/tpos/${encodeURIComponent(id)}/portal-access`, payload);
+export const getTpoEarnings = (id, params = {}) =>
+  api.get(`/admin/tpos/${encodeURIComponent(id)}/earnings`, params);
+export const recordTpoPayout = (id, payload = {}) =>
+  api.post(`/admin/tpos/${encodeURIComponent(id)}/payouts`, payload);

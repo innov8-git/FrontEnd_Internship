@@ -2,6 +2,7 @@ export const ROLES = Object.freeze({
   STUDENT: 'STUDENT',
   TRAINER: 'TRAINER',
   ADMIN: 'ADMIN',
+  TPO: 'TPO',
 });
 
 export const ROLE_LIST = [ROLES.STUDENT, ROLES.TRAINER, ROLES.ADMIN];
@@ -10,10 +11,11 @@ export const ROLE_LABELS = Object.freeze({
   [ROLES.STUDENT]: 'Student',
   [ROLES.TRAINER]: 'Trainer',
   [ROLES.ADMIN]: 'Admin',
+  [ROLES.TPO]: 'TPO',
 });
 
 /** When a user has several roles, the first match decides where they land after login. */
-export const ROLE_PRIORITY = [ROLES.ADMIN, ROLES.TRAINER, ROLES.STUDENT];
+export const ROLE_PRIORITY = [ROLES.ADMIN, ROLES.TRAINER, ROLES.TPO, ROLES.STUDENT];
 
 export function hasRole(user, role) {
   if (!user || !role) return false;
