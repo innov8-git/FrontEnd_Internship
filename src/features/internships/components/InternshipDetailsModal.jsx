@@ -2,7 +2,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge, Button, Input, Modal } from '@/shared/components/ui';
 import { AuthContext } from '@/shared/context/AuthContext';
-import { ROUTES, paths } from '@/shared/constants';
+import { ROUTES, STORAGE_KEYS, paths } from '@/shared/constants';
 import { getDomainProjects } from '@/services/projectService';
 import { completeDemoCheckout } from '@/services/paymentService';
 import * as authService from '@/services/authService';
@@ -593,6 +593,7 @@ export function InternshipDetailsModal({
         domainName: formData.selectedDomain,
         duration: formData.duration,
         durationMonths,
+        designationName: currentRole?.designation || currentRole?.role || null,
         internshipId: currentRole?.id,
         companyName: partner?.name,
         projectId: selectedProject?.id || selectedProject?._id || selectedProject?.slug,
@@ -607,12 +608,29 @@ export function InternshipDetailsModal({
       setDemoResult(resultData);
       checkoutCompleted = true;
 
-      // Invalidate admin queries so that revenue, payments, and TPO referrals update live
+      if (resultData?.enrollmentId) {
+        try {
+          window.sessionStorage.setItem(STORAGE_KEYS.activeEnrollmentId, resultData.enrollmentId);
+        } catch {
+          // sessionStorage unavailable
+        }
+      }
+
+      // Invalidate student queries so the dashboard, switcher, and tasks update immediately with the new enrollment
+      queryClient.invalidateQueries({ queryKey: queryKeys.enrollments.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.enrollments.list });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
+
+      // Invalidate admin queries so that revenue, payments, enrollments, and TPO referrals update live
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.revenue });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.payments });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.enrollments });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.submissions });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.tpos });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.users });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trainer.all });
     } catch (err) {
       const details = Array.isArray(err?.details)
         ? err.details
@@ -1241,6 +1259,16 @@ export function InternshipDetailsModal({
                         variant="primary"
                         rightIcon={ArrowRight}
                         onClick={() => {
+                          if (demoResult?.enrollmentId) {
+                            try {
+                              window.sessionStorage.setItem(
+                                STORAGE_KEYS.activeEnrollmentId,
+                                demoResult.enrollmentId,
+                              );
+                            } catch {
+                              // ignore
+                            }
+                          }
                           handleResetAndClose();
                           navigate(ROUTES.DASHBOARD || '/dashboard');
                         }}
